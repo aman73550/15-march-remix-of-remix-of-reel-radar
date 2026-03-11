@@ -8,6 +8,7 @@ import ViralScoreCircle from "@/components/ViralScoreCircle";
 import AnalysisCard from "@/components/AnalysisCard";
 import CategoryPieChart from "@/components/CategoryPieChart";
 import ScoreBarChart from "@/components/ScoreBarChart";
+import ReelPreview from "@/components/ReelPreview";
 import LanguageToggle from "@/components/LanguageToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
