@@ -34,7 +34,6 @@ const translations = {
     videoTitle: "Video Signals (AI Estimated)",
     trendTitle: "Trend Matching",
     engagementTitle: "Engagement Quality",
-    needsWork: "💡 Needs Work",
     metricsLabel: "Engagement Metrics (optional)",
     likesPlaceholder: "Likes count",
     commentsPlaceholder: "Comments count",
