@@ -47,6 +47,8 @@ const Index = () => {
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [tooNewWarning, setTooNewWarning] = useState(false);
   const [lowViewsWarning, setLowViewsWarning] = useState(false);
+  const [showShareGate, setShowShareGate] = useState(false);
+  const [remaining, setRemaining] = useState(getRemainingAnalyses());
   const { toast } = useToast();
   const { lang, t } = useLang();
 
