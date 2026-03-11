@@ -218,7 +218,7 @@ const Index = () => {
 
       {/* Hero */}
       <div className="relative z-10">
-        <motion.div className="max-w-2xl mx-auto px-4 pt-14 pb-8 text-center" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+        <motion.div className="max-w-2xl mx-auto px-3 sm:px-4 pt-10 sm:pt-14 pb-6 sm:pb-8 text-center" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <motion.div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-muted/50 text-xs text-muted-foreground mb-6" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
             <Sparkles className="w-3 h-3" />
             {t.badge}
