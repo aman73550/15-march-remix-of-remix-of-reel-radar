@@ -298,6 +298,11 @@ const Index = () => {
         </AnimatePresence>
       </motion.div>
 
+      {/* Share Unlock Gate */}
+      {showShareGate && (
+        <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
+      )}
+
       <div className="py-4"><BannerAd slot="top-banner" /></div>
 
       {/* Results */}
