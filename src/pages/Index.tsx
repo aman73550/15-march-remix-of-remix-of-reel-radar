@@ -21,6 +21,7 @@ import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
 import ShareToolPopup from "@/components/ShareToolPopup";
 import ShareUnlockScreen from "@/components/ShareUnlockScreen";
+import SocialProofSection, { SocialProofBadge } from "@/components/SocialProofSection";
 import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
@@ -223,6 +224,9 @@ const Index = () => {
           <motion.p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
             {t.subtitle}
           </motion.p>
+          <div className="mt-3">
+            <SocialProofBadge />
+          </div>
         </motion.div>
       </div>
 
@@ -344,6 +348,9 @@ const Index = () => {
       {showShareGate && (
         <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
       )}
+
+      {/* Social Proof Section */}
+      {!analysis && !showShareGate && <SocialProofSection />}
 
       <div className="py-4"><BannerAd slot="top-banner" /></div>
 
