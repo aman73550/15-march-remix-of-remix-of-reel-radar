@@ -47,6 +47,22 @@ export interface VideoSignals {
   details: string[];
 }
 
+export interface VideoQuality {
+  resolution: string;
+  lighting: string;
+  cameraStability: string;
+  visualClarity: string;
+  qualityScore: number;
+}
+
+export interface AudioQuality {
+  voiceClarity: string;
+  backgroundAudio: string;
+  soundBalance: string;
+  musicUsage: string;
+  qualityScore: number;
+}
+
 export interface TrendMatching {
   score: number;
   formatSimilarity: string;
@@ -81,6 +97,8 @@ export interface ReelAnalysis {
   captionAnalysis: CaptionAnalysis;
   hashtagAnalysis: HashtagAnalysis;
   videoSignals: VideoSignals;
+  videoQuality?: VideoQuality;
+  audioQuality?: AudioQuality;
   trendMatching: TrendMatching;
 
   engagementScore: number;

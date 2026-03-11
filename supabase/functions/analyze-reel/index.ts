@@ -91,17 +91,29 @@ Perform ALL of these analyses:
    - Motion intensity
    - Visual engagement level
 
-5. TREND MATCHING:
+5. VIDEO QUALITY ASSESSMENT:
+   - Estimated resolution quality (HD/SD/Low)
+   - Lighting quality (good/average/poor)
+   - Camera stability (stable/moderate/shaky)
+   - Overall visual clarity (sharp/average/blurry)
+
+6. AUDIO QUALITY ASSESSMENT:
+   - Voice clarity (clear/muffled/none)
+   - Background audio quality (clean/moderate/noisy)
+   - Sound balance (balanced/unbalanced/distorted)
+   - Music/sound usage (trending audio/original/none)
+
+7. TREND MATCHING:
    - Format similarity to current viral trends
    - Hook pattern matching
    - Trending structure alignment
    - Name specific trends it matches
 
-6. ENGAGEMENT ANALYSIS:
+8. ENGAGEMENT ANALYSIS:
    - Overall engagement quality${hasMetrics ? "\n   - Compare each metric against estimated category averages" : ""}
    - Engagement rate estimate${sampleComments ? `
 
-7. COMMENT SENTIMENT:
+9. COMMENT SENTIMENT:
    - Percentage breakdown: positive, neutral, negative (must sum to 100)
    - Question ratio (% of comments that are questions)
    - Engagement signals in comments
@@ -149,6 +161,22 @@ Return ONLY valid JSON (no markdown, no code fences):
     "motionIntensity": "<high/medium/low>",
     "visualEngagement": "<high/medium/low + why>",
     "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
+  },
+
+  "videoQuality": {
+    "resolution": "<HD/SD/Low>",
+    "lighting": "<good/average/poor>",
+    "cameraStability": "<stable/moderate/shaky>",
+    "visualClarity": "<sharp/average/blurry>",
+    "qualityScore": <1-10>
+  },
+
+  "audioQuality": {
+    "voiceClarity": "<clear/muffled/none>",
+    "backgroundAudio": "<clean/moderate/noisy>",
+    "soundBalance": "<balanced/unbalanced/distorted>",
+    "musicUsage": "<trending/original/none>",
+    "qualityScore": <1-10>
   },
 
   "trendMatching": {
@@ -255,10 +283,46 @@ Return ONLY valid JSON (no markdown, no code fences):
     if (analysis.hashtagAnalysis?.score >= 7) reasons.push("Well-optimized hashtag strategy");
     if (analysis.trendMatching?.score >= 7) reasons.push("Content aligns with current viral trends");
 
+    // === QUALITY BONUS/PENALTY (capped at ±15 total) ===
+    let qualityBonus = 0;
+
+    // Video quality adjustment
+    const vq = analysis.videoQuality;
+    if (vq) {
+      const vqScore = vq.qualityScore ?? 5;
+      if (vqScore >= 8) {
+        qualityBonus += 8; // HD + great visuals
+        reasons.push("High video quality boosts viewer retention");
+      } else if (vqScore >= 6) {
+        qualityBonus += 3; // Good quality
+      } else if (vqScore <= 3) {
+        qualityBonus -= 5; // Poor quality
+        reasons.push("Low video quality may reduce viewer retention");
+      }
+    }
+
+    // Audio quality adjustment
+    const aq = analysis.audioQuality;
+    if (aq) {
+      const aqScore = aq.qualityScore ?? 5;
+      if (aqScore >= 8) {
+        qualityBonus += 5; // Clear audio
+        reasons.push("Clean audio quality enhances engagement");
+      } else if (aqScore >= 6) {
+        qualityBonus += 3;
+      } else if (aqScore <= 3) {
+        qualityBonus -= 5;
+        reasons.push("Poor audio quality may cause viewers to skip");
+      }
+    }
+
+    // Cap quality bonus to ±15
+    qualityBonus = Math.max(-15, Math.min(15, qualityBonus));
+
     let viralStatus, viralScore, viralLabel;
     if (hasMetrics && isAlreadyViral) {
       viralStatus = "Already Viral";
-      viralScore = Math.min(95, Math.max(80, Math.round(80 + (engRate * 100))));
+      viralScore = Math.min(98, Math.max(80, Math.round(80 + (engRate * 100) + qualityBonus)));
       viralLabel = "Viral Strength";
     } else if (hasMetrics && isGrowing) {
       viralStatus = "Growing";
@@ -268,7 +332,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 10;
       const engS = Math.min(1, engRate / 0.07);
       const comS = Math.min(1, commentsVal / 500);
-      viralScore = Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10));
+      viralScore = Math.min(95, Math.max(5, Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10) + qualityBonus)));
       viralLabel = "Viral Potential";
     } else {
       viralStatus = hasMetrics ? "Low Viral Potential" : (analysis.viralScore >= 60 ? "Growing" : "Low Viral Potential");
@@ -277,7 +341,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 10;
       const engS = hasMetrics ? Math.min(1, engRate / 0.07) : (analysis.engagementScore ?? 5) / 10;
       const comS = hasMetrics ? Math.min(1, commentsVal / 500) : 0.5;
-      viralScore = Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10));
+      viralScore = Math.min(95, Math.max(5, Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10) + qualityBonus)));
       viralLabel = "Viral Potential";
       if (!hasMetrics && reasons.length === 0) {
         if (analysis.hookAnalysis?.score >= 5) reasons.push("Decent hook potential");

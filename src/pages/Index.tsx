@@ -16,6 +16,7 @@ import HookAnalysisCard from "@/components/HookAnalysisCard";
 import CaptionAnalysisCard from "@/components/CaptionAnalysisCard";
 import HashtagAnalysisCard from "@/components/HashtagAnalysisCard";
 import VideoSignalsCard from "@/components/VideoSignalsCard";
+import QualitySignalsCard from "@/components/QualitySignalsCard";
 import TrendMatchingCard from "@/components/TrendMatchingCard";
 import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
@@ -423,6 +424,9 @@ const Index = () => {
             <InlineAd slot="mid-2" />
 
             {analysis.videoSignals && <VideoSignalsCard data={analysis.videoSignals} title={t.videoTitle} />}
+            {(analysis.videoQuality || analysis.audioQuality) && (
+              <QualitySignalsCard videoQuality={analysis.videoQuality} audioQuality={analysis.audioQuality} />
+            )}
             {analysis.trendMatching && <TrendMatchingCard data={analysis.trendMatching} title={t.trendTitle} />}
 
             {/* Engagement */}
