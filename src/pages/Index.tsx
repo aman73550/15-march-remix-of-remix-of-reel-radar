@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import CategoryPieChart from "@/components/CategoryPieChart";
 import ScoreBarChart from "@/components/ScoreBarChart";
 import ReelPreview from "@/components/ReelPreview";
 import LanguageToggle from "@/components/LanguageToggle";
+import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import type { ReelAnalysis } from "@/lib/types";
@@ -21,26 +22,20 @@ const Index = () => {
   const [hashtags, setHashtags] = useState("");
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
+  const [showInterstitial, setShowInterstitial] = useState(false);
+  const [pendingAnalysis, setPendingAnalysis] = useState(false);
   const { toast } = useToast();
   const { lang, t } = useLang();
 
-  const handleAnalyze = async () => {
-    if (!url.trim()) {
-      toast({ title: t.enterUrl, variant: "destructive" });
-      return;
-    }
-
+  const runAnalysis = useCallback(async () => {
     setLoading(true);
     setAnalysis(null);
-
     try {
       const { data, error } = await supabase.functions.invoke("analyze-reel", {
         body: { url: url.trim(), caption: caption.trim(), hashtags: hashtags.trim(), lang },
       });
-
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Analysis failed");
-
       setAnalysis(data.analysis);
     } catch (err: any) {
       console.error("Analysis error:", err);
@@ -52,6 +47,21 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
+  }, [url, caption, hashtags, lang, t, toast]);
+
+  const handleAnalyze = () => {
+    if (!url.trim()) {
+      toast({ title: t.enterUrl, variant: "destructive" });
+      return;
+    }
+    // Show interstitial ad, start analysis in background
+    setShowInterstitial(true);
+    setPendingAnalysis(true);
+    runAnalysis().finally(() => setPendingAnalysis(false));
+  };
+
+  const handleCloseAd = () => {
+    setShowInterstitial(false);
   };
 
   const chartLabels = {
@@ -65,6 +75,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background relative">
       <LanguageToggle />
+      <InterstitialAd show={showInterstitial} onClose={handleCloseAd} />
 
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -124,7 +135,7 @@ const Index = () => {
 
       {/* Input */}
       <motion.div
-        className="relative z-10 max-w-xl mx-auto px-4 pb-8"
+        className="relative z-10 max-w-xl mx-auto px-4 pb-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
@@ -173,6 +184,11 @@ const Index = () => {
         </Card>
       </motion.div>
 
+      {/* Banner Ad - below input, above results */}
+      <div className="py-4">
+        <BannerAd slot="top-banner" />
+      </div>
+
       {/* Results */}
       <AnimatePresence>
         {analysis && (
@@ -184,7 +200,6 @@ const Index = () => {
           >
             {/* Score + Reel Preview side by side */}
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-              {/* Score - takes 3 cols */}
               <motion.div
                 className="sm:col-span-3"
                 initial={{ opacity: 0, y: 30 }}
@@ -203,8 +218,6 @@ const Index = () => {
                   </motion.p>
                 </Card>
               </motion.div>
-
-              {/* Reel Preview - takes 2 cols */}
               <motion.div
                 className="sm:col-span-2"
                 initial={{ opacity: 0, x: 30 }}
@@ -214,6 +227,9 @@ const Index = () => {
                 <ReelPreview url={url} />
               </motion.div>
             </div>
+
+            {/* Inline Ad between score and charts */}
+            <InlineAd slot="mid-content-1" />
 
             {/* Charts */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -266,6 +282,9 @@ const Index = () => {
               <AnalysisCard icon="🔥" title={t.trend} score={analysis.trendScore} details={analysis.trendDetails} index={4} />
             </div>
 
+            {/* Inline Ad between categories and recommendations */}
+            <InlineAd slot="mid-content-2" />
+
             {/* Recommendations */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -292,9 +311,19 @@ const Index = () => {
                 </ul>
               </Card>
             </motion.div>
+
+            {/* Bottom Banner Ad */}
+            <BannerAd slot="bottom-banner" />
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Footer Banner Ad (always visible) */}
+      {!analysis && (
+        <div className="py-8">
+          <BannerAd slot="footer-banner" />
+        </div>
+      )}
     </div>
   );
 };
