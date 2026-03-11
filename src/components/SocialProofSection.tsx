@@ -130,7 +130,7 @@ export const ActivityFeed = () => {
 
   return (
     <motion.div
-      className="overflow-hidden max-h-[72px] space-y-1"
+      className="overflow-hidden max-h-[72px] space-y-1 px-2"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 1.2 }}
