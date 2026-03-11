@@ -18,6 +18,7 @@ import HashtagAnalysisCard from "@/components/HashtagAnalysisCard";
 import VideoSignalsCard from "@/components/VideoSignalsCard";
 import QualitySignalsCard from "@/components/QualitySignalsCard";
 import TrendMatchingCard from "@/components/TrendMatchingCard";
+import ContentClassificationCard from "@/components/ContentClassificationCard";
 import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
 import ShareToolPopup from "@/components/ShareToolPopup";
@@ -415,6 +416,11 @@ const Index = () => {
                 </Card>
               </motion.div>
             </div>
+
+            {/* Content Classification */}
+            {analysis.contentClassification && (
+              <ContentClassificationCard data={analysis.contentClassification} thumbnailAnalyzed={analysis.thumbnailAnalyzed} />
+            )}
 
             {/* Detailed Analysis Cards */}
             {analysis.hookAnalysis && <HookAnalysisCard data={analysis.hookAnalysis} title={t.hookTitle} />}
