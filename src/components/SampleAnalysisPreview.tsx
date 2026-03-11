@@ -16,9 +16,9 @@ const SampleAnalysisPreview = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.9, duration: 0.5 }}
     >
-      <div className="text-center mb-4">
-        <h2 className="text-lg font-bold text-foreground">Sample Analysis Preview</h2>
-        <p className="text-xs text-muted-foreground">Here's what your analysis will look like</p>
+      <div className="text-center mb-3 sm:mb-4">
+        <h2 className="text-base sm:text-lg font-bold text-foreground">Sample Analysis Preview</h2>
+        <p className="text-[10px] sm:text-xs text-muted-foreground">Here's what your analysis will look like</p>
       </div>
 
       <Card className="glass p-5 space-y-4">
