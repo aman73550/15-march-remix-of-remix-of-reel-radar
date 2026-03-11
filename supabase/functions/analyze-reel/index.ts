@@ -22,7 +22,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Try to get oEmbed metadata
+    // oEmbed metadata
     let metadata = "";
     try {
       const oembedUrl = `https://api.instagram.com/oembed?url=${encodeURIComponent(url)}`;
@@ -32,10 +32,9 @@ serve(async (req) => {
         metadata = `Title: ${oembed.title || "N/A"}\nAuthor: ${oembed.author_name || "N/A"}`;
       }
     } catch {
-      console.log("oEmbed fetch failed, continuing with user-provided data");
+      console.log("oEmbed fetch failed");
     }
 
-    // Build metrics section
     const hasMetrics = metrics && Object.values(metrics).some((v: any) => v !== undefined && v !== null);
     let metricsSection = "";
     if (hasMetrics) {
@@ -50,70 +49,141 @@ serve(async (req) => {
 
     let commentsSection = "";
     if (sampleComments) {
-      commentsSection = `\nSample Comments (for sentiment analysis):\n${sampleComments}`;
+      commentsSection = `\nSample Comments:\n${sampleComments}`;
     }
 
     const langInstruction = respondInHindi
-      ? "\n\nIMPORTANT: Write ALL text values (details, summary, recommendations, verdicts, themes) in Hindi language. Keep JSON keys in English."
+      ? "\n\nCRITICAL: Write ALL text values in Hindi. Keep JSON keys in English."
       : "";
 
-    // Build the metrics comparison instruction
-    const metricsComparisonInstruction = hasMetrics
-      ? `\n\nAlso provide "metricsComparison" in the JSON. For each provided metric, estimate the average for similar Reels in this category/niche and provide a verdict. Format:
-"metricsComparison": {
-  "likes": { "value": <user's likes>, "avgInCategory": <estimated avg>, "verdict": "<Above/Below/At average - brief reason>" },
-  "comments": { "value": <user's comments>, "avgInCategory": <estimated avg>, "verdict": "<verdict>" },
-  "shares": { "value": <user's shares>, "avgInCategory": <estimated avg>, "verdict": "<verdict>" },
-  "saves": { "value": <user's saves>, "avgInCategory": <estimated avg>, "verdict": "<verdict>" },
-  "views": { "value": <user's views>, "avgInCategory": <estimated avg>, "verdict": "<verdict>" }
-}
-Only include metrics that were provided by the user.`
-      : "";
+    const prompt = `You are a world-class Instagram viral content analyst. Perform an extremely detailed analysis of this Reel.
 
-    const sentimentInstruction = sampleComments
-      ? `\n\nAlso analyze the provided comments for sentiment and provide "commentSentiment" in the JSON:
-"commentSentiment": {
-  "positive": <percentage 0-100>,
-  "neutral": <percentage 0-100>,
-  "negative": <percentage 0-100>,
-  "topThemes": ["theme1", "theme2", "theme3"],
-  "summary": "<2 sentence summary of comment sentiment and what people are saying>"
-}
-The positive+neutral+negative should sum to 100.`
-      : "";
-
-    const prompt = `You are a viral content expert analyzing an Instagram Reel. Analyze the following and return a JSON object.
-
+=== INPUT DATA ===
 Reel URL: ${url}
 ${metadata ? `Metadata:\n${metadata}` : ""}
 ${caption ? `Caption: ${caption}` : "No caption provided"}
 ${hashtags ? `Hashtags: ${hashtags}` : "No hashtags provided"}${metricsSection}${commentsSection}
 
-Analyze this Reel based on the available information. Score each category 1-10 and provide 2-3 specific, actionable detail points for each. If limited info is available, analyze based on what's provided and make educated assessments.
+=== ANALYSIS INSTRUCTIONS ===
 
-Categories:
-1. Hook & Opening - Does the caption/content suggest a strong hook?
-2. Caption Quality - Curiosity, emotional triggers, CTA, readability
-3. Hashtag Strategy - Relevance, mix of reach levels, trend alignment
-4. Engagement Signals - Likelihood of comments, shares, saves based on content type
-5. Trend Alignment - How well it fits current Instagram trends
-${metricsComparisonInstruction}${sentimentInstruction}${langInstruction}
+Perform ALL of these analyses:
 
+1. HOOK ANALYSIS (first 3 seconds):
+   - What type of opening does the caption suggest? (question, shock, story, visual)
+   - Rate the attention-grabbing potential
+   - Estimate hook effectiveness
+
+2. CAPTION ANALYSIS (NLP):
+   - Curiosity level (1-10)
+   - Identify emotional triggers (fear, joy, surprise, anger, etc.)
+   - Is there a call-to-action? What type?
+   - Keyword density assessment
+   - Caption length effectiveness
+
+3. HASHTAG ANALYSIS:
+   - For each hashtag: competition level, relevance, trend strength
+   - Overall hashtag strategy quality
+
+4. VIDEO SIGNALS (estimate from content/niche):
+   - Estimated scene cuts frequency
+   - Text overlay likelihood
+   - Face presence likelihood
+   - Motion intensity
+   - Visual engagement level
+
+5. TREND MATCHING:
+   - Format similarity to current viral trends
+   - Hook pattern matching
+   - Trending structure alignment
+   - Name specific trends it matches
+
+6. ENGAGEMENT ANALYSIS:
+   - Overall engagement quality${hasMetrics ? "\n   - Compare each metric against estimated category averages" : ""}
+   - Engagement rate estimate${sampleComments ? `
+
+7. COMMENT SENTIMENT:
+   - Percentage breakdown: positive, neutral, negative (must sum to 100)
+   - Question ratio (% of comments that are questions)
+   - Engagement signals in comments
+   - Audience intent (curiosity, support, criticism, etc.)
+   - Top 3-5 themes
+   - 2-sentence summary` : ""}
+${langInstruction}
+
+=== REQUIRED JSON OUTPUT ===
 Return ONLY valid JSON (no markdown, no code fences):
 {
-  "viralScore": <0-100 overall score>,
-  "hookScore": <1-10>,
-  "hookDetails": ["detail1", "detail2", "detail3"],
-  "captionScore": <1-10>,
-  "captionDetails": ["detail1", "detail2", "detail3"],
-  "hashtagScore": <1-10>,
-  "hashtagDetails": ["detail1", "detail2", "detail3"],
+  "viralScore": <0-100>,
+  "overallSummary": "<3-4 sentence comprehensive summary>",
+
+  "hookAnalysis": {
+    "score": <1-10>,
+    "firstThreeSeconds": "<what likely happens in first 3 seconds based on content>",
+    "openingType": "<question/shock/story/visual/tutorial/other>",
+    "attentionGrabber": "<main attention element>",
+    "details": ["<specific insight 1>", "<insight 2>", "<insight 3>"]
+  },
+
+  "captionAnalysis": {
+    "score": <1-10>,
+    "curiosityLevel": <1-10>,
+    "emotionalTriggers": ["<trigger1>", "<trigger2>"],
+    "callToAction": "<description of CTA or 'None detected'>",
+    "keywordDensity": "<assessment>",
+    "lengthEffectiveness": "<too short/optimal/too long + why>",
+    "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
+  },
+
+  "hashtagAnalysis": {
+    "score": <1-10>,
+    "hashtags": [
+      { "tag": "#example", "competition": "high/medium/low", "relevance": "high/medium/low", "trendStrength": "strong/moderate/weak" }
+    ],
+    "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
+  },
+
+  "videoSignals": {
+    "estimatedSceneCuts": "<frequent/moderate/minimal/single-shot>",
+    "textOverlayLikely": "<yes/no/likely + reasoning>",
+    "facePresenceLikely": "<yes/no/likely + reasoning>",
+    "motionIntensity": "<high/medium/low>",
+    "visualEngagement": "<high/medium/low + why>",
+    "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
+  },
+
+  "trendMatching": {
+    "score": <1-10>,
+    "formatSimilarity": "<description>",
+    "hookPattern": "<matched pattern name>",
+    "trendingStructure": "<structure type>",
+    "matchedTrends": ["<trend1>", "<trend2>"],
+    "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
+  },
+
   "engagementScore": <1-10>,
-  "engagementDetails": ["detail1", "detail2", "detail3"],
-  "trendScore": <1-10>,
-  "trendDetails": ["detail1", "detail2", "detail3"],
-  "overallSummary": "<2-3 sentence summary>",
-  "topRecommendations": ["rec1", "rec2", "rec3", "rec4", "rec5"]${hasMetrics ? ',\n  "metricsComparison": { ... }' : ""}${sampleComments ? ',\n  "commentSentiment": { ... }' : ""}
+  "engagementDetails": ["<insight 1>", "<insight 2>", "<insight 3>"],
+  "engagementRate": "<estimated rate if metrics provided>"${hasMetrics ? `,
+
+  "metricsComparison": {
+    ${metrics?.likes !== undefined ? '"likes": { "value": ' + metrics.likes + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
+    ${metrics?.comments !== undefined ? '"comments": { "value": ' + metrics.comments + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
+    ${metrics?.views !== undefined ? '"views": { "value": ' + metrics.views + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
+    ${metrics?.shares !== undefined ? '"shares": { "value": ' + metrics.shares + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
+    ${metrics?.saves !== undefined ? '"saves": { "value": ' + metrics.saves + ', "avgInCategory": <estimated>, "verdict": "<verdict>" }' : ''}
+  }` : ""}${sampleComments ? `,
+
+  "commentSentiment": {
+    "positive": <0-100>,
+    "neutral": <0-100>,
+    "negative": <0-100>,
+    "questionRatio": <0-100>,
+    "engagementSignals": ["<signal1>", "<signal2>"],
+    "audienceIntent": "<primary intent>",
+    "topThemes": ["<theme1>", "<theme2>", "<theme3>"],
+    "summary": "<2-sentence summary>"
+  }` : ""},
+
+  "topRecommendations": ["<actionable rec 1>", "<rec 2>", "<rec 3>", "<rec 4>", "<rec 5>"]
 }`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -125,7 +195,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "You are an expert Instagram viral content analyst. Return only valid JSON." },
+          { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. Return only valid JSON. Be specific and actionable in your analysis." },
           { role: "user", content: prompt },
         ],
       }),
@@ -133,14 +203,12 @@ Return ONLY valid JSON (no markdown, no code fences):
 
     if (response.status === 429) {
       return new Response(JSON.stringify({ success: false, error: "Rate limited. Please try again in a moment." }), {
-        status: 429,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (response.status === 402) {
       return new Response(JSON.stringify({ success: false, error: "AI credits exhausted. Please add credits." }), {
-        status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!response.ok) {
@@ -151,7 +219,6 @@ Return ONLY valid JSON (no markdown, no code fences):
 
     const aiData = await response.json();
     const content = aiData.choices?.[0]?.message?.content;
-
     if (!content) throw new Error("No AI response content");
 
     let cleanContent = content.trim();
