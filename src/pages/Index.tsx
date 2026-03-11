@@ -472,6 +472,22 @@ const Index = () => {
           </div>
         </div>
       )}
+
+      {/* Footer Disclaimer */}
+      <footer className="relative z-10 mt-12 sm:mt-16">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6">
+          <div className="border-t border-border/40" />
+          <div className="py-6 sm:py-8 space-y-2 text-center">
+            <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Disclaimer</p>
+            <p className="text-[9px] sm:text-[10px] leading-relaxed text-muted-foreground/50 max-w-lg mx-auto">
+              This tool provides AI-based estimates and analysis of Instagram Reel performance using publicly available data and predictive algorithms. The viral probability score is only an estimate and does not guarantee actual performance or reach. This website is not affiliated with, endorsed by, or officially connected to Instagram or Meta Platforms, Inc. All trademarks and platform names belong to their respective owners.
+            </p>
+            <p className="text-[8px] sm:text-[9px] text-muted-foreground/40 italic">
+              For educational and informational purposes only.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
