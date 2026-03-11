@@ -322,7 +322,7 @@ Return ONLY valid JSON (no markdown, no code fences):
     let viralStatus, viralScore, viralLabel;
     if (hasMetrics && isAlreadyViral) {
       viralStatus = "Already Viral";
-      viralScore = Math.min(95, Math.max(80, Math.round(80 + (engRate * 100))));
+      viralScore = Math.min(98, Math.max(80, Math.round(80 + (engRate * 100) + qualityBonus)));
       viralLabel = "Viral Strength";
     } else if (hasMetrics && isGrowing) {
       viralStatus = "Growing";
