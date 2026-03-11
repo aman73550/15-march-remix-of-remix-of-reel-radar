@@ -243,6 +243,10 @@ const Index = () => {
               {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
             </Button>
           </motion.div>
+          {/* Remaining analyses counter */}
+          <p className="text-center text-[10px] text-muted-foreground">
+            {remaining > 0 ? `${remaining} free analysis${remaining !== 1 ? "es" : ""} remaining` : "No free analyses remaining — share to unlock more"}
+          </p>
         </Card>
 
         {/* Too New Warning */}
