@@ -109,6 +109,8 @@ export interface ReelAnalysis {
   viralScore: number;
   overallSummary: string;
   viralClassification?: ViralClassification;
+  contentClassification?: ContentClassification;
+  thumbnailAnalyzed?: boolean;
 
   hookAnalysis: HookAnalysis;
   captionAnalysis: CaptionAnalysis;
