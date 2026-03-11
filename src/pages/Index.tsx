@@ -89,12 +89,23 @@ const Index = () => {
       toast({ title: t.enterUrl, variant: "destructive" });
       return;
     }
+    // Gate 1: Reel must be 48+ hours old
     if (isReelTooNew()) {
       setTooNewWarning(true);
+      setLowViewsWarning(false);
+      setAnalysis(null);
+      return;
+    }
+    // Gate 2: If views provided and < 1000, block analysis
+    const viewsNum = views ? parseInt(views) : 0;
+    if (views && viewsNum < 1000) {
+      setLowViewsWarning(true);
+      setTooNewWarning(false);
       setAnalysis(null);
       return;
     }
     setTooNewWarning(false);
+    setLowViewsWarning(false);
     setShowInterstitial(true);
     runAnalysis();
   };
