@@ -182,11 +182,35 @@ const Index = () => {
           </AnimatePresence>
 
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-            <Button onClick={handleAnalyze} disabled={loading} className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity">
+            <Button onClick={handleAnalyze} disabled={loading || (tooNewWarning)} className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity">
               {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
             </Button>
           </motion.div>
         </Card>
+
+        {/* Too New Warning */}
+        <AnimatePresence>
+          {tooNewWarning && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <Card className="glass p-5 border-[hsl(var(--viral-mid))]/30 bg-[hsl(var(--viral-mid))]/5">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-xl bg-[hsl(var(--viral-mid))]/10 border border-[hsl(var(--viral-mid))]/20 text-[hsl(var(--viral-mid))]">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-semibold text-foreground">Full analysis is not available yet.</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      This reel was posted recently. Viral patterns and engagement data need time to develop.
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Please wait at least <span className="font-bold text-foreground">48 hours</span> after posting for a reliable analysis.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       <div className="py-4"><BannerAd slot="top-banner" /></div>
