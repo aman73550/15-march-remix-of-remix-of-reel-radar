@@ -163,6 +163,22 @@ Return ONLY valid JSON (no markdown, no code fences):
     "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
   },
 
+  "videoQuality": {
+    "resolution": "<HD/SD/Low>",
+    "lighting": "<good/average/poor>",
+    "cameraStability": "<stable/moderate/shaky>",
+    "visualClarity": "<sharp/average/blurry>",
+    "qualityScore": <1-10>
+  },
+
+  "audioQuality": {
+    "voiceClarity": "<clear/muffled/none>",
+    "backgroundAudio": "<clean/moderate/noisy>",
+    "soundBalance": "<balanced/unbalanced/distorted>",
+    "musicUsage": "<trending/original/none>",
+    "qualityScore": <1-10>
+  },
+
   "trendMatching": {
     "score": <1-10>,
     "formatSimilarity": "<description>",
