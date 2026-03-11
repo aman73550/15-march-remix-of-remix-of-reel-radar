@@ -347,7 +347,12 @@ const Index = () => {
         )}
       </AnimatePresence>
 
-      {!analysis && <div className="py-8"><BannerAd slot="footer-banner" /></div>}
+      {!analysis && (
+        <div className="py-8 space-y-4">
+          <div className="flex justify-center"><ShareToolPopup /></div>
+          <BannerAd slot="footer-banner" />
+        </div>
+      )}
     </div>
   );
 };
