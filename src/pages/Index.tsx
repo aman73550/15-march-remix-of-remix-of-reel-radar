@@ -299,6 +299,9 @@ const Index = () => {
           <p className="text-center text-[10px] text-muted-foreground">
             {remaining > 0 ? `${remaining} free analysis${remaining !== 1 ? "es" : ""} remaining` : "No free analyses remaining — share to unlock more"}
           </p>
+          <p className="text-center text-[10px] text-muted-foreground/60">
+            No login required • Instant analysis
+          </p>
         </Card>
 
         {/* Too New Warning */}
