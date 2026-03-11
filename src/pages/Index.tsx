@@ -76,11 +76,24 @@ const Index = () => {
     }
   }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast]);
 
+  const isReelTooNew = useCallback(() => {
+    if (!postDate) return false;
+    const posted = new Date(postDate);
+    if (isNaN(posted.getTime())) return false;
+    return differenceInHours(new Date(), posted) < 48;
+  }, [postDate]);
+
   const handleAnalyze = () => {
     if (!url.trim()) {
       toast({ title: t.enterUrl, variant: "destructive" });
       return;
     }
+    if (isReelTooNew()) {
+      setTooNewWarning(true);
+      setAnalysis(null);
+      return;
+    }
+    setTooNewWarning(false);
     setShowInterstitial(true);
     runAnalysis();
   };
