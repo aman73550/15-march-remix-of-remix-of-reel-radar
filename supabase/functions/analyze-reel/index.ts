@@ -9,7 +9,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { url, caption, hashtags } = await req.json();
+    const { url, caption, hashtags, lang = "en" } = await req.json();
+    const respondInHindi = lang === "hi";
 
     if (!url) {
       return new Response(JSON.stringify({ success: false, error: "URL is required" }), {
