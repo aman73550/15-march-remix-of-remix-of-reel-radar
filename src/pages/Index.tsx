@@ -75,6 +75,8 @@ const Index = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Analysis failed");
       setAnalysis(data.analysis);
+      recordAnalysis();
+      setRemaining(getRemainingAnalyses());
     } catch (err: any) {
       console.error("Analysis error:", err);
       toast({ title: t.analysisFailed, description: err.message || t.tryAgain, variant: "destructive" });
