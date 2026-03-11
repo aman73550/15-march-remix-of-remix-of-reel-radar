@@ -349,6 +349,9 @@ const Index = () => {
         <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
       )}
 
+      {/* Social Proof Section */}
+      {!analysis && !showShareGate && <SocialProofSection />}
+
       <div className="py-4"><BannerAd slot="top-banner" /></div>
 
       {/* Results */}
