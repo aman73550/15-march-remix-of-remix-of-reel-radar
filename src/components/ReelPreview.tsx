@@ -24,7 +24,7 @@ const ReelPreview = ({ url }: ReelPreviewProps) => {
       <Card className="glass overflow-hidden">
         <div className="p-3 flex items-center justify-between border-b border-border">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full gradient-primary flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full gradient-primary-bg flex items-center justify-center">
               <Play className="w-3 h-3 text-primary-foreground" />
             </div>
             <span className="text-xs font-medium text-foreground truncate max-w-[180px]">

@@ -109,7 +109,7 @@ const Index = () => {
             transition={{ delay: 0.3 }}
           >
             {t.title1}
-            <span className="gradient-primary bg-clip-text text-transparent">{t.title2}</span>
+            <span className="gradient-primary">{t.title2}</span>
           </motion.h1>
           <motion.p
             className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto"
@@ -155,7 +155,7 @@ const Index = () => {
             <Button
               onClick={handleAnalyze}
               disabled={loading}
-              className="w-full h-11 gradient-primary text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity"
+              className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity"
             >
               {loading ? (
                 <>
@@ -285,7 +285,7 @@ const Index = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.9 + i * 0.1 }}
                     >
-                      <span className="gradient-primary bg-clip-text text-transparent font-bold">{i + 1}.</span>
+                      <span className="gradient-primary font-bold">{i + 1}.</span>
                       {rec}
                     </motion.li>
                   ))}
