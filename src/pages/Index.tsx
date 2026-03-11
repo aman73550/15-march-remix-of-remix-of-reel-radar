@@ -19,6 +19,7 @@ import VideoSignalsCard from "@/components/VideoSignalsCard";
 import TrendMatchingCard from "@/components/TrendMatchingCard";
 import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
+import ShareToolPopup from "@/components/ShareToolPopup";
 import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
@@ -336,12 +337,22 @@ const Index = () => {
               </Card>
             </motion.div>
 
+            {/* Share button after results */}
+            <motion.div className="flex justify-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+              <ShareToolPopup />
+            </motion.div>
+
             <BannerAd slot="bottom-banner" />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {!analysis && <div className="py-8"><BannerAd slot="footer-banner" /></div>}
+      {!analysis && (
+        <div className="py-8 space-y-4">
+          <div className="flex justify-center"><ShareToolPopup /></div>
+          <BannerAd slot="footer-banner" />
+        </div>
+      )}
     </div>
   );
 };
