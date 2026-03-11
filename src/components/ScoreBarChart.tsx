@@ -57,7 +57,7 @@ const ScoreBarChart = ({ hookScore, captionScore, hashtagScore, engagementScore,
               return item ? `${item.icon} ${item.name}` : label;
             }}
           />
-          <Bar dataKey="score" radius={[0, 6, 6, 0]} animationDuration={1500} animationBegin={300}>
+          <Bar dataKey="score" radius={[0, 6, 6, 0]} animationDuration={1500} animationBegin={300} barSize={14} label={{ position: "right", fill: "hsl(210, 20%, 75%)", fontSize: 11, formatter: (v: number) => `${v}/10` }}>
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={getBarColor(entry.score)} />
             ))}

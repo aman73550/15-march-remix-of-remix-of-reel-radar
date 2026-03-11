@@ -62,7 +62,7 @@ const MetricsComparison = ({ metrics }: MetricsComparisonProps) => {
                 formatter={(value: string) => <span style={{ color: "hsl(210, 20%, 75%)" }}>{value}</span>}
               />
               <Bar dataKey="yours" name={t.yours} fill="hsl(340, 82%, 55%)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="average" name={t.categoryAvg} fill="hsl(215, 15%, 35%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="average" name={t.categoryAvg} fill="hsl(215, 15%, 45%)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

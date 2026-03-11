@@ -63,11 +63,11 @@ const CategoryPieChart = ({ hookScore, captionScore, hashtagScore, engagementSco
           />
         </PieChart>
       </ResponsiveContainer>
-      <div className="flex flex-wrap justify-center gap-3 mt-2">
+      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-2">
         {data.map((item, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[i] }} />
-            <span>{item.icon} {item.name}</span>
+          <div key={i} className="flex items-center gap-1.5 text-[10px] sm:text-xs">
+            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: COLORS[i] }} />
+            <span className="text-foreground/70">{item.icon} {item.name}: <span className="font-bold text-foreground">{item.value}/10</span></span>
           </div>
         ))}
       </div>
