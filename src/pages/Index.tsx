@@ -109,7 +109,7 @@ const Index = () => {
             transition={{ delay: 0.3 }}
           >
             {t.title1}
-            <span className="gradient-primary bg-clip-text text-transparent">{t.title2}</span>
+            <span className="gradient-primary">{t.title2}</span>
           </motion.h1>
           <motion.p
             className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto"
