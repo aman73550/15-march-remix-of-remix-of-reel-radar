@@ -424,6 +424,9 @@ const Index = () => {
             <InlineAd slot="mid-2" />
 
             {analysis.videoSignals && <VideoSignalsCard data={analysis.videoSignals} title={t.videoTitle} />}
+            {(analysis.videoQuality || analysis.audioQuality) && (
+              <QualitySignalsCard videoQuality={analysis.videoQuality} audioQuality={analysis.audioQuality} />
+            )}
             {analysis.trendMatching && <TrendMatchingCard data={analysis.trendMatching} title={t.trendTitle} />}
 
             {/* Engagement */}
