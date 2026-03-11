@@ -23,7 +23,8 @@ import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import type { ReelAnalysis } from "@/lib/types";
-import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, Calendar, ShieldCheck, Clock } from "lucide-react";
+import { differenceInHours } from "date-fns";
 
 const Index = () => {
   const [url, setUrl] = useState("");
