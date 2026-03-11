@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,23 +92,65 @@ const Index = () => {
     return differenceInHours(new Date(), posted) < 48;
   }, [postDate]);
 
-  const handleAnalyze = () => {
+  const [checkingDate, setCheckingDate] = useState(false);
+
+  const handleAnalyze = async () => {
     if (!url.trim()) {
       toast({ title: t.enterUrl, variant: "destructive" });
       return;
     }
-    // Gate 0: Post date is required
+
+    // Gate 0: If no date entered, try to auto-fetch from Instagram
     if (!postDate) {
-      toast({
-        title: "Post date required",
-        description: "Please enter the reel's publish date so we can verify it has enough engagement data (48+ hours).",
-        variant: "destructive",
-      });
-      setShowDetails(true); // auto-open details so user sees the date field
-      return;
+      setCheckingDate(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("check-reel-date", {
+          body: { url: url.trim() },
+        });
+
+        if (!error && data?.success && data?.dateFound) {
+          // Date found from Instagram
+          if (data.isTooNew) {
+            setTooNewWarning(true);
+            setLowViewsWarning(false);
+            setAnalysis(null);
+            setCheckingDate(false);
+            toast({
+              title: "Reel is too new",
+              description: `This reel was posted ${data.hoursSincePost} hours ago. Please wait at least 48 hours for reliable analysis.`,
+              variant: "destructive",
+            });
+            return;
+          }
+          // Date is fine, set it and continue
+          const d = new Date(data.publishDate);
+          setPostDate(d.toISOString().slice(0, 16));
+        } else {
+          // Could not extract date — ask user to enter manually
+          setCheckingDate(false);
+          toast({
+            title: "Post date required",
+            description: "We couldn't detect the publish date automatically. Please enter it manually so we can verify the reel is 48+ hours old.",
+            variant: "destructive",
+          });
+          setShowDetails(true);
+          return;
+        }
+      } catch {
+        setCheckingDate(false);
+        toast({
+          title: "Post date required",
+          description: "Please enter the reel's publish date manually.",
+          variant: "destructive",
+        });
+        setShowDetails(true);
+        return;
+      }
+      setCheckingDate(false);
     }
-    // Gate 1: Reel must be 48+ hours old
-    if (isReelTooNew()) {
+
+    // Gate 1: Reel must be 48+ hours old (manual date check)
+    if (postDate && isReelTooNew()) {
       setTooNewWarning(true);
       setLowViewsWarning(false);
       setAnalysis(null);
@@ -239,8 +281,8 @@ const Index = () => {
           </AnimatePresence>
 
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-            <Button onClick={handleAnalyze} disabled={loading || tooNewWarning || lowViewsWarning} className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity">
-              {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
+            <Button onClick={handleAnalyze} disabled={loading || checkingDate || tooNewWarning || lowViewsWarning} className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity">
+              {checkingDate ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Checking post date...</>) : loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
             </Button>
           </motion.div>
           {/* Remaining analyses counter */}
