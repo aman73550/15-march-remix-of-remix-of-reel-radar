@@ -42,6 +42,7 @@ const Index = () => {
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [tooNewWarning, setTooNewWarning] = useState(false);
+  const [lowViewsWarning, setLowViewsWarning] = useState(false);
   const { toast } = useToast();
   const { lang, t } = useLang();
 
@@ -88,12 +89,23 @@ const Index = () => {
       toast({ title: t.enterUrl, variant: "destructive" });
       return;
     }
+    // Gate 1: Reel must be 48+ hours old
     if (isReelTooNew()) {
       setTooNewWarning(true);
+      setLowViewsWarning(false);
+      setAnalysis(null);
+      return;
+    }
+    // Gate 2: If views provided and < 1000, block analysis
+    const viewsNum = views ? parseInt(views) : 0;
+    if (views && viewsNum < 1000) {
+      setLowViewsWarning(true);
+      setTooNewWarning(false);
       setAnalysis(null);
       return;
     }
     setTooNewWarning(false);
+    setLowViewsWarning(false);
     setShowInterstitial(true);
     runAnalysis();
   };
@@ -182,7 +194,7 @@ const Index = () => {
           </AnimatePresence>
 
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-            <Button onClick={handleAnalyze} disabled={loading || (tooNewWarning)} className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity">
+            <Button onClick={handleAnalyze} disabled={loading || tooNewWarning || lowViewsWarning} className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity">
               {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
             </Button>
           </motion.div>
@@ -204,6 +216,30 @@ const Index = () => {
                     </p>
                     <p className="text-xs text-muted-foreground leading-relaxed">
                       Please wait at least <span className="font-bold text-foreground">48 hours</span> after posting for a reliable analysis.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Low Views Warning */}
+        <AnimatePresence>
+          {lowViewsWarning && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <Card className="glass p-5 border-[hsl(var(--viral-low))]/30 bg-[hsl(var(--viral-low))]/5">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-xl bg-[hsl(var(--viral-low))]/10 border border-[hsl(var(--viral-low))]/20 text-[hsl(var(--viral-low))]">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-semibold text-foreground">Not enough engagement data for reliable analysis.</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      This reel has fewer than <span className="font-bold text-foreground">1,000 views</span>. The system needs sufficient engagement data to generate accurate viral predictions.
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Wait for the reel to gain more traction, then try again.
                     </p>
                   </div>
                 </div>
