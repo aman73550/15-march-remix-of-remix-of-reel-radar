@@ -182,24 +182,38 @@ const Index = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Score */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <Card className="glass p-8 flex flex-col items-center">
-                <ViralScoreCircle score={analysis.viralScore} />
-                <motion.p
-                  className="mt-4 text-sm text-muted-foreground text-center max-w-md"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.2 }}
-                >
-                  {analysis.overallSummary}
-                </motion.p>
-              </Card>
-            </motion.div>
+            {/* Score + Reel Preview side by side */}
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+              {/* Score - takes 3 cols */}
+              <motion.div
+                className="sm:col-span-3"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <Card className="glass p-8 flex flex-col items-center h-full justify-center">
+                  <ViralScoreCircle score={analysis.viralScore} />
+                  <motion.p
+                    className="mt-4 text-sm text-muted-foreground text-center max-w-md"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.2 }}
+                  >
+                    {analysis.overallSummary}
+                  </motion.p>
+                </Card>
+              </motion.div>
+
+              {/* Reel Preview - takes 2 cols */}
+              <motion.div
+                className="sm:col-span-2"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <ReelPreview url={url} />
+              </motion.div>
+            </div>
 
             {/* Charts */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
