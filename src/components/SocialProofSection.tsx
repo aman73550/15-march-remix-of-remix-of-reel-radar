@@ -78,7 +78,7 @@ export const LiveActivityIndicator = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-          {count}
+          {count.toLocaleString()}
         </motion.span>
         {" "}creators analyzing reels right now
       </span>
