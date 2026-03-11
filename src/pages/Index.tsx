@@ -54,7 +54,11 @@ const Index = () => {
   const [remaining, setRemaining] = useState(getRemainingAnalyses());
   const { toast } = useToast();
   const { lang, t } = useLang();
+  const inputRef = useRef<HTMLDivElement>(null);
 
+  const scrollToInput = () => {
+    inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
   const runAnalysis = useCallback(async () => {
     setLoading(true);
     setAnalysis(null);
