@@ -205,7 +205,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative overflow-x-hidden">
       <LanguageToggle />
       <InterstitialAd show={showInterstitial} onClose={() => setShowInterstitial(false)} />
 
