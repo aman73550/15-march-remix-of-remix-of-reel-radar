@@ -224,6 +224,9 @@ const Index = () => {
           <motion.p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
             {t.subtitle}
           </motion.p>
+          <div className="mt-3">
+            <SocialProofBadge />
+          </div>
         </motion.div>
       </div>
 
