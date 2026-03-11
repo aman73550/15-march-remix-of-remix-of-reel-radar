@@ -33,7 +33,7 @@ const ScoreBarChart = ({ hookScore, captionScore, hashtagScore, engagementScore,
   return (
     <div className="w-full h-52">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }} barSize={14}>
           <XAxis type="number" domain={[0, 10]} hide />
           <YAxis
             type="category"
