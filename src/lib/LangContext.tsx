@@ -1,0 +1,81 @@
+import { createContext, useContext, useState, ReactNode } from "react";
+
+type Lang = "en" | "hi";
+
+const translations = {
+  en: {
+    badge: "AI-Powered Reel Analysis",
+    title1: "Reel Viral",
+    title2: " Analyzer",
+    subtitle: "Paste your Instagram Reel link and get an AI-powered viral potential score with actionable insights",
+    urlPlaceholder: "https://www.instagram.com/reel/...",
+    captionPlaceholder: "Paste caption (optional)",
+    hashtagPlaceholder: "Hashtags (optional, e.g. #viral #trending)",
+    analyzing: "Analyzing...",
+    analyzeBtn: "Analyze Viral Potential",
+    enterUrl: "Enter a Reel URL",
+    analysisFailed: "Analysis failed",
+    tryAgain: "Please try again",
+    hook: "Hook & Opening",
+    caption: "Caption Quality",
+    hashtag: "Hashtag Strategy",
+    engagement: "Engagement Signals",
+    trend: "Trend Alignment",
+    recommendations: "Top Recommendations",
+    scoreBreakdown: "Score Breakdown",
+    categoryDistribution: "Category Distribution",
+    viralPotential: "🔥 Viral Potential",
+    goodPotential: "📈 Good Potential",
+    moderate: "⚡ Moderate",
+    needsWork: "💡 Needs Work",
+  },
+  hi: {
+    badge: "AI-संचालित रील विश्लेषण",
+    title1: "रील वायरल",
+    title2: " एनालाइज़र",
+    subtitle: "अपनी Instagram रील लिंक पेस्ट करें और AI-संचालित वायरल संभावना स्कोर प्राप्त करें",
+    urlPlaceholder: "https://www.instagram.com/reel/...",
+    captionPlaceholder: "कैप्शन पेस्ट करें (वैकल्पिक)",
+    hashtagPlaceholder: "हैशटैग (वैकल्पिक, जैसे #viral #trending)",
+    analyzing: "विश्लेषण हो रहा है...",
+    analyzeBtn: "वायरल संभावना विश्लेषण करें",
+    enterUrl: "रील URL दर्ज करें",
+    analysisFailed: "विश्लेषण विफल",
+    tryAgain: "कृपया पुनः प्रयास करें",
+    hook: "हुक और ओपनिंग",
+    caption: "कैप्शन गुणवत्ता",
+    hashtag: "हैशटैग रणनीति",
+    engagement: "एंगेजमेंट सिग्नल",
+    trend: "ट्रेंड संरेखण",
+    recommendations: "शीर्ष सुझाव",
+    scoreBreakdown: "स्कोर विवरण",
+    categoryDistribution: "श्रेणी वितरण",
+    viralPotential: "🔥 वायरल संभावना",
+    goodPotential: "📈 अच्छी संभावना",
+    moderate: "⚡ सामान्य",
+    needsWork: "💡 सुधार ज़रूरी",
+  },
+};
+
+interface LangContextType {
+  lang: Lang;
+  setLang: (lang: Lang) => void;
+  t: (typeof translations)["en"];
+}
+
+const LangContext = createContext<LangContextType>({
+  lang: "en",
+  setLang: () => {},
+  t: translations.en,
+});
+
+export const useLang = () => useContext(LangContext);
+
+export const LangProvider = ({ children }: { children: ReactNode }) => {
+  const [lang, setLang] = useState<Lang>("en");
+  return (
+    <LangContext.Provider value={{ lang, setLang, t: translations[lang] }}>
+      {children}
+    </LangContext.Provider>
+  );
+};

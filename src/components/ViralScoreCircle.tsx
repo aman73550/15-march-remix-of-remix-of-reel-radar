@@ -1,11 +1,15 @@
+import { motion } from "framer-motion";
+import { useLang } from "@/lib/LangContext";
+
 interface ViralScoreCircleProps {
   score: number;
 }
 
 const ViralScoreCircle = ({ score }: ViralScoreCircleProps) => {
+  const { t } = useLang();
   const circumference = 283;
   const offset = circumference - (score / 100) * circumference;
-  
+
   const getColor = () => {
     if (score >= 70) return "hsl(var(--viral-high))";
     if (score >= 40) return "hsl(var(--viral-mid))";
@@ -13,41 +17,60 @@ const ViralScoreCircle = ({ score }: ViralScoreCircleProps) => {
   };
 
   const getLabel = () => {
-    if (score >= 80) return "🔥 Viral Potential";
-    if (score >= 60) return "📈 Good Potential";
-    if (score >= 40) return "⚡ Moderate";
-    return "💡 Needs Work";
+    if (score >= 80) return t.viralPotential;
+    if (score >= 60) return t.goodPotential;
+    if (score >= 40) return t.moderate;
+    return t.needsWork;
   };
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="relative w-40 h-40">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-          <circle
-            cx="50" cy="50" r="45"
-            fill="none"
-            stroke="hsl(var(--muted))"
-            strokeWidth="8"
-          />
-          <circle
+    <motion.div
+      className="flex flex-col items-center gap-3"
+      initial={{ scale: 0.5, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 200, damping: 20 }}
+    >
+      <div className="relative w-44 h-44">
+        {/* Glow effect */}
+        <motion.div
+          className="absolute inset-0 rounded-full blur-xl"
+          style={{ background: getColor(), opacity: 0.15 }}
+          animate={{ opacity: [0.1, 0.25, 0.1] }}
+          transition={{ duration: 3, repeat: Infinity }}
+        />
+        <svg className="w-full h-full -rotate-90 relative z-10" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
+          <motion.circle
             cx="50" cy="50" r="45"
             fill="none"
             stroke={getColor()}
-            strokeWidth="8"
+            strokeWidth="6"
             strokeLinecap="round"
             strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            className="animate-score-fill"
-            style={{ "--score-offset": offset } as React.CSSProperties}
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset: offset }}
+            transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
           />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-4xl font-bold text-foreground">{score}</span>
+        <motion.div
+          className="absolute inset-0 flex flex-col items-center justify-center z-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          <span className="text-5xl font-bold text-foreground">{score}</span>
           <span className="text-xs text-muted-foreground">/100</span>
-        </div>
+        </motion.div>
       </div>
-      <span className="text-sm font-medium text-foreground">{getLabel()}</span>
-    </div>
+      <motion.span
+        className="text-sm font-medium text-foreground"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1 }}
+      >
+        {getLabel()}
+      </motion.span>
+    </motion.div>
   );
 };
 
