@@ -21,6 +21,7 @@ import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
 import ShareToolPopup from "@/components/ShareToolPopup";
 import ShareUnlockScreen from "@/components/ShareUnlockScreen";
+import SocialProofSection, { SocialProofBadge } from "@/components/SocialProofSection";
 import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
