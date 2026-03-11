@@ -63,6 +63,23 @@ export interface AudioQuality {
   qualityScore: number;
 }
 
+export interface ContentClassification {
+  primaryCategory: string;
+  subCategory: string;
+  contentType: string;
+  detectedElements: {
+    objects: string[];
+    people: string;
+    actions: string[];
+    scene: string;
+    onScreenText: string[];
+    estimatedTopic: string;
+  };
+  confidence: string;
+  reasoning: string;
+  hashtagAlignment: string;
+}
+
 export interface TrendMatching {
   score: number;
   formatSimilarity: string;
