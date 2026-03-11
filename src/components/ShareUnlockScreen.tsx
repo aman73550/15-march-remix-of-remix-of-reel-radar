@@ -88,7 +88,7 @@ const ShareUnlockScreen = ({ onUnlocked }: Props) => {
                 </div>
                 <h3 className="text-base font-bold text-foreground">You've used your 2 free analyses</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                  To unlock <span className="font-bold text-foreground">2 more reel analyses</span>, please share this tool with at least <span className="font-bold text-foreground">5 friends</span>.
+                   To unlock <span className="font-bold text-foreground">2 more reel analyses</span>, please share this tool with at least <span className="font-bold text-foreground">3-5 friends</span>.
                 </p>
               </div>
 

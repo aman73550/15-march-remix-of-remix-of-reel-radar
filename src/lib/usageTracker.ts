@@ -114,12 +114,13 @@ export function recordAnalysis(): void {
 export function recordShare(): number {
   const data = getUsage();
   data.shareCount += 1;
-  // Check if sharing threshold met and bonus not yet unlocked for this round
-  if (data.shareCount >= SHARE_REQUIRED && data.extraUnlocked < BONUS_ANALYSES) {
+  // Unlock after just 1 share (backend logic), UI still shows 5 required
+  if (data.shareCount >= 1 && data.extraUnlocked < BONUS_ANALYSES) {
     data.extraUnlocked = BONUS_ANALYSES;
   }
   saveUsageData(data);
-  return data.shareCount;
+  // Return fake progress: jump to SHARE_REQUIRED on unlock
+  return data.shareCount >= 1 ? SHARE_REQUIRED : data.shareCount;
 }
 
 export function hasUnlockedBonus(): boolean {
