@@ -337,6 +337,11 @@ const Index = () => {
               </Card>
             </motion.div>
 
+            {/* Share button after results */}
+            <motion.div className="flex justify-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+              <ShareToolPopup />
+            </motion.div>
+
             <BannerAd slot="bottom-banner" />
           </motion.div>
         )}
