@@ -36,10 +36,12 @@ const Index = () => {
   const [shares, setShares] = useState("");
   const [saves, setSaves] = useState("");
   const [sampleComments, setSampleComments] = useState("");
+  const [postDate, setPostDate] = useState("");
   const [showMetrics, setShowMetrics] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
   const [showInterstitial, setShowInterstitial] = useState(false);
+  const [tooNewWarning, setTooNewWarning] = useState(false);
   const { toast } = useToast();
   const { lang, t } = useLang();
 
