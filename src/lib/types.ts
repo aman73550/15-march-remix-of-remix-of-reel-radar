@@ -62,9 +62,20 @@ export interface MetricComparison {
   verdict: string;
 }
 
+export type ViralStatus = "Already Viral" | "Growing" | "Low Viral Potential";
+
+export interface ViralClassification {
+  status: ViralStatus;
+  score: number; // 0-100
+  label: string; // "Viral Strength" or "Viral Potential"
+  reasons: string[];
+  engagementRate?: number;
+}
+
 export interface ReelAnalysis {
   viralScore: number;
   overallSummary: string;
+  viralClassification?: ViralClassification;
 
   hookAnalysis: HookAnalysis;
   captionAnalysis: CaptionAnalysis;

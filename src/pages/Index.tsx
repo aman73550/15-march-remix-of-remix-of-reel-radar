@@ -17,6 +17,7 @@ import CaptionAnalysisCard from "@/components/CaptionAnalysisCard";
 import HashtagAnalysisCard from "@/components/HashtagAnalysisCard";
 import VideoSignalsCard from "@/components/VideoSignalsCard";
 import TrendMatchingCard from "@/components/TrendMatchingCard";
+import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
 import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { supabase } from "@/integrations/supabase/client";
@@ -173,19 +174,19 @@ const Index = () => {
       <AnimatePresence>
         {analysis && scores && (
           <motion.div className="relative z-10 max-w-2xl mx-auto px-4 pb-16 space-y-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            {/* Viral Status Badge */}
+            {analysis.viralClassification && (
+              <ViralStatusBadge classification={analysis.viralClassification} />
+            )}
+
             {/* Viral Score + Preview */}
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
               <motion.div className="sm:col-span-3" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
                 <Card className="glass p-8 flex flex-col items-center h-full justify-center">
-                  <ViralScoreCircle score={analysis.viralScore} />
+                  <ViralScoreCircle score={analysis.viralClassification?.score ?? analysis.viralScore} />
                   <motion.p className="mt-4 text-sm text-muted-foreground text-center max-w-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
                     {analysis.overallSummary}
                   </motion.p>
-                  {analysis.engagementRate && (
-                    <motion.div className="mt-3 px-3 py-1 rounded-full bg-muted/30 border border-border text-xs text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }}>
-                      Est. Engagement Rate: <span className="font-bold text-foreground">{analysis.engagementRate}</span>
-                    </motion.div>
-                  )}
                 </Card>
               </motion.div>
               <motion.div className="sm:col-span-2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>

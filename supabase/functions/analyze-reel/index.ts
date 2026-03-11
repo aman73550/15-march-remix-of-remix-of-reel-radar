@@ -228,6 +228,72 @@ Return ONLY valid JSON (no markdown, no code fences):
 
     const analysis = JSON.parse(cleanContent);
 
+    // === VIRAL CLASSIFICATION ENGINE ===
+    const m = metrics || {};
+    const likesVal = m.likes ?? 0;
+    const commentsVal = m.comments ?? 0;
+    const viewsVal = m.views ?? 0;
+    const engRate = viewsVal > 0 ? (likesVal + commentsVal) / viewsVal : 0;
+
+    const isAlreadyViral = viewsVal > 100000 || engRate > 0.07 || likesVal > 10000;
+    const isGrowing = viewsVal > 10000 || engRate > 0.03 || likesVal > 1000;
+
+    const reasons: string[] = [];
+    if (hasMetrics) {
+      if (viewsVal > 100000) reasons.push("High view count (100K+) indicates strong reach");
+      else if (viewsVal > 10000) reasons.push("Growing view count shows expanding reach");
+      if (engRate > 0.07) reasons.push(`Strong engagement rate (${(engRate * 100).toFixed(2)}%) well above average`);
+      else if (engRate > 0.03) reasons.push(`Decent engagement rate (${(engRate * 100).toFixed(2)}%)`);
+      if (likesVal > 10000) reasons.push("High like count signals strong audience approval");
+      else if (likesVal > 1000) reasons.push("Growing likes indicate audience interest");
+      if (commentsVal > 500) reasons.push("Active comment section shows high audience engagement");
+      else if (commentsVal > 50) reasons.push("Good comment activity");
+    }
+    // Add AI-derived reasons
+    if (analysis.hookAnalysis?.score >= 7) reasons.push("Effective hook grabs attention in first 3 seconds");
+    if (analysis.captionAnalysis?.score >= 7) reasons.push("Strong caption drives curiosity and engagement");
+    if (analysis.hashtagAnalysis?.score >= 7) reasons.push("Well-optimized hashtag strategy");
+    if (analysis.trendMatching?.score >= 7) reasons.push("Content aligns with current viral trends");
+
+    let viralStatus, viralScore, viralLabel;
+    if (hasMetrics && isAlreadyViral) {
+      viralStatus = "Already Viral";
+      viralScore = Math.min(95, Math.max(80, Math.round(80 + (engRate * 100))));
+      viralLabel = "Viral Strength";
+    } else if (hasMetrics && isGrowing) {
+      viralStatus = "Growing";
+      // Weighted score: hook 30%, caption 20%, hashtag 15%, engagement 25%, comments 10%
+      const hookS = (analysis.hookAnalysis?.score ?? 5) / 10;
+      const capS = (analysis.captionAnalysis?.score ?? 5) / 10;
+      const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 10;
+      const engS = Math.min(1, engRate / 0.07);
+      const comS = Math.min(1, commentsVal / 500);
+      viralScore = Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10));
+      viralLabel = "Viral Potential";
+    } else {
+      viralStatus = hasMetrics ? "Low Viral Potential" : (analysis.viralScore >= 60 ? "Growing" : "Low Viral Potential");
+      const hookS = (analysis.hookAnalysis?.score ?? 5) / 10;
+      const capS = (analysis.captionAnalysis?.score ?? 5) / 10;
+      const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 10;
+      const engS = hasMetrics ? Math.min(1, engRate / 0.07) : (analysis.engagementScore ?? 5) / 10;
+      const comS = hasMetrics ? Math.min(1, commentsVal / 500) : 0.5;
+      viralScore = Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10));
+      viralLabel = "Viral Potential";
+      if (!hasMetrics && reasons.length === 0) {
+        if (analysis.hookAnalysis?.score >= 5) reasons.push("Decent hook potential");
+        if (analysis.captionAnalysis?.score >= 5) reasons.push("Caption has engagement potential");
+        reasons.push("Add engagement metrics for more accurate classification");
+      }
+    }
+
+    analysis.viralClassification = {
+      status: viralStatus,
+      score: viralScore,
+      label: viralLabel,
+      reasons: reasons.slice(0, 6),
+      engagementRate: hasMetrics && viewsVal > 0 ? engRate : undefined,
+    };
+
     return new Response(JSON.stringify({ success: true, analysis }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
