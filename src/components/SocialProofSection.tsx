@@ -36,7 +36,7 @@ function generateEntry() {
 }
 
 // --- Reels Counter ---
-const BASE_COUNT = 1240;
+const BASE_COUNT = 48750;
 const STORAGE_KEY = "rva_reel_counter";
 
 function getStoredCount(): number {
