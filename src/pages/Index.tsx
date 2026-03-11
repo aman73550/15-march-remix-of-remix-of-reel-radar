@@ -38,6 +38,7 @@ const Index = () => {
   const [saves, setSaves] = useState("");
   const [sampleComments, setSampleComments] = useState("");
   const [postDate, setPostDate] = useState("");
+  const [showDetails, setShowDetails] = useState(false);
   const [showMetrics, setShowMetrics] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
