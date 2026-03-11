@@ -58,6 +58,12 @@
 @layer utilities {
   .gradient-primary {
     background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .gradient-primary-bg {
+    background: var(--gradient-primary);
   }
   .gradient-accent {
     background: var(--gradient-accent);
