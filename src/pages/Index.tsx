@@ -19,6 +19,7 @@ import VideoSignalsCard from "@/components/VideoSignalsCard";
 import TrendMatchingCard from "@/components/TrendMatchingCard";
 import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
+import ShareToolPopup from "@/components/ShareToolPopup";
 import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
