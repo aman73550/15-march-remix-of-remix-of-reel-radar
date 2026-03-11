@@ -97,6 +97,8 @@ export interface ReelAnalysis {
   captionAnalysis: CaptionAnalysis;
   hashtagAnalysis: HashtagAnalysis;
   videoSignals: VideoSignals;
+  videoQuality?: VideoQuality;
+  audioQuality?: AudioQuality;
   trendMatching: TrendMatching;
 
   engagementScore: number;
