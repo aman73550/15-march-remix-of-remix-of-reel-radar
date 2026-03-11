@@ -22,6 +22,8 @@ import LanguageToggle from "@/components/LanguageToggle";
 import ShareToolPopup from "@/components/ShareToolPopup";
 import ShareUnlockScreen from "@/components/ShareUnlockScreen";
 import SocialProofSection, { SocialProofBadge } from "@/components/SocialProofSection";
+import SampleAnalysisPreview from "@/components/SampleAnalysisPreview";
+import TrendingLeaderboard from "@/components/TrendingLeaderboard";
 import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +54,11 @@ const Index = () => {
   const [remaining, setRemaining] = useState(getRemainingAnalyses());
   const { toast } = useToast();
   const { lang, t } = useLang();
+  const inputRef = useRef<HTMLDivElement>(null);
 
+  const scrollToInput = () => {
+    inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
   const runAnalysis = useCallback(async () => {
     setLoading(true);
     setAnalysis(null);
@@ -231,7 +237,7 @@ const Index = () => {
       </div>
 
       {/* Input */}
-      <motion.div className="relative z-10 max-w-xl mx-auto px-4 pb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+      <motion.div ref={inputRef} className="relative z-10 max-w-xl mx-auto px-4 pb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
         <Card className="glass p-5 space-y-3">
           {/* URL input - always visible */}
           <div className="relative">
@@ -292,6 +298,9 @@ const Index = () => {
           {/* Remaining analyses counter */}
           <p className="text-center text-[10px] text-muted-foreground">
             {remaining > 0 ? `${remaining} free analysis${remaining !== 1 ? "es" : ""} remaining` : "No free analyses remaining — share to unlock more"}
+          </p>
+          <p className="text-center text-[10px] text-muted-foreground/60">
+            No login required • Instant analysis
           </p>
         </Card>
 
@@ -454,9 +463,13 @@ const Index = () => {
       </AnimatePresence>
 
       {!analysis && (
-        <div className="py-8 space-y-4">
-          <div className="flex justify-center"><ShareToolPopup /></div>
-          <BannerAd slot="footer-banner" />
+        <div className="space-y-2">
+          <SampleAnalysisPreview />
+          <TrendingLeaderboard onScrollToInput={scrollToInput} />
+          <div className="py-8 space-y-4">
+            <div className="flex justify-center"><ShareToolPopup /></div>
+            <BannerAd slot="footer-banner" />
+          </div>
         </div>
       )}
     </div>
