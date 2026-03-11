@@ -23,7 +23,8 @@ import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import type { ReelAnalysis } from "@/lib/types";
-import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, Calendar, ShieldCheck, Clock } from "lucide-react";
+import { differenceInHours } from "date-fns";
 
 const Index = () => {
   const [url, setUrl] = useState("");
@@ -35,10 +36,12 @@ const Index = () => {
   const [shares, setShares] = useState("");
   const [saves, setSaves] = useState("");
   const [sampleComments, setSampleComments] = useState("");
+  const [postDate, setPostDate] = useState("");
   const [showMetrics, setShowMetrics] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
   const [showInterstitial, setShowInterstitial] = useState(false);
+  const [tooNewWarning, setTooNewWarning] = useState(false);
   const { toast } = useToast();
   const { lang, t } = useLang();
 
@@ -73,11 +76,24 @@ const Index = () => {
     }
   }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast]);
 
+  const isReelTooNew = useCallback(() => {
+    if (!postDate) return false;
+    const posted = new Date(postDate);
+    if (isNaN(posted.getTime())) return false;
+    return differenceInHours(new Date(), posted) < 48;
+  }, [postDate]);
+
   const handleAnalyze = () => {
     if (!url.trim()) {
       toast({ title: t.enterUrl, variant: "destructive" });
       return;
     }
+    if (isReelTooNew()) {
+      setTooNewWarning(true);
+      setAnalysis(null);
+      return;
+    }
+    setTooNewWarning(false);
     setShowInterstitial(true);
     runAnalysis();
   };
@@ -140,6 +156,11 @@ const Index = () => {
           <Input placeholder={t.captionPlaceholder} value={caption} onChange={(e) => setCaption(e.target.value)} className="bg-muted/50 border-border h-10 text-sm" />
           <Input placeholder={t.hashtagPlaceholder} value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-muted/50 border-border h-10 text-sm" />
 
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input type="datetime-local" value={postDate} onChange={(e) => { setPostDate(e.target.value); setTooNewWarning(false); }} className="pl-9 bg-muted/50 border-border h-10 text-sm" placeholder="Post date & time" />
+          </div>
+
           <button type="button" onClick={() => setShowMetrics(!showMetrics)} className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-muted/30 border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">
             <span>{t.metricsLabel}</span>
             {showMetrics ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -161,11 +182,35 @@ const Index = () => {
           </AnimatePresence>
 
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-            <Button onClick={handleAnalyze} disabled={loading} className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity">
+            <Button onClick={handleAnalyze} disabled={loading || (tooNewWarning)} className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity">
               {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
             </Button>
           </motion.div>
         </Card>
+
+        {/* Too New Warning */}
+        <AnimatePresence>
+          {tooNewWarning && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+              <Card className="glass p-5 border-[hsl(var(--viral-mid))]/30 bg-[hsl(var(--viral-mid))]/5">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-xl bg-[hsl(var(--viral-mid))]/10 border border-[hsl(var(--viral-mid))]/20 text-[hsl(var(--viral-mid))]">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-semibold text-foreground">Full analysis is not available yet.</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      This reel was posted recently. Viral patterns and engagement data need time to develop.
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Please wait at least <span className="font-bold text-foreground">48 hours</span> after posting for a reliable analysis.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       <div className="py-4"><BannerAd slot="top-banner" /></div>
@@ -174,6 +219,11 @@ const Index = () => {
       <AnimatePresence>
         {analysis && scores && (
           <motion.div className="relative z-10 max-w-2xl mx-auto px-4 pb-16 space-y-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            {/* Age Verified Label */}
+            <motion.div className="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[hsl(var(--viral-high))]/10 border border-[hsl(var(--viral-high))]/20 mx-auto w-fit" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+              <ShieldCheck className="w-3.5 h-3.5 text-[hsl(var(--viral-high))]" />
+              <span className="text-xs font-medium text-[hsl(var(--viral-high))]">Reel Age Verified – Analysis Based On 48+ Hours Performance Data</span>
+            </motion.div>
             {/* Viral Status Badge */}
             {analysis.viralClassification && (
               <ViralStatusBadge classification={analysis.viralClassification} />
