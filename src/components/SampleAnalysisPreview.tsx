@@ -21,7 +21,7 @@ const SampleAnalysisPreview = () => {
         <p className="text-[10px] sm:text-xs text-muted-foreground">Here's what your analysis will look like</p>
       </div>
 
-      <Card className="glass p-5 space-y-4">
+      <Card className="glass p-4 sm:p-5 space-y-4">
         {/* Viral Score Circle */}
         <div className="flex items-center justify-center">
           <div className="relative w-24 h-24">
