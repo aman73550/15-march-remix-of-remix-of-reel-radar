@@ -237,7 +237,7 @@ const Index = () => {
       </div>
 
       {/* Input */}
-      <motion.div className="relative z-10 max-w-xl mx-auto px-4 pb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+      <motion.div ref={inputRef} className="relative z-10 max-w-xl mx-auto px-4 pb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
         <Card className="glass p-5 space-y-3">
           {/* URL input - always visible */}
           <div className="relative">
