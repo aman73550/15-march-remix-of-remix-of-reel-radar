@@ -341,7 +341,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 10;
       const engS = hasMetrics ? Math.min(1, engRate / 0.07) : (analysis.engagementScore ?? 5) / 10;
       const comS = hasMetrics ? Math.min(1, commentsVal / 500) : 0.5;
-      viralScore = Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10));
+      viralScore = Math.min(95, Math.max(5, Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10) + qualityBonus)));
       viralLabel = "Viral Potential";
       if (!hasMetrics && reasons.length === 0) {
         if (analysis.hookAnalysis?.score >= 5) reasons.push("Decent hook potential");
