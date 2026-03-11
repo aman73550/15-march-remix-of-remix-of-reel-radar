@@ -122,8 +122,16 @@ const Index = () => {
       setAnalysis(null);
       return;
     }
+    // Gate 3: Usage limit check
+    if (!canAnalyze()) {
+      setShowShareGate(true);
+      setTooNewWarning(false);
+      setLowViewsWarning(false);
+      return;
+    }
     setTooNewWarning(false);
     setLowViewsWarning(false);
+    setShowShareGate(false);
     setShowInterstitial(true);
     runAnalysis();
   };
