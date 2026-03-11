@@ -3,23 +3,33 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import ViralScoreCircle from "@/components/ViralScoreCircle";
 import AnalysisCard from "@/components/AnalysisCard";
 import CategoryPieChart from "@/components/CategoryPieChart";
 import ScoreBarChart from "@/components/ScoreBarChart";
 import ReelPreview from "@/components/ReelPreview";
+import MetricsComparison from "@/components/MetricsComparison";
+import CommentSentiment from "@/components/CommentSentiment";
 import LanguageToggle from "@/components/LanguageToggle";
 import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import type { ReelAnalysis } from "@/lib/types";
-import { Loader2, Link, Sparkles, TrendingUp } from "lucide-react";
+import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 
 const Index = () => {
   const [url, setUrl] = useState("");
   const [caption, setCaption] = useState("");
   const [hashtags, setHashtags] = useState("");
+  const [likes, setLikes] = useState("");
+  const [comments, setComments] = useState("");
+  const [views, setViews] = useState("");
+  const [shares, setShares] = useState("");
+  const [saves, setSaves] = useState("");
+  const [sampleComments, setSampleComments] = useState("");
+  const [showMetrics, setShowMetrics] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
   const [showInterstitial, setShowInterstitial] = useState(false);
@@ -32,7 +42,20 @@ const Index = () => {
     setAnalysis(null);
     try {
       const { data, error } = await supabase.functions.invoke("analyze-reel", {
-        body: { url: url.trim(), caption: caption.trim(), hashtags: hashtags.trim(), lang },
+        body: {
+          url: url.trim(),
+          caption: caption.trim(),
+          hashtags: hashtags.trim(),
+          lang,
+          metrics: {
+            likes: likes ? parseInt(likes) : undefined,
+            comments: comments ? parseInt(comments) : undefined,
+            views: views ? parseInt(views) : undefined,
+            shares: shares ? parseInt(shares) : undefined,
+            saves: saves ? parseInt(saves) : undefined,
+          },
+          sampleComments: sampleComments.trim() || undefined,
+        },
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Analysis failed");
@@ -47,14 +70,13 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
-  }, [url, caption, hashtags, lang, t, toast]);
+  }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast]);
 
   const handleAnalyze = () => {
     if (!url.trim()) {
       toast({ title: t.enterUrl, variant: "destructive" });
       return;
     }
-    // Show interstitial ad, start analysis in background
     setShowInterstitial(true);
     setPendingAnalysis(true);
     runAnalysis().finally(() => setPendingAnalysis(false));
@@ -162,6 +184,74 @@ const Index = () => {
             onChange={(e) => setHashtags(e.target.value)}
             className="bg-muted/50 border-border h-10 text-sm"
           />
+
+          {/* Expandable Metrics Section */}
+          <button
+            type="button"
+            onClick={() => setShowMetrics(!showMetrics)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-muted/30 border border-border text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <span>{t.metricsLabel}</span>
+            {showMetrics ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+
+          <AnimatePresence>
+            {showMetrics && (
+              <motion.div
+                className="space-y-2"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="number"
+                    placeholder={t.likesPlaceholder}
+                    value={likes}
+                    onChange={(e) => setLikes(e.target.value)}
+                    className="bg-muted/50 border-border h-9 text-xs"
+                  />
+                  <Input
+                    type="number"
+                    placeholder={t.commentsPlaceholder}
+                    value={comments}
+                    onChange={(e) => setComments(e.target.value)}
+                    className="bg-muted/50 border-border h-9 text-xs"
+                  />
+                  <Input
+                    type="number"
+                    placeholder={t.viewsPlaceholder}
+                    value={views}
+                    onChange={(e) => setViews(e.target.value)}
+                    className="bg-muted/50 border-border h-9 text-xs"
+                  />
+                  <Input
+                    type="number"
+                    placeholder={t.sharesPlaceholder}
+                    value={shares}
+                    onChange={(e) => setShares(e.target.value)}
+                    className="bg-muted/50 border-border h-9 text-xs"
+                  />
+                  <Input
+                    type="number"
+                    placeholder={t.savesPlaceholder}
+                    value={saves}
+                    onChange={(e) => setSaves(e.target.value)}
+                    className="bg-muted/50 border-border h-9 text-xs col-span-2 sm:col-span-1"
+                  />
+                </div>
+                <Textarea
+                  placeholder={t.sampleCommentsPlaceholder}
+                  value={sampleComments}
+                  onChange={(e) => setSampleComments(e.target.value)}
+                  className="bg-muted/50 border-border text-xs min-h-[70px] resize-none"
+                  rows={3}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
             <Button
               onClick={handleAnalyze}
@@ -184,7 +274,7 @@ const Index = () => {
         </Card>
       </motion.div>
 
-      {/* Banner Ad - below input, above results */}
+      {/* Banner Ad */}
       <div className="py-4">
         <BannerAd slot="top-banner" />
       </div>
@@ -198,7 +288,7 @@ const Index = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Score + Reel Preview side by side */}
+            {/* Score + Reel Preview */}
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
               <motion.div
                 className="sm:col-span-3"
@@ -228,7 +318,16 @@ const Index = () => {
               </motion.div>
             </div>
 
-            {/* Inline Ad between score and charts */}
+            {/* Metrics Comparison (if provided) */}
+            {analysis.metricsComparison && Object.keys(analysis.metricsComparison).length > 0 && (
+              <MetricsComparison metrics={analysis.metricsComparison} />
+            )}
+
+            {/* Comment Sentiment (if available) */}
+            {analysis.commentSentiment && (
+              <CommentSentiment sentiment={analysis.commentSentiment} />
+            )}
+
             <InlineAd slot="mid-content-1" />
 
             {/* Charts */}
@@ -282,7 +381,6 @@ const Index = () => {
               <AnalysisCard icon="🔥" title={t.trend} score={analysis.trendScore} details={analysis.trendDetails} index={4} />
             </div>
 
-            {/* Inline Ad between categories and recommendations */}
             <InlineAd slot="mid-content-2" />
 
             {/* Recommendations */}
@@ -312,13 +410,11 @@ const Index = () => {
               </Card>
             </motion.div>
 
-            {/* Bottom Banner Ad */}
             <BannerAd slot="bottom-banner" />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Footer Banner Ad (always visible) */}
       {!analysis && (
         <div className="py-8">
           <BannerAd slot="footer-banner" />

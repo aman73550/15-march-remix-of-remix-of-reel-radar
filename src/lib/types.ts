@@ -12,6 +12,22 @@ export interface ReelAnalysis {
   trendDetails: string[];
   overallSummary: string;
   topRecommendations: string[];
+  // Engagement metrics comparison
+  metricsComparison?: {
+    likes?: { value: number; avgInCategory: number; verdict: string };
+    comments?: { value: number; avgInCategory: number; verdict: string };
+    shares?: { value: number; avgInCategory: number; verdict: string };
+    saves?: { value: number; avgInCategory: number; verdict: string };
+    views?: { value: number; avgInCategory: number; verdict: string };
+  };
+  // Comment sentiment
+  commentSentiment?: {
+    positive: number;
+    neutral: number;
+    negative: number;
+    topThemes: string[];
+    summary: string;
+  };
 }
 
 export interface ReelMetadata {
