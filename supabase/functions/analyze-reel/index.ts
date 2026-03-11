@@ -332,7 +332,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 10;
       const engS = Math.min(1, engRate / 0.07);
       const comS = Math.min(1, commentsVal / 500);
-      viralScore = Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10));
+      viralScore = Math.min(95, Math.max(5, Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10) + qualityBonus)));
       viralLabel = "Viral Potential";
     } else {
       viralStatus = hasMetrics ? "Low Viral Potential" : (analysis.viralScore >= 60 ? "Growing" : "Low Viral Potential");
