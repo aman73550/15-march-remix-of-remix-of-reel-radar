@@ -33,7 +33,7 @@ const ScoreBarChart = ({ hookScore, captionScore, hashtagScore, engagementScore,
   return (
     <div className="w-full h-52">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
+        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }} barSize={14}>
           <XAxis type="number" domain={[0, 10]} hide />
           <YAxis
             type="category"
@@ -57,7 +57,7 @@ const ScoreBarChart = ({ hookScore, captionScore, hashtagScore, engagementScore,
               return item ? `${item.icon} ${item.name}` : label;
             }}
           />
-          <Bar dataKey="score" radius={[0, 6, 6, 0]} animationDuration={1500} animationBegin={300}>
+          <Bar dataKey="score" radius={[0, 6, 6, 0]} animationDuration={1500} animationBegin={300} barSize={14} label={{ position: "right", fill: "hsl(210, 20%, 75%)", fontSize: 11, formatter: (v: number) => `${v}/10` }}>
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={getBarColor(entry.score)} />
             ))}
