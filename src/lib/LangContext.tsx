@@ -87,7 +87,6 @@ const translations = {
     videoTitle: "वीडियो सिग्नल (AI अनुमानित)",
     trendTitle: "ट्रेंड मैचिंग",
     engagementTitle: "एंगेजमेंट गुणवत्ता",
-    needsWork: "💡 सुधार ज़रूरी",
     metricsLabel: "एंगेजमेंट मेट्रिक्स (वैकल्पिक)",
     likesPlaceholder: "लाइक्स की संख्या",
     commentsPlaceholder: "कमेंट्स की संख्या",
