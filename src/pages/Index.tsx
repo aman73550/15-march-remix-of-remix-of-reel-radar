@@ -417,6 +417,11 @@ const Index = () => {
               </motion.div>
             </div>
 
+            {/* Content Classification */}
+            {analysis.contentClassification && (
+              <ContentClassificationCard data={analysis.contentClassification} thumbnailAnalyzed={analysis.thumbnailAnalyzed} />
+            )}
+
             {/* Detailed Analysis Cards */}
             {analysis.hookAnalysis && <HookAnalysisCard data={analysis.hookAnalysis} title={t.hookTitle} />}
             {analysis.captionAnalysis && <CaptionAnalysisCard data={analysis.captionAnalysis} title={t.captionTitle} />}
