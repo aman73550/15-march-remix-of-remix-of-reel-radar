@@ -463,9 +463,13 @@ const Index = () => {
       </AnimatePresence>
 
       {!analysis && (
-        <div className="py-8 space-y-4">
-          <div className="flex justify-center"><ShareToolPopup /></div>
-          <BannerAd slot="footer-banner" />
+        <div className="space-y-2">
+          <SampleAnalysisPreview />
+          <TrendingLeaderboard onScrollToInput={scrollToInput} />
+          <div className="py-8 space-y-4">
+            <div className="flex justify-center"><ShareToolPopup /></div>
+            <BannerAd slot="footer-banner" />
+          </div>
         </div>
       )}
     </div>
