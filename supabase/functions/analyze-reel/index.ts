@@ -91,17 +91,29 @@ Perform ALL of these analyses:
    - Motion intensity
    - Visual engagement level
 
-5. TREND MATCHING:
+5. VIDEO QUALITY ASSESSMENT:
+   - Estimated resolution quality (HD/SD/Low)
+   - Lighting quality (good/average/poor)
+   - Camera stability (stable/moderate/shaky)
+   - Overall visual clarity (sharp/average/blurry)
+
+6. AUDIO QUALITY ASSESSMENT:
+   - Voice clarity (clear/muffled/none)
+   - Background audio quality (clean/moderate/noisy)
+   - Sound balance (balanced/unbalanced/distorted)
+   - Music/sound usage (trending audio/original/none)
+
+7. TREND MATCHING:
    - Format similarity to current viral trends
    - Hook pattern matching
    - Trending structure alignment
    - Name specific trends it matches
 
-6. ENGAGEMENT ANALYSIS:
+8. ENGAGEMENT ANALYSIS:
    - Overall engagement quality${hasMetrics ? "\n   - Compare each metric against estimated category averages" : ""}
    - Engagement rate estimate${sampleComments ? `
 
-7. COMMENT SENTIMENT:
+9. COMMENT SENTIMENT:
    - Percentage breakdown: positive, neutral, negative (must sum to 100)
    - Question ratio (% of comments that are questions)
    - Engagement signals in comments
