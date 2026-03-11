@@ -1,18 +1,24 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Activity, BarChart3 } from "lucide-react";
 
-// --- Live Activity Count ---
-function useLiveCount(min: number, max: number, intervalMs: number) {
-  const [count, setCount] = useState(
-    () => Math.floor(Math.random() * (max - min + 1)) + min
-  );
+// --- Smooth drift: number changes by small ±delta, not random jumps ---
+function useDriftingCount(base: number, range: number, intervalMs: number) {
+  const [count, setCount] = useState(base);
   useEffect(() => {
     const id = setInterval(() => {
-      setCount(Math.floor(Math.random() * (max - min + 1)) + min);
+      setCount((prev) => {
+        // Drift by ±1 to ±5% of range, stay within bounds
+        const maxStep = Math.max(1, Math.floor(range * 0.06));
+        const delta = Math.floor(Math.random() * maxStep * 2) - maxStep;
+        const next = prev + delta;
+        const min = base - range;
+        const max = base + range;
+        return Math.min(max, Math.max(min, next));
+      });
     }, intervalMs);
     return () => clearInterval(id);
-  }, [min, max, intervalMs]);
+  }, [base, range, intervalMs]);
   return count;
 }
 
@@ -21,43 +27,74 @@ const CITIES = [
   "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Pune", "Chennai",
   "Kolkata", "Jaipur", "Lucknow", "Ahmedabad", "Chandigarh", "Indore",
   "Surat", "Nagpur", "Patna", "Bhopal", "Kochi", "Goa",
+  "Noida", "Gurgaon", "Vadodara", "Ranchi", "Dehradun", "Mysore",
 ];
-const ROLES = ["creator", "marketer", "influencer", "brand", "content strategist"];
+const ROLES = ["creator", "marketer", "influencer", "brand strategist", "content creator", "social media manager", "blogger"];
+const ACTIONS = [
+  "analyzed a reel",
+  "checked viral potential",
+  "ran a reel analysis",
+  "tested a reel",
+];
 
 function generateEntry() {
   const city = CITIES[Math.floor(Math.random() * CITIES.length)];
   const role = ROLES[Math.floor(Math.random() * ROLES.length)];
+  const action = ACTIONS[Math.floor(Math.random() * ACTIONS.length)];
   const seconds = Math.floor(Math.random() * 55) + 3;
   return {
     id: Date.now() + Math.random(),
-    text: `A ${role} from ${city} analyzed a reel`,
+    text: `A ${role} from ${city} ${action}`,
     time: `${seconds}s ago`,
   };
 }
 
-// --- Reels Counter ---
+// --- Reels Counter: time-based organic growth ---
 const BASE_COUNT = 48750;
 const STORAGE_KEY = "rva_reel_counter";
+const COUNTER_TS_KEY = "rva_counter_ts";
 
 function getStoredCount(): number {
   try {
     const v = localStorage.getItem(STORAGE_KEY);
-    if (v) return Math.max(BASE_COUNT, parseInt(v, 10));
+    const ts = localStorage.getItem(COUNTER_TS_KEY);
+    if (v && ts) {
+      const stored = parseInt(v, 10);
+      const elapsed = Date.now() - parseInt(ts, 10);
+      // Grow ~2-4 per minute organically based on time elapsed
+      const organic = Math.floor(elapsed / 1000 / 60 * (2 + Math.random() * 2));
+      const total = Math.max(BASE_COUNT, stored + organic);
+      // Save updated
+      localStorage.setItem(STORAGE_KEY, String(total));
+      localStorage.setItem(COUNTER_TS_KEY, String(Date.now()));
+      return total;
+    }
+  } catch {}
+  try {
+    localStorage.setItem(STORAGE_KEY, String(BASE_COUNT));
+    localStorage.setItem(COUNTER_TS_KEY, String(Date.now()));
   } catch {}
   return BASE_COUNT;
 }
 
-function incrementStoredCount() {
-  const current = getStoredCount();
-  const next = current + 1;
-  try { localStorage.setItem(STORAGE_KEY, String(next)); } catch {}
-  return next;
+function tickCounter(): number {
+  try {
+    const current = parseInt(localStorage.getItem(STORAGE_KEY) || String(BASE_COUNT), 10);
+    // Add 1-3 randomly per tick
+    const bump = Math.floor(Math.random() * 3) + 1;
+    const next = current + bump;
+    localStorage.setItem(STORAGE_KEY, String(next));
+    localStorage.setItem(COUNTER_TS_KEY, String(Date.now()));
+    return next;
+  } catch {}
+  return BASE_COUNT;
 }
 
 // --- Components ---
 
 export const LiveActivityIndicator = () => {
-  const count = useLiveCount(1200, 3500, 10000);
+  // Drift around 2200 ± 800, small steps every 8-12s
+  const count = useDriftingCount(2200, 800, 8000 + Math.random() * 4000);
 
   return (
     <motion.div
@@ -74,9 +111,9 @@ export const LiveActivityIndicator = () => {
         <motion.span
           key={count}
           className="font-bold text-foreground inline-block"
-          initial={{ y: -8, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          initial={{ opacity: 0.4 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
         >
           {count.toLocaleString()}
         </motion.span>
@@ -89,12 +126,12 @@ export const LiveActivityIndicator = () => {
 export const ReelsAnalyzedCounter = () => {
   const [count, setCount] = useState(getStoredCount);
 
-  // Slow organic increment every 30-60s
+  // Tick every 15-45s with small random bumps
   useEffect(() => {
-    const id = setInterval(() => {
-      const next = incrementStoredCount();
-      setCount(next);
-    }, (Math.random() * 30000) + 30000);
+    const tick = () => {
+      setCount(tickCounter());
+    };
+    const id = setInterval(tick, 15000 + Math.random() * 30000);
     return () => clearInterval(id);
   }, []);
 
@@ -116,16 +153,19 @@ export const ReelsAnalyzedCounter = () => {
 
 export const ActivityFeed = () => {
   const [entries, setEntries] = useState(() => [generateEntry(), generateEntry(), generateEntry()]);
-  const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      setEntries((prev) => {
-        const next = [generateEntry(), ...prev];
-        return next.slice(0, 4);
-      });
-    }, 6000);
-    return () => clearInterval(intervalRef.current);
+    // Vary interval between 4-9 seconds for natural feel
+    let timeout: ReturnType<typeof setTimeout>;
+    const scheduleNext = () => {
+      const delay = 4000 + Math.random() * 5000;
+      timeout = setTimeout(() => {
+        setEntries((prev) => [generateEntry(), ...prev].slice(0, 4));
+        scheduleNext();
+      }, delay);
+    };
+    scheduleNext();
+    return () => clearTimeout(timeout);
   }, []);
 
   return (
