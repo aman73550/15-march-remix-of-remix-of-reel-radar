@@ -35,6 +35,10 @@ serve(async (req) => {
       console.log("oEmbed fetch failed, continuing with user-provided data");
     }
 
+    const langInstruction = respondInHindi
+      ? "\n\nIMPORTANT: Write ALL text values (details, summary, recommendations) in Hindi language. Keep JSON keys in English."
+      : "";
+
     const prompt = `You are a viral content expert analyzing an Instagram Reel. Analyze the following and return a JSON object.
 
 Reel URL: ${url}
@@ -50,6 +54,7 @@ Categories:
 3. Hashtag Strategy - Relevance, mix of reach levels, trend alignment
 4. Engagement Signals - Likelihood of comments, shares, saves based on content type
 5. Trend Alignment - How well it fits current Instagram trends
+${langInstruction}
 
 Return ONLY valid JSON (no markdown, no code fences):
 {
