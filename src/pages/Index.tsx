@@ -285,7 +285,7 @@ const Index = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.9 + i * 0.1 }}
                     >
-                      <span className="gradient-primary bg-clip-text text-transparent font-bold">{i + 1}.</span>
+                      <span className="gradient-primary font-bold">{i + 1}.</span>
                       {rec}
                     </motion.li>
                   ))}
