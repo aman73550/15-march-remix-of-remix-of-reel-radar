@@ -42,6 +42,7 @@ const Index = () => {
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [tooNewWarning, setTooNewWarning] = useState(false);
+  const [lowViewsWarning, setLowViewsWarning] = useState(false);
   const { toast } = useToast();
   const { lang, t } = useLang();
 
