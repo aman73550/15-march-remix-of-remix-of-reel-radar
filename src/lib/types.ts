@@ -1,33 +1,102 @@
+export interface HookAnalysis {
+  score: number;
+  firstThreeSeconds: string;
+  openingType: string;
+  attentionGrabber: string;
+  details: string[];
+}
+
+export interface CaptionAnalysis {
+  score: number;
+  curiosityLevel: number;
+  emotionalTriggers: string[];
+  callToAction: string;
+  keywordDensity: string;
+  lengthEffectiveness: string;
+  details: string[];
+}
+
+export interface HashtagAnalysis {
+  score: number;
+  hashtags: {
+    tag: string;
+    competition: string;
+    relevance: string;
+    trendStrength: string;
+  }[];
+  details: string[];
+}
+
+export interface CommentSentimentAnalysis {
+  positive: number;
+  neutral: number;
+  negative: number;
+  questionRatio: number;
+  engagementSignals: string[];
+  audienceIntent: string;
+  topThemes: string[];
+  summary: string;
+}
+
+export interface VideoSignals {
+  estimatedSceneCuts: string;
+  textOverlayLikely: string;
+  facePresenceLikely: string;
+  motionIntensity: string;
+  visualEngagement: string;
+  details: string[];
+}
+
+export interface TrendMatching {
+  score: number;
+  formatSimilarity: string;
+  hookPattern: string;
+  trendingStructure: string;
+  matchedTrends: string[];
+  details: string[];
+}
+
+export interface MetricComparison {
+  value: number;
+  avgInCategory: number;
+  verdict: string;
+}
+
 export interface ReelAnalysis {
   viralScore: number;
-  hookScore: number;
-  hookDetails: string[];
-  captionScore: number;
-  captionDetails: string[];
-  hashtagScore: number;
-  hashtagDetails: string[];
+  overallSummary: string;
+
+  hookAnalysis: HookAnalysis;
+  captionAnalysis: CaptionAnalysis;
+  hashtagAnalysis: HashtagAnalysis;
+  videoSignals: VideoSignals;
+  trendMatching: TrendMatching;
+
   engagementScore: number;
   engagementDetails: string[];
-  trendScore: number;
-  trendDetails: string[];
-  overallSummary: string;
-  topRecommendations: string[];
-  // Engagement metrics comparison
+  engagementRate?: string;
+
   metricsComparison?: {
-    likes?: { value: number; avgInCategory: number; verdict: string };
-    comments?: { value: number; avgInCategory: number; verdict: string };
-    shares?: { value: number; avgInCategory: number; verdict: string };
-    saves?: { value: number; avgInCategory: number; verdict: string };
-    views?: { value: number; avgInCategory: number; verdict: string };
+    likes?: MetricComparison;
+    comments?: MetricComparison;
+    shares?: MetricComparison;
+    saves?: MetricComparison;
+    views?: MetricComparison;
   };
-  // Comment sentiment
-  commentSentiment?: {
-    positive: number;
-    neutral: number;
-    negative: number;
-    topThemes: string[];
-    summary: string;
-  };
+
+  commentSentiment?: CommentSentimentAnalysis;
+
+  topRecommendations: string[];
+
+  // Legacy compat
+  hookScore?: number;
+  hookDetails?: string[];
+  captionScore?: number;
+  captionDetails?: string[];
+  hashtagScore?: number;
+  hashtagDetails?: string[];
+  trendScore?: number;
+  trendDetails?: string[];
 }
 
 export interface ReelMetadata {
