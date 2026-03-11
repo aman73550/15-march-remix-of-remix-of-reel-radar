@@ -155,7 +155,7 @@ const Index = () => {
             <Button
               onClick={handleAnalyze}
               disabled={loading}
-              className="w-full h-11 gradient-primary text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity"
+              className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity"
             >
               {loading ? (
                 <>
