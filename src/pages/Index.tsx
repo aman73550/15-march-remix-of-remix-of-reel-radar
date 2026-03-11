@@ -18,6 +18,7 @@ import HashtagAnalysisCard from "@/components/HashtagAnalysisCard";
 import VideoSignalsCard from "@/components/VideoSignalsCard";
 import QualitySignalsCard from "@/components/QualitySignalsCard";
 import TrendMatchingCard from "@/components/TrendMatchingCard";
+import ContentClassificationCard from "@/components/ContentClassificationCard";
 import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
 import ShareToolPopup from "@/components/ShareToolPopup";
