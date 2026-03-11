@@ -283,6 +283,42 @@ Return ONLY valid JSON (no markdown, no code fences):
     if (analysis.hashtagAnalysis?.score >= 7) reasons.push("Well-optimized hashtag strategy");
     if (analysis.trendMatching?.score >= 7) reasons.push("Content aligns with current viral trends");
 
+    // === QUALITY BONUS/PENALTY (capped at ±15 total) ===
+    let qualityBonus = 0;
+
+    // Video quality adjustment
+    const vq = analysis.videoQuality;
+    if (vq) {
+      const vqScore = vq.qualityScore ?? 5;
+      if (vqScore >= 8) {
+        qualityBonus += 8; // HD + great visuals
+        reasons.push("High video quality boosts viewer retention");
+      } else if (vqScore >= 6) {
+        qualityBonus += 3; // Good quality
+      } else if (vqScore <= 3) {
+        qualityBonus -= 5; // Poor quality
+        reasons.push("Low video quality may reduce viewer retention");
+      }
+    }
+
+    // Audio quality adjustment
+    const aq = analysis.audioQuality;
+    if (aq) {
+      const aqScore = aq.qualityScore ?? 5;
+      if (aqScore >= 8) {
+        qualityBonus += 5; // Clear audio
+        reasons.push("Clean audio quality enhances engagement");
+      } else if (aqScore >= 6) {
+        qualityBonus += 3;
+      } else if (aqScore <= 3) {
+        qualityBonus -= 5;
+        reasons.push("Poor audio quality may cause viewers to skip");
+      }
+    }
+
+    // Cap quality bonus to ±15
+    qualityBonus = Math.max(-15, Math.min(15, qualityBonus));
+
     let viralStatus, viralScore, viralLabel;
     if (hasMetrics && isAlreadyViral) {
       viralStatus = "Already Viral";
