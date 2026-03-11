@@ -17,6 +17,7 @@ import CaptionAnalysisCard from "@/components/CaptionAnalysisCard";
 import HashtagAnalysisCard from "@/components/HashtagAnalysisCard";
 import VideoSignalsCard from "@/components/VideoSignalsCard";
 import TrendMatchingCard from "@/components/TrendMatchingCard";
+import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
 import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
 import { supabase } from "@/integrations/supabase/client";
