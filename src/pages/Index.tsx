@@ -223,7 +223,7 @@ const Index = () => {
             <Sparkles className="w-3 h-3" />
             {t.badge}
           </motion.div>
-          <motion.h1 className="text-3xl sm:text-5xl font-bold text-foreground mb-3 tracking-tight" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <motion.h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-foreground mb-2 sm:mb-3 tracking-tight leading-tight" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
             {t.title1}
             <span className="gradient-primary">{t.title2}</span>
           </motion.h1>
