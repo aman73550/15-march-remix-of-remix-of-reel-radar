@@ -50,7 +50,7 @@ const TrendingLeaderboard = ({ onScrollToInput }: Props) => {
 
   return (
     <motion.div
-      className="relative z-10 max-w-xl mx-auto px-4 py-6"
+      className="relative z-10 max-w-xl lg:max-w-2xl mx-auto px-3 sm:px-4 py-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.1, duration: 0.5 }}
@@ -71,39 +71,41 @@ const TrendingLeaderboard = ({ onScrollToInput }: Props) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 1.3 + i * 0.1 }}
           >
-            <Card className={`glass p-3.5 flex items-center gap-3 ${i === 0 ? "border-[hsl(var(--viral-high))]/30 bg-[hsl(var(--viral-high))]/5" : ""}`}>
-              {/* Rank */}
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                i === 0 ? "bg-[hsl(var(--accent))]/15 text-[hsl(var(--accent))]" :
-                i === 1 ? "bg-muted text-foreground" :
-                i === 2 ? "bg-muted text-foreground" :
-                "bg-muted/50 text-muted-foreground"
-              }`}>
-                #{i + 1}
-              </div>
-
-              {/* Category */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm">{entry.emoji}</span>
-                  <span className="text-sm font-semibold text-foreground">{entry.category}</span>
-                  {i === 0 && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[hsl(var(--viral-high))]/10 border border-[hsl(var(--viral-high))]/20 text-[8px] font-bold text-[hsl(var(--viral-high))]">
-                      <Flame className="w-2.5 h-2.5" /> High Viral Potential
-                    </span>
-                  )}
+            <Card className={`glass p-3 sm:p-3.5 ${i === 0 ? "border-[hsl(var(--viral-high))]/30 bg-[hsl(var(--viral-high))]/5" : ""}`}>
+              <div className="flex items-center gap-2 sm:gap-3">
+                {/* Rank */}
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                  i === 0 ? "bg-[hsl(var(--accent))]/15 text-[hsl(var(--accent))]" :
+                  i === 1 ? "bg-muted text-foreground" :
+                  i === 2 ? "bg-muted text-foreground" :
+                  "bg-muted/50 text-muted-foreground"
+                }`}>
+                  #{i + 1}
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
-                  <span>Hook: <span className="font-bold text-foreground">{entry.hookScore}/10</span></span>
-                  <span>Caption: <span className="font-bold text-foreground">{entry.captionScore}/10</span></span>
-                  <span>Hashtag: <span className="font-bold text-foreground">{entry.hashtagScore}/10</span></span>
-                </div>
-              </div>
 
-              {/* Viral Score */}
-              <div className="flex-shrink-0 text-right">
-                <span className={`text-lg font-bold ${getScoreColor(entry.viralScore)}`}>{entry.viralScore}%</span>
-                <p className="text-[9px] text-muted-foreground">viral</p>
+                {/* Category */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+                    <span className="text-sm">{entry.emoji}</span>
+                    <span className="text-xs sm:text-sm font-semibold text-foreground">{entry.category}</span>
+                    {i === 0 && (
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[hsl(var(--viral-high))]/10 border border-[hsl(var(--viral-high))]/20 text-[7px] sm:text-[8px] font-bold text-[hsl(var(--viral-high))] whitespace-nowrap">
+                        <Flame className="w-2 h-2 sm:w-2.5 sm:h-2.5" /> High Viral
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 sm:gap-3 mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] text-muted-foreground">
+                    <span>Hook: <span className="font-bold text-foreground">{entry.hookScore}/10</span></span>
+                    <span>Caption: <span className="font-bold text-foreground">{entry.captionScore}/10</span></span>
+                    <span className="hidden xs:inline">Hashtag: <span className="font-bold text-foreground">{entry.hashtagScore}/10</span></span>
+                  </div>
+                </div>
+
+                {/* Viral Score */}
+                <div className="flex-shrink-0 text-right">
+                  <span className={`text-base sm:text-lg font-bold ${getScoreColor(entry.viralScore)}`}>{entry.viralScore}%</span>
+                  <p className="text-[8px] sm:text-[9px] text-muted-foreground">viral</p>
+                </div>
               </div>
             </Card>
           </motion.div>

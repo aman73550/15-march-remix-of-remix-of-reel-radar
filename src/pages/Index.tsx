@@ -205,7 +205,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative overflow-x-hidden">
       <LanguageToggle />
       <InterstitialAd show={showInterstitial} onClose={() => setShowInterstitial(false)} />
 
@@ -218,12 +218,12 @@ const Index = () => {
 
       {/* Hero */}
       <div className="relative z-10">
-        <motion.div className="max-w-2xl mx-auto px-4 pt-14 pb-8 text-center" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+        <motion.div className="max-w-2xl mx-auto px-3 sm:px-4 pt-10 sm:pt-14 pb-6 sm:pb-8 text-center" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <motion.div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-muted/50 text-xs text-muted-foreground mb-6" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
             <Sparkles className="w-3 h-3" />
             {t.badge}
           </motion.div>
-          <motion.h1 className="text-3xl sm:text-5xl font-bold text-foreground mb-3 tracking-tight" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <motion.h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-foreground mb-2 sm:mb-3 tracking-tight leading-tight" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
             {t.title1}
             <span className="gradient-primary">{t.title2}</span>
           </motion.h1>
@@ -237,8 +237,8 @@ const Index = () => {
       </div>
 
       {/* Input */}
-      <motion.div ref={inputRef} className="relative z-10 max-w-xl mx-auto px-4 pb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-        <Card className="glass p-5 space-y-3">
+      <motion.div ref={inputRef} className="relative z-10 max-w-xl lg:max-w-2xl mx-auto px-3 sm:px-4 pb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+        <Card className="glass p-4 sm:p-5 space-y-3">
           {/* URL input - always visible */}
           <div className="relative">
             <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -291,7 +291,7 @@ const Index = () => {
           </AnimatePresence>
 
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-            <Button onClick={handleAnalyze} disabled={loading || checkingDate || tooNewWarning || lowViewsWarning} className="w-full h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity">
+            <Button onClick={handleAnalyze} disabled={loading || checkingDate || tooNewWarning || lowViewsWarning} className="w-full h-12 sm:h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity text-sm sm:text-base">
               {checkingDate ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Checking post date...</>) : loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
             </Button>
           </motion.div>
@@ -366,11 +366,11 @@ const Index = () => {
       {/* Results */}
       <AnimatePresence>
         {analysis && scores && (
-          <motion.div className="relative z-10 max-w-2xl mx-auto px-4 pb-16 space-y-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div className="relative z-10 max-w-2xl mx-auto px-3 sm:px-4 pb-16 space-y-4 sm:space-y-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             {/* Age Verified Label */}
-            <motion.div className="flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-[hsl(var(--viral-high))]/10 border border-[hsl(var(--viral-high))]/20 mx-auto w-fit" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
-              <ShieldCheck className="w-3.5 h-3.5 text-[hsl(var(--viral-high))]" />
-              <span className="text-xs font-medium text-[hsl(var(--viral-high))]">Reel Age Verified – Analysis Based On 48+ Hours Performance Data</span>
+            <motion.div className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full bg-[hsl(var(--viral-high))]/10 border border-[hsl(var(--viral-high))]/20 mx-auto w-fit" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+              <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[hsl(var(--viral-high))] flex-shrink-0" />
+              <span className="text-[10px] sm:text-xs font-medium text-[hsl(var(--viral-high))] text-center">Reel Age Verified – 48+ Hours Performance Data</span>
             </motion.div>
             {/* Viral Status Badge */}
             {analysis.viralClassification && (

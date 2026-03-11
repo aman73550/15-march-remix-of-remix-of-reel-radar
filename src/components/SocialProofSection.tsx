@@ -130,7 +130,7 @@ export const ActivityFeed = () => {
 
   return (
     <motion.div
-      className="overflow-hidden max-h-[72px] space-y-1"
+      className="overflow-hidden max-h-[72px] space-y-1 px-2"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 1.2 }}
@@ -139,7 +139,7 @@ export const ActivityFeed = () => {
         {entries.slice(0, 3).map((entry) => (
           <motion.div
             key={entry.id}
-            className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground"
+            className="flex items-center justify-center gap-1 sm:gap-1.5 text-[9px] sm:text-[10px] text-muted-foreground text-center flex-wrap"
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
