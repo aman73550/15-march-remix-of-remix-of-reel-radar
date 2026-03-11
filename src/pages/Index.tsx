@@ -337,8 +337,12 @@ const Index = () => {
               </Card>
             </motion.div>
 
-            {/* Share button after results */}
-            <motion.div className="flex justify-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+            {/* Growth hack CTA + Share */}
+            <motion.div className="flex flex-col items-center gap-3 text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+              <p className="text-sm text-muted-foreground">
+                Want to check another reel?{" "}
+                <span className="text-foreground font-medium">Share this tool with a friend and analyze together.</span>
+              </p>
               <ShareToolPopup />
             </motion.div>
 
