@@ -91,6 +91,16 @@ const Index = () => {
       toast({ title: t.enterUrl, variant: "destructive" });
       return;
     }
+    // Gate 0: Post date is required
+    if (!postDate) {
+      toast({
+        title: "Post date required",
+        description: "Please enter the reel's publish date so we can verify it has enough engagement data (48+ hours).",
+        variant: "destructive",
+      });
+      setShowDetails(true); // auto-open details so user sees the date field
+      return;
+    }
     // Gate 1: Reel must be 48+ hours old
     if (isReelTooNew()) {
       setTooNewWarning(true);
