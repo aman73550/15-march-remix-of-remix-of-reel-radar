@@ -57,7 +57,7 @@ function incrementStoredCount() {
 // --- Components ---
 
 export const LiveActivityIndicator = () => {
-  const count = useLiveCount(8, 35, 12000);
+  const count = useLiveCount(1200, 3500, 10000);
 
   return (
     <motion.div
