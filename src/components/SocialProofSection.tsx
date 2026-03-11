@@ -36,7 +36,7 @@ function generateEntry() {
 }
 
 // --- Reels Counter ---
-const BASE_COUNT = 1240;
+const BASE_COUNT = 48750;
 const STORAGE_KEY = "rva_reel_counter";
 
 function getStoredCount(): number {
@@ -57,7 +57,7 @@ function incrementStoredCount() {
 // --- Components ---
 
 export const LiveActivityIndicator = () => {
-  const count = useLiveCount(8, 35, 12000);
+  const count = useLiveCount(1200, 3500, 10000);
 
   return (
     <motion.div
@@ -78,7 +78,7 @@ export const LiveActivityIndicator = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
         >
-          {count}
+          {count.toLocaleString()}
         </motion.span>
         {" "}creators analyzing reels right now
       </span>
