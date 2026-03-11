@@ -20,7 +20,9 @@ import TrendMatchingCard from "@/components/TrendMatchingCard";
 import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
 import ShareToolPopup from "@/components/ShareToolPopup";
+import ShareUnlockScreen from "@/components/ShareUnlockScreen";
 import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
+import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import type { ReelAnalysis } from "@/lib/types";
@@ -45,6 +47,8 @@ const Index = () => {
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [tooNewWarning, setTooNewWarning] = useState(false);
   const [lowViewsWarning, setLowViewsWarning] = useState(false);
+  const [showShareGate, setShowShareGate] = useState(false);
+  const [remaining, setRemaining] = useState(getRemainingAnalyses());
   const { toast } = useToast();
   const { lang, t } = useLang();
 
@@ -71,6 +75,8 @@ const Index = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Analysis failed");
       setAnalysis(data.analysis);
+      recordAnalysis();
+      setRemaining(getRemainingAnalyses());
     } catch (err: any) {
       console.error("Analysis error:", err);
       toast({ title: t.analysisFailed, description: err.message || t.tryAgain, variant: "destructive" });
@@ -116,8 +122,16 @@ const Index = () => {
       setAnalysis(null);
       return;
     }
+    // Gate 3: Usage limit check
+    if (!canAnalyze()) {
+      setShowShareGate(true);
+      setTooNewWarning(false);
+      setLowViewsWarning(false);
+      return;
+    }
     setTooNewWarning(false);
     setLowViewsWarning(false);
+    setShowShareGate(false);
     setShowInterstitial(true);
     runAnalysis();
   };
@@ -229,6 +243,10 @@ const Index = () => {
               {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
             </Button>
           </motion.div>
+          {/* Remaining analyses counter */}
+          <p className="text-center text-[10px] text-muted-foreground">
+            {remaining > 0 ? `${remaining} free analysis${remaining !== 1 ? "es" : ""} remaining` : "No free analyses remaining — share to unlock more"}
+          </p>
         </Card>
 
         {/* Too New Warning */}
@@ -279,6 +297,11 @@ const Index = () => {
           )}
         </AnimatePresence>
       </motion.div>
+
+      {/* Share Unlock Gate */}
+      {showShareGate && (
+        <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
+      )}
 
       <div className="py-4"><BannerAd slot="top-banner" /></div>
 
