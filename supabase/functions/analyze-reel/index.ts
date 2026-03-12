@@ -172,7 +172,7 @@ async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshot: strin
 }
 
 // Step 0b: Use AI to extract structured data from scraped content
-async function extractDataFromScrapedContent(markdown: string, apiKey: string): Promise<{
+async function extractDataFromScrapedContent(markdown: string, _apiKey?: string): Promise<{
   caption: string;
   hashtags: string;
   likes: number | null;
@@ -187,22 +187,16 @@ async function extractDataFromScrapedContent(markdown: string, apiKey: string): 
   if (!markdown || markdown.length < 50) return null;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: "You extract structured data from scraped Instagram reel pages. Return ONLY valid JSON, no markdown fences.",
-          },
-          {
-            role: "user",
-            content: `Extract the following data from this scraped Instagram reel page content. If a field is not found, use null for numbers and empty string for text.
+    const response = await callGemini({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "system",
+          content: "You extract structured data from scraped Instagram reel pages. Return ONLY valid JSON, no markdown fences.",
+        },
+        {
+          role: "user",
+          content: `Extract the following data from this scraped Instagram reel page content. If a field is not found, use null for numbers and empty string for text.
 
 Page content:
 ${markdown.substring(0, 8000)}
@@ -220,9 +214,8 @@ Return JSON:
   "postDate": "<ISO date string or null>",
   "sampleComments": "<up to 5 sample comments, one per line>"
 }`,
-          },
-        ],
-      }),
+        },
+      ],
     });
 
     if (!response.ok) {
