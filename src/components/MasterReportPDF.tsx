@@ -195,9 +195,14 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
             <p className="text-xs text-muted-foreground">Premium 10+ page comprehensive viral analysis PDF</p>
           </div>
         </div>
-        <Button onClick={handleDownload} disabled={downloading} className="gradient-primary-bg text-primary-foreground font-semibold shadow-glow">
-          {downloading ? "Generating PDF..." : <><Download className="w-4 h-4 mr-2" /> Download PDF</>}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleTextDownload} variant="outline" className="border-border/50 text-foreground">
+            <FileText className="w-4 h-4 mr-2" /> Download TXT
+          </Button>
+          <Button onClick={handleDownload} disabled={downloading} className="gradient-primary-bg text-primary-foreground font-semibold shadow-glow">
+            {downloading ? "Generating PDF..." : <><Download className="w-4 h-4 mr-2" /> Download PDF</>}
+          </Button>
+        </div>
       </Card>
 
       {/* ===== ON-SCREEN PREVIEW SECTIONS ===== */}
