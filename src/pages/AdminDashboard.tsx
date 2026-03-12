@@ -14,7 +14,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, today: 0, week: 0, month: 0 });
   const [paidStats, setPaidStats] = useState({ total: 0, revenue: 0, today: 0, todayRevenue: 0, pending: 0 });
-  const [adSlots, setAdSlots] = useState<{ id: string; slot_name: string; enabled: boolean; ad_code: string | null }[]>([]);
+  const [adSlots, setAdSlots] = useState<{ id: string; slot_name: string; enabled: boolean; ad_code: string | null; ad_type: string }[]>([]);
+  const [editingSlot, setEditingSlot] = useState<string | null>(null);
+  const [slotDraft, setSlotDraft] = useState<{ ad_type: string; ad_code: string }>({ ad_type: "custom", ad_code: "" });
   const [recentUrls, setRecentUrls] = useState<{ reel_url: string; created_at: string }[]>([]);
   const [recentReports, setRecentReports] = useState<any[]>([]);
   const [config, setConfig] = useState<Record<string, string>>({});
