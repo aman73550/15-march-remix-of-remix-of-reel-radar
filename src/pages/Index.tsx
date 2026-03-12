@@ -29,6 +29,8 @@ import SampleAnalysisPreview from "@/components/SampleAnalysisPreview";
 import TrendingLeaderboard from "@/components/TrendingLeaderboard";
 import { BannerAd, InlineAd, SidebarAds } from "@/components/AdSlots";
 import ProcessingOverlay from "@/components/ProcessingOverlay";
+import MasterReportButton from "@/components/MasterReportButton";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
