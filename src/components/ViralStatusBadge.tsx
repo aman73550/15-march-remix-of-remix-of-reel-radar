@@ -45,7 +45,7 @@ const ViralStatusBadge = ({ classification }: Props) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 25 }}
     >
-      <Card className="glass p-5 space-y-4 overflow-hidden relative">
+      <Card className="glass p-3.5 sm:p-5 space-y-3 sm:space-y-4 overflow-hidden relative">
         {/* Glow */}
         <motion.div
           className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-20"
@@ -66,13 +66,13 @@ const ViralStatusBadge = ({ classification }: Props) => {
             </motion.div>
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Reel Status</p>
-              <p className={`text-lg font-bold ${c.color}`}>{status}</p>
+              <p className={`text-base sm:text-lg font-bold ${c.color}`}>{status}</p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
             <motion.p
-              className={`text-3xl font-bold ${c.color}`}
+              className={`text-2xl sm:text-3xl font-bold ${c.color}`}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", delay: 0.3 }}

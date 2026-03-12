@@ -256,11 +256,11 @@ const Index = () => {
             >
               <button
                 onClick={scrollToMasterReport}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full gradient-primary-bg text-primary-foreground font-semibold text-sm shadow-glow hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full gradient-primary-bg text-primary-foreground font-semibold text-xs sm:text-sm shadow-glow hover:opacity-90 transition-opacity"
               >
-                <Crown className="w-4 h-4" />
+                <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Get Master AI Report
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </motion.div>
 
@@ -278,9 +278,9 @@ const Index = () => {
             {/* Viral Score + Preview */}
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
               <motion.div className="sm:col-span-3" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-                <Card className="glass p-8 flex flex-col items-center h-full justify-center">
+                <Card className="glass p-5 sm:p-8 flex flex-col items-center h-full justify-center">
                   <ViralScoreCircle score={analysis.viralClassification?.score ?? analysis.viralScore} />
-                  <motion.p className="mt-4 text-sm text-muted-foreground text-center max-w-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
+                  <motion.p className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground text-center max-w-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
                     {analysis.overallSummary}
                   </motion.p>
                 </Card>

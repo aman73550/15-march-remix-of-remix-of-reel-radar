@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText } from "lucide-react";
+import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Menu, X } from "lucide-react";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ const AdminDashboard = () => {
   const [recentReports, setRecentReports] = useState<any[]>([]);
   const [config, setConfig] = useState<Record<string, string>>({});
   const [savingConfig, setSavingConfig] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     checkAdminAndLoad();
@@ -172,7 +173,7 @@ const AdminDashboard = () => {
   ];
 
   const paidStatCards = [
-    { label: "Total Reports Sold", value: paidStats.total, icon: FileText, color: "text-primary" },
+    { label: "Reports Sold", value: paidStats.total, icon: FileText, color: "text-primary" },
     { label: "Total Revenue", value: `₹${paidStats.revenue}`, icon: IndianRupee, color: "text-[hsl(var(--viral-high))]" },
     { label: "Today Revenue", value: `₹${paidStats.todayRevenue}`, icon: TrendingUp, color: "text-accent" },
     { label: "Pending", value: paidStats.pending, icon: CreditCard, color: "text-[hsl(var(--viral-mid))]" },
@@ -180,44 +181,48 @@ const AdminDashboard = () => {
 
   const slotLabels: Record<string, string> = {
     "banner-top": "🔝 Top Banner",
-    "banner-mid": "📍 Middle Banner",
+    "banner-mid": "📍 Mid Banner",
     "banner-bottom": "⬇️ Bottom Banner",
     "sidebar-left": "◀️ Left Sidebar",
     "sidebar-right": "▶️ Right Sidebar",
-    "processing-overlay": "⏳ Processing Overlay",
+    "processing-overlay": "⏳ Processing",
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-primary" />
+    <div className="min-h-screen bg-background">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border px-3 sm:px-6 py-3">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
-              <p className="text-sm text-muted-foreground">Analytics, Payments & Configuration</p>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-xl font-bold text-foreground truncate">Admin Panel</h1>
+              <p className="text-[10px] sm:text-sm text-muted-foreground hidden sm:block">Analytics, Payments & Configuration</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" /> Logout
+          <Button variant="outline" size="sm" onClick={handleLogout} className="flex-shrink-0 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3">
+            <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> 
+            <span className="hidden sm:inline">Logout</span>
+            <span className="sm:hidden">Exit</span>
           </Button>
         </div>
+      </header>
 
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Free Analysis Stats */}
         <div>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">📊 Free Analysis Stats</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">📊 Free Analysis Stats</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
             {statCards.map((s) => (
               <Card key={s.label} className="border-border bg-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <s.icon className={`w-4 h-4 ${s.color}`} />
-                    <span className="text-xs text-muted-foreground">{s.label}</span>
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                    <s.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${s.color} flex-shrink-0`} />
+                    <span className="text-[10px] sm:text-xs text-muted-foreground truncate">{s.label}</span>
                   </div>
-                  <p className="text-2xl font-bold text-foreground">{s.value}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{s.value}</p>
                 </CardContent>
               </Card>
             ))}
@@ -226,99 +231,100 @@ const AdminDashboard = () => {
 
         {/* Paid Reports Stats */}
         <div>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">💰 Paid Reports Analytics</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">💰 Paid Reports</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
             {paidStatCards.map((s) => (
               <Card key={s.label} className="border-border bg-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <s.icon className={`w-4 h-4 ${s.color}`} />
-                    <span className="text-xs text-muted-foreground">{s.label}</span>
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2">
+                    <s.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${s.color} flex-shrink-0`} />
+                    <span className="text-[10px] sm:text-xs text-muted-foreground truncate">{s.label}</span>
                   </div>
-                  <p className="text-2xl font-bold text-foreground">{s.value}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-foreground">{s.value}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {/* Payment & Site Config */}
           <Card className="border-border bg-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Settings className="w-5 h-5 text-primary" />
-                Payment & Site Config
+            <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
+                <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                Payment & Config
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Report Price (₹)</Label>
-                <Input
-                  type="number"
-                  value={config.report_price || "29"}
-                  onChange={(e) => updateConfig("report_price", e.target.value)}
-                  className="bg-muted/50 border-border"
-                />
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] sm:text-xs text-muted-foreground">Report Price (₹)</Label>
+                  <Input
+                    type="number"
+                    value={config.report_price || "29"}
+                    onChange={(e) => updateConfig("report_price", e.target.value)}
+                    className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] sm:text-xs text-muted-foreground">Gateway</Label>
+                  <select
+                    value={config.payment_gateway || "razorpay"}
+                    onChange={(e) => updateConfig("payment_gateway", e.target.value)}
+                    className="w-full h-8 sm:h-10 px-2 sm:px-3 rounded-md bg-muted/50 border border-border text-foreground text-xs sm:text-sm"
+                  >
+                    <option value="razorpay">Razorpay</option>
+                    <option value="stripe">Stripe</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Payment Gateway</Label>
-                <select
-                  value={config.payment_gateway || "razorpay"}
-                  onChange={(e) => updateConfig("payment_gateway", e.target.value)}
-                  className="w-full h-10 px-3 rounded-md bg-muted/50 border border-border text-foreground text-sm"
-                >
-                  <option value="razorpay">Razorpay</option>
-                  <option value="stripe">Stripe</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Razorpay Key ID</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] sm:text-xs text-muted-foreground">Razorpay Key ID</Label>
                 <Input
                   value={config.razorpay_key_id || ""}
                   onChange={(e) => updateConfig("razorpay_key_id", e.target.value)}
                   placeholder="rzp_live_..."
-                  className="bg-muted/50 border-border"
+                  className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Razorpay Key Secret</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] sm:text-xs text-muted-foreground">Razorpay Key Secret</Label>
                 <Input
                   type="password"
                   value={config.razorpay_key_secret || ""}
                   onChange={(e) => updateConfig("razorpay_key_secret", e.target.value)}
                   placeholder="••••••••"
-                  className="bg-muted/50 border-border"
+                  className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Stripe Key (if using Stripe)</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] sm:text-xs text-muted-foreground">Stripe Key</Label>
                 <Input
                   type="password"
                   value={config.stripe_key || ""}
                   onChange={(e) => updateConfig("stripe_key", e.target.value)}
                   placeholder="sk_live_..."
-                  className="bg-muted/50 border-border"
+                  className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <MessageCircle className="w-3 h-3" /> WhatsApp Number (with country code)
+              <div className="space-y-1.5">
+                <Label className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1">
+                  <MessageCircle className="w-3 h-3" /> WhatsApp Number
                 </Label>
                 <Input
                   value={config.whatsapp_number || ""}
                   onChange={(e) => updateConfig("whatsapp_number", e.target.value)}
                   placeholder="919876543210"
-                  className="bg-muted/50 border-border"
+                  className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
 
-              <Button onClick={saveConfig} disabled={savingConfig} className="w-full gradient-primary-bg text-primary-foreground">
+              <Button onClick={saveConfig} disabled={savingConfig} className="w-full gradient-primary-bg text-primary-foreground h-9 sm:h-10 text-xs sm:text-sm">
                 {savingConfig ? "Saving..." : "Save Configuration"}
               </Button>
             </CardContent>
@@ -326,16 +332,16 @@ const AdminDashboard = () => {
 
           {/* Ad Management */}
           <Card className="border-border bg-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Megaphone className="w-5 h-5 text-accent" />
+            <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
+                <Megaphone className="w-4 h-4 sm:w-5 sm:h-5 text-accent flex-shrink-0" />
                 Ad Slots
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-2 sm:space-y-3">
               {adSlots.map((slot) => (
-                <div key={slot.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
-                  <Label className="text-sm text-foreground cursor-pointer">
+                <div key={slot.id} className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-muted/30 border border-border gap-2">
+                  <Label className="text-xs sm:text-sm text-foreground cursor-pointer truncate">
                     {slotLabels[slot.slot_name] || slot.slot_name}
                   </Label>
                   <Switch
@@ -348,29 +354,29 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {/* Recent Paid Reports */}
           <Card className="border-border bg-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <CreditCard className="w-5 h-5 text-[hsl(var(--viral-high))]" />
-                Recent Paid Reports
+            <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
+                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-[hsl(var(--viral-high))] flex-shrink-0" />
+                Recent Reports
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
               {recentReports.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No paid reports yet</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">No paid reports yet</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1.5 sm:space-y-2">
                   {recentReports.map((r: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/20 text-xs">
-                      <div className="flex-1 min-w-0">
-                        <span className="text-foreground truncate block max-w-[180px]">{r.reel_url}</span>
-                        <span className="text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
+                    <div key={i} className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg bg-muted/20 text-[10px] sm:text-xs gap-2">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-foreground truncate block max-w-[120px] sm:max-w-[180px]">{r.reel_url}</span>
+                        <span className="text-muted-foreground text-[9px] sm:text-[10px]">{new Date(r.created_at).toLocaleDateString()}</span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                         <span className="font-medium text-foreground">₹{r.amount}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                        <span className={`px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] ${
                           r.status === "completed" || r.status === "paid"
                             ? "bg-[hsl(var(--viral-high))]/20 text-[hsl(var(--viral-high))]"
                             : "bg-[hsl(var(--viral-mid))]/20 text-[hsl(var(--viral-mid))]"
@@ -387,21 +393,21 @@ const AdminDashboard = () => {
 
           {/* Recent Usage */}
           <Card className="border-border bg-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Eye className="w-5 h-5 text-secondary" />
+            <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
+                <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
                 Recent Analyses
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
               {recentUrls.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No analyses yet</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">No analyses yet</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1.5 sm:space-y-2">
                   {recentUrls.map((u, i) => (
-                    <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/20 text-xs">
-                      <span className="text-foreground truncate max-w-[200px]">{u.reel_url}</span>
-                      <span className="text-muted-foreground whitespace-nowrap ml-2">
+                    <div key={i} className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg bg-muted/20 text-[10px] sm:text-xs gap-2">
+                      <span className="text-foreground truncate min-w-0 flex-1">{u.reel_url}</span>
+                      <span className="text-muted-foreground whitespace-nowrap flex-shrink-0 text-[9px] sm:text-xs">
                         {new Date(u.created_at).toLocaleDateString()}
                       </span>
                     </div>
