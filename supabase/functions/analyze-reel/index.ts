@@ -6,6 +6,64 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+// Multi-key rotation with auto-failover
+function getApiKeys(): string[] {
+  const multiKeys = Deno.env.get("GEMINI_API_KEYS");
+  if (multiKeys) {
+    const keys = multiKeys.split(",").map(k => k.trim()).filter(Boolean);
+    if (keys.length > 0) return keys;
+  }
+  const singleKey = Deno.env.get("GEMINI_API_KEY");
+  if (singleKey) return [singleKey];
+  return [];
+}
+
+let currentKeyIndex = 0;
+
+async function callGemini(body: Record<string, unknown>): Promise<Response> {
+  const keys = getApiKeys();
+  if (keys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
+
+  const startIndex = currentKeyIndex % keys.length;
+  let lastError: Error | null = null;
+
+  for (let i = 0; i < keys.length; i++) {
+    const idx = (startIndex + i) % keys.length;
+    const key = keys[idx];
+    console.log(`Trying Gemini API key #${idx + 1}/${keys.length}`);
+
+    try {
+      const response = await fetch(GEMINI_API_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (response.status === 429 || response.status === 402 || response.status === 403) {
+        console.warn(`Key #${idx + 1} hit limit (${response.status}), trying next...`);
+        lastError = new Error(`Key #${idx + 1} rate limited (${response.status})`);
+        continue;
+      }
+
+      // Success or other error - use this key next time too
+      currentKeyIndex = idx;
+      return response;
+    } catch (e) {
+      console.error(`Key #${idx + 1} network error:`, e);
+      lastError = e instanceof Error ? e : new Error(String(e));
+    }
+  }
+
+  // All keys exhausted - advance index for next call
+  currentKeyIndex = (startIndex + 1) % keys.length;
+  throw lastError || new Error("All API keys exhausted");
+}
+
 // Step 0a: Direct HTML fetch with browser headers to extract meta tags (bypasses 403 often)
 async function scrapeMetaTags(url: string): Promise<{
   ogImage: string;
