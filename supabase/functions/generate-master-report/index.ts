@@ -73,6 +73,10 @@ async function getConfig(supabase: any): Promise<Record<string, string>> {
 }
 
 async function generatePremiumAnalysis(analysis: any, reelUrl: string): Promise<any> {
+  // Extract virality insights from analysis (already computed by analyze-reel)
+  const viralityInsights = analysis._viralityInsights || [];
+  const daysSincePost = analysis._daysSincePost || null;
+
   const response = await callGemini({
     model: "gemini-2.5-flash",
     messages: [
@@ -150,6 +154,29 @@ Generate ONLY valid JSON with these sections:
     "videoQuality": ${analysis.videoQuality?.qualityScore || 0},
     "audioQuality": ${analysis.audioQuality?.qualityScore || 0}
   }
+}`,
+      },
+    ],
+  });
+
+  if (!response.ok) {
+    console.error("Premium analysis AI failed:", response.status);
+    throw new Error("Failed to generate premium analysis");
+  }
+
+  const data = await response.json();
+  let content = data.choices?.[0]?.message?.content?.trim() || "";
+  if (content.startsWith("```")) {
+    content = content.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+  }
+  const parsed = JSON.parse(content);
+  
+  // Attach virality insights directly (pre-computed, not AI-generated)
+  parsed.viralityInsights = viralityInsights;
+  parsed.daysSincePost = daysSincePost;
+  
+  return parsed;
+}
 }`,
       },
     ],
