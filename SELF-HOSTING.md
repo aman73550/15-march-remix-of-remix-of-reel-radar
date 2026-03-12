@@ -75,10 +75,11 @@
 
 ### AI Provider (choose ONE — replace Lovable AI)
 
-| Provider | Secret Name | Get from | API URL |
+| Provider | Secret Name | Get from | Notes |
 |---|---|---|---|
-| Google Gemini | `GEMINI_API_KEY` | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` |
-| OpenAI | `OPENAI_API_KEY` | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | `https://api.openai.com/v1/chat/completions` |
+| Google Gemini (single) | `GEMINI_API_KEY` | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | Single API key |
+| Google Gemini (multi) | `GEMINI_API_KEYS` | Same as above | Comma-separated keys, auto-failover on rate limits |
+| OpenAI | `OPENAI_API_KEY` | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | Single key |
 
 **To switch AI provider**, edit these 2 files:
 1. `supabase/functions/analyze-reel/index.ts`
