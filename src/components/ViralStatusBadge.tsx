@@ -45,7 +45,7 @@ const ViralStatusBadge = ({ classification }: Props) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 25 }}
     >
-      <Card className="glass p-5 space-y-4 overflow-hidden relative">
+      <Card className="glass p-3.5 sm:p-5 space-y-3 sm:space-y-4 overflow-hidden relative">
         {/* Glow */}
         <motion.div
           className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-20"
