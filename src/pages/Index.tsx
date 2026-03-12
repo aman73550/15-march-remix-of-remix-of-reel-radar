@@ -419,6 +419,11 @@ const Index = () => {
             </div>
 
             {/* Content Classification */}
+            {/* Viral Pattern Comparison */}
+            {analysis.patternComparison && (
+              <ViralPatternCard data={analysis.patternComparison} />
+            )}
+
             {analysis.contentClassification && (
               <ContentClassificationCard data={analysis.contentClassification} thumbnailAnalyzed={analysis.thumbnailAnalyzed} />
             )}
