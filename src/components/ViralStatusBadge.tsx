@@ -66,7 +66,7 @@ const ViralStatusBadge = ({ classification }: Props) => {
             </motion.div>
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Reel Status</p>
-              <p className={`text-lg font-bold ${c.color}`}>{status}</p>
+              <p className={`text-base sm:text-lg font-bold ${c.color}`}>{status}</p>
             </div>
           </div>
           <div className="text-right">
