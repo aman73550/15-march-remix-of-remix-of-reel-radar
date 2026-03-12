@@ -27,7 +27,8 @@ import ShareUnlockScreen from "@/components/ShareUnlockScreen";
 import SocialProofSection, { SocialProofBadge } from "@/components/SocialProofSection";
 import SampleAnalysisPreview from "@/components/SampleAnalysisPreview";
 import TrendingLeaderboard from "@/components/TrendingLeaderboard";
-import { BannerAd, InterstitialAd, InlineAd } from "@/components/AdSlots";
+import { BannerAd, InlineAd } from "@/components/AdSlots";
+import ProcessingOverlay from "@/components/ProcessingOverlay";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
@@ -210,7 +211,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden">
       <LanguageToggle />
-      <InterstitialAd show={showInterstitial} onClose={() => setShowInterstitial(false)} />
+      <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
 
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
