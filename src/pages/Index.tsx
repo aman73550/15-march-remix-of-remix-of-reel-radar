@@ -354,7 +354,9 @@ const Index = () => {
             </motion.div>
 
             {/* Master Report CTA */}
-            <MasterReportButton analysis={analysis} reelUrl={url} />
+            <div ref={masterReportRef}>
+              <MasterReportButton analysis={analysis} reelUrl={url} />
+            </div>
 
             <motion.div className="flex flex-col items-center gap-3 text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
               <p className="text-sm text-muted-foreground">
