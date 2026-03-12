@@ -358,6 +358,7 @@ const Index = () => {
         </div>
       )}
 
+      <WhatsAppButton />
       <footer className="relative z-10 mt-12 sm:mt-16">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="border-t border-border/40" />
