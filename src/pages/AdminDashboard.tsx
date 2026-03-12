@@ -528,6 +528,83 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* User Feedback */}
+        <div>
+          <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">⭐ User Feedback</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {/* Feedback Stats */}
+            <Card className="border-border bg-card">
+              <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5 text-accent flex-shrink-0" />
+                  Rating Overview
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <p className="text-3xl sm:text-4xl font-bold text-foreground">{feedbackStats.avg}</p>
+                    <div className="flex gap-0.5 justify-center mt-1">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className={`w-3.5 h-3.5 ${s <= Math.round(feedbackStats.avg) ? "fill-accent text-accent" : "text-muted-foreground/30"}`} />
+                      ))}
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{feedbackStats.total} reviews</p>
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    {[5, 4, 3, 2, 1].map((star) => {
+                      const count = feedbackStats.distribution[star - 1];
+                      const pct = feedbackStats.total ? (count / feedbackStats.total) * 100 : 0;
+                      return (
+                        <div key={star} className="flex items-center gap-2 text-[10px] sm:text-xs">
+                          <span className="text-muted-foreground w-3">{star}</span>
+                          <Star className="w-3 h-3 fill-accent text-accent" />
+                          <div className="flex-1 h-2 bg-muted/30 rounded-full overflow-hidden">
+                            <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-muted-foreground w-5 text-right">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Feedback */}
+            <Card className="border-border bg-card">
+              <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
+                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
+                  Recent Feedback
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                {recentFeedback.length === 0 ? (
+                  <p className="text-xs sm:text-sm text-muted-foreground">No feedback yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {recentFeedback.map((f: any, i: number) => (
+                      <div key={i} className="p-2 sm:p-2.5 rounded-lg bg-muted/20 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Star key={s} className={`w-3 h-3 ${s <= f.rating ? "fill-accent text-accent" : "text-muted-foreground/30"}`} />
+                            ))}
+                          </div>
+                          <span className="text-[9px] sm:text-[10px] text-muted-foreground">{new Date(f.created_at).toLocaleDateString()}</span>
+                        </div>
+                        {f.comment && <p className="text-[10px] sm:text-xs text-muted-foreground">{f.comment}</p>}
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground/60 truncate">{f.reel_url}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
