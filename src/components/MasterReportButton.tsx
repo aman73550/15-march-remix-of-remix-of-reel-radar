@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import type { ReelAnalysis } from "@/lib/types";
 import { Crown, FileText, Download, Loader2, CheckCircle, TrendingUp, Calendar, Target, Lightbulb, BarChart3, MessageCircle } from "lucide-react";
 import MasterReportPDF from "./MasterReportPDF";
+import MasterReportProcessing from "./MasterReportProcessing";
 import PaymentReceipt from "./PaymentReceipt";
 import WhatsAppErrorButton from "./WhatsAppErrorButton";
 
@@ -26,6 +27,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
   const [premiumData, setPremiumData] = useState<any>(null);
   const [showReport, setShowReport] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [showProcessing, setShowProcessing] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -84,7 +86,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
                 throw new Error("Payment verification failed");
               }
 
-              // Show receipt
+              // Show receipt briefly then processing overlay
               setReceiptData({
                 reportId: paymentData.reportId,
                 paymentId: response.razorpay_payment_id,
@@ -94,7 +96,11 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
               setShowReceipt(true);
               toast.success("Payment successful! 🎉");
 
-              // Generate report in background
+              // Generate report in background and show processing
+              setTimeout(() => {
+                setShowReceipt(false);
+                setShowProcessing(true);
+              }, 2000);
               await generateReport(paymentData.reportId);
             } catch (err: any) {
               handleError("Payment verification failed: " + (err.message || "Unknown error"));
@@ -152,7 +158,21 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
     return <MasterReportPDF analysis={analysis} premiumData={premiumData} reelUrl={reelUrl} />;
   }
 
-  // Show receipt after payment
+  // Show processing overlay for report generation
+  if (showProcessing) {
+    return (
+      <MasterReportProcessing
+        show={true}
+        reportReady={!!premiumData}
+        onDownload={() => {
+          setShowProcessing(false);
+          setShowReport(true);
+        }}
+      />
+    );
+  }
+
+  // Show receipt after payment (briefly)
   if (showReceipt && receiptData) {
     return (
       <PaymentReceipt
@@ -162,12 +182,8 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
         currency={receiptData.currency}
         reelUrl={reelUrl}
         onContinue={() => {
-          if (premiumData) {
-            setShowReceipt(false);
-            setShowReport(true);
-          } else {
-            toast.info("Report is still generating, please wait...");
-          }
+          setShowReceipt(false);
+          setShowProcessing(true);
         }}
       />
     );
