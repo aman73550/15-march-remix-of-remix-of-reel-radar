@@ -73,6 +73,10 @@ async function getConfig(supabase: any): Promise<Record<string, string>> {
 }
 
 async function generatePremiumAnalysis(analysis: any, reelUrl: string): Promise<any> {
+  // Extract virality insights from analysis (already computed by analyze-reel)
+  const viralityInsights = analysis._viralityInsights || [];
+  const daysSincePost = analysis._daysSincePost || null;
+
   const response = await callGemini({
     model: "gemini-2.5-flash",
     messages: [
@@ -165,8 +169,15 @@ Generate ONLY valid JSON with these sections:
   if (content.startsWith("```")) {
     content = content.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
   }
-  return JSON.parse(content);
+  const parsed = JSON.parse(content);
+  
+  // Attach virality insights directly (pre-computed, not AI-generated)
+  parsed.viralityInsights = viralityInsights;
+  parsed.daysSincePost = daysSincePost;
+  
+  return parsed;
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

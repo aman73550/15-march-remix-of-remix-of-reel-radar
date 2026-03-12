@@ -944,21 +944,41 @@ Return ONLY valid JSON (no markdown, no code fences):
     if (analysis.hashtagAnalysis?.score >= 7) reasons.push("Well-optimized hashtag strategy");
     if (analysis.trendMatching?.score >= 7) reasons.push("Content aligns with current viral trends");
 
+    // === BUILD VIRALITY INSIGHTS (for paid PDF) ===
+    const viralityInsights: { factor: string; detected: boolean; impact: string; score: number; reason: string; solution: string }[] = [];
+
     // === QUALITY BONUS/PENALTY ===
     let qualityBonus = 0;
     const vq = analysis.videoQuality;
     if (vq) {
       const vqScore = vq.qualityScore ?? 5;
-      if (vqScore >= 7) { qualityBonus += 5; reasons.push("High video quality boosts viewer retention"); }
-      else if (vqScore >= 5) { qualityBonus += 2; }
-      else if (vqScore <= 3) { qualityBonus -= 5; reasons.push("Low video quality may reduce viewer retention"); }
+      if (vqScore >= 7) {
+        qualityBonus += 5;
+        reasons.push("High video quality boosts viewer retention");
+        viralityInsights.push({ factor: "Video Quality", detected: true, impact: "positive", score: 5, reason: "High quality video with good lighting and clarity keeps viewers watching longer", solution: "Maintain this quality. Use natural light or ring light for consistency." });
+      } else if (vqScore >= 5) {
+        qualityBonus += 2;
+        viralityInsights.push({ factor: "Video Quality", detected: true, impact: "neutral", score: 2, reason: "Average video quality — not bad but not standout", solution: "Upgrade to HD recording, use a tripod, and ensure good lighting to boost retention." });
+      } else {
+        qualityBonus -= 5;
+        reasons.push("Low video quality may reduce viewer retention");
+        viralityInsights.push({ factor: "Video Quality", detected: true, impact: "negative", score: -5, reason: "Low quality, dark or shaky footage causes viewers to scroll away quickly", solution: "Record in HD (1080p minimum), use stable mounting, and ensure proper lighting." });
+      }
     }
     const aq = analysis.audioQuality;
     if (aq) {
       const aqScore = aq.qualityScore ?? 5;
-      if (aqScore >= 7) { qualityBonus += 4; reasons.push("Clean audio quality enhances engagement"); }
-      else if (aqScore >= 5) { qualityBonus += 2; }
-      else if (aqScore <= 3) { qualityBonus -= 5; reasons.push("Poor audio quality may cause viewers to skip"); }
+      if (aqScore >= 7) {
+        qualityBonus += 4;
+        reasons.push("Clean audio quality enhances engagement");
+        viralityInsights.push({ factor: "Audio Quality", detected: true, impact: "positive", score: 4, reason: "Clear audio keeps viewers engaged and increases watch time", solution: "Keep using quality mic setup. Consider adding trending background music for extra boost." });
+      } else if (aqScore >= 5) {
+        qualityBonus += 2;
+      } else {
+        qualityBonus -= 5;
+        reasons.push("Poor audio quality may cause viewers to skip");
+        viralityInsights.push({ factor: "Audio Quality", detected: true, impact: "negative", score: -5, reason: "Poor audio with noise/distortion causes immediate scroll-away", solution: "Use a lapel mic or phone close to mouth. Record in quiet environment. Add background music to mask minor noise." });
+      }
     }
     qualityBonus = Math.max(-10, Math.min(10, qualityBonus));
 
@@ -966,99 +986,171 @@ Return ONLY valid JSON (no markdown, no code fences):
     let categoryBonus = 0;
     const cc = analysis.contentClassification;
     if (cc) {
-      const highViralCategories = ["comedy", "entertainment", "music", "grwm", "cars", "bikes", "dance", "fashion", "motivation", "fitness", "storytelling"];
+      const highViralCategories = ["comedy", "entertainment", "music", "grwm", "cars", "bikes", "dance", "fashion", "motivation", "fitness", "storytelling", "memes"];
       const lowViralCategories = ["education", "learning", "tutorial", "educational"];
       const catLower = cc.primaryCategory?.toLowerCase() || "";
-      const subCatLower = cc.subCategory?.toLowerCase() || "";
       const contentTypeLower = cc.contentType?.toLowerCase() || "";
 
       if (highViralCategories.includes(catLower)) {
         categoryBonus += 5;
         reasons.push(`${cc.primaryCategory} content has higher viral potential on Instagram`);
-      }
-      if (lowViralCategories.includes(catLower) || lowViralCategories.includes(contentTypeLower)) {
+        viralityInsights.push({ factor: "Content Category", detected: true, impact: "positive", score: 5, reason: `${cc.primaryCategory} is a viral-friendly niche — Instagram algorithm favors entertainment and visually engaging content`, solution: "Keep creating in this niche. Mix trending formats with your unique style for maximum reach." });
+      } else if (lowViralCategories.includes(catLower) || lowViralCategories.includes(contentTypeLower)) {
         categoryBonus -= 4;
         reasons.push("Educational/learning content has lower viral potential on Instagram");
+        viralityInsights.push({ factor: "Content Category", detected: true, impact: "negative", score: -4, reason: "Educational content gets less shares and saves compared to entertainment on Instagram", solution: "Make educational content entertaining — use humor, storytelling, quick cuts, and trending audio. 'Edutainment' format performs much better." });
+      } else {
+        viralityInsights.push({ factor: "Content Category", detected: true, impact: "neutral", score: 0, reason: `${cc.primaryCategory} has moderate viral potential`, solution: "Consider adding entertainment elements or trending hooks to boost shareability." });
       }
       if (cc.hashtagAlignment?.toLowerCase().startsWith("yes")) categoryBonus += 2;
       else if (cc.hashtagAlignment?.toLowerCase().startsWith("no")) {
         categoryBonus -= 3;
         reasons.push("Hashtags don't match actual content — reduces discoverability");
+        viralityInsights.push({ factor: "Hashtag-Content Mismatch", detected: true, impact: "negative", score: -3, reason: "Using unrelated hashtags confuses the algorithm and reduces your content's reach to the right audience", solution: "Use hashtags that directly relate to your video content. Mix 3-5 niche hashtags with 2-3 broader ones." });
       }
     }
     categoryBonus = Math.max(-7, Math.min(7, categoryBonus));
 
-    // === VIRALITY FACTORS BONUS (celebrity, attractiveness, voice, trending, famous) ===
+    // === VIRALITY FACTORS BONUS ===
     let viralityFactorsBonus = 0;
     const vf = analysis.viralityFactors;
     if (vf) {
       if (vf.celebrityOrFamousPerson) {
         viralityFactorsBonus += 8;
         reasons.push("Famous person detected — significantly increases viral potential");
+        viralityInsights.push({ factor: "Celebrity/Famous Person", detected: true, impact: "positive", score: 8, reason: "Content featuring celebrities or famous personalities gets 3-5x more shares due to existing fan base and curiosity", solution: "Tag the celebrity, use their trending hashtags, and post when their fans are most active." });
+      } else {
+        viralityInsights.push({ factor: "Celebrity/Famous Person", detected: false, impact: "neutral", score: 0, reason: "No famous personality detected in the reel", solution: "If relevant, create content around trending celebrities or react to their content for more visibility." });
       }
       if (vf.famousPlaceOrObject) {
         viralityFactorsBonus += 5;
         reasons.push("Famous place/object detected — increases viewer interest");
+        viralityInsights.push({ factor: "Famous Place/Object", detected: true, impact: "positive", score: 5, reason: "Iconic locations and luxury/famous objects create aspirational content that gets high engagement", solution: "Use location tags, mention the place in caption, and use location-specific hashtags." });
       }
       if (vf.attractivePresenter) {
         viralityFactorsBonus += 4;
         reasons.push("Attractive presenter increases viewer retention and shares");
+        viralityInsights.push({ factor: "Attractive Presenter", detected: true, impact: "positive", score: 4, reason: "Visually appealing presenters (beautiful/handsome/fit people) naturally hold attention longer and get more profile visits", solution: "Ensure good grooming, confident body language, and maintain eye contact with camera for maximum impact." });
       }
       if (vf.deepVoiceLikely) {
         viralityFactorsBonus += 3;
         reasons.push("Deep/bass voice narration enhances content authority and engagement");
+        viralityInsights.push({ factor: "Deep/Unique Voice", detected: true, impact: "positive", score: 3, reason: "Deep or unique voice creates an authoritative, memorable impression that increases watch time", solution: "Use this voice consistently as your brand identity. Consider voiceover content where this becomes your signature." });
       }
       if (vf.famousIncident) {
         viralityFactorsBonus += 6;
         reasons.push("Content relates to a famous/trending incident — high share potential");
+        viralityInsights.push({ factor: "Famous/Trending Incident", detected: true, impact: "positive", score: 6, reason: "Trending news and famous incidents drive massive search traffic and shares — timing is everything", solution: "Post as quickly as possible when incidents happen. First-mover advantage is key for news-related virality." });
       }
       const trendRelevance = vf.trendingTopicRelevance?.toLowerCase();
       if (trendRelevance === "high") {
         viralityFactorsBonus += 7;
         reasons.push("Highly relevant to current trending topics — strong viral potential");
+        viralityInsights.push({ factor: "Trending Topic Relevance", detected: true, impact: "positive", score: 7, reason: "Content matching current trends gets algorithmic boost — Instagram pushes trending content to Explore page", solution: "Keep riding this trend while it's hot. Create multiple variations quickly to maximize reach window." });
       } else if (trendRelevance === "medium") {
         viralityFactorsBonus += 4;
         reasons.push("Moderately relevant to trending topics");
-      } else if (trendRelevance === "low") {
-        viralityFactorsBonus += 1;
+        viralityInsights.push({ factor: "Trending Topic Relevance", detected: true, impact: "positive", score: 4, reason: "Some connection to current trends helps discoverability", solution: "Strengthen the connection to trending topics in your hashtags and caption. Use trending audio to boost." });
+      } else {
+        viralityInsights.push({ factor: "Trending Topic Relevance", detected: false, impact: "neutral", score: 0, reason: "Content doesn't strongly connect to any current trending topic", solution: "Research daily trends on Instagram Explore, Twitter/X, and Google Trends. Adapt your content to include trending elements." });
       }
     }
-    viralityFactorsBonus = Math.max(0, Math.min(15, viralityFactorsBonus));
 
-    // === AGE PENALTY: Older reels have lower viral probability ===
+    // === ADDITIONAL CONTENT FACTORS ===
+    // Thumbnail/visual appeal (from video signals)
+    const vs = analysis.videoSignals;
+    if (vs) {
+      if (vs.facePresenceLikely?.toLowerCase().includes("yes")) {
+        viralityFactorsBonus += 2;
+        viralityInsights.push({ factor: "Face in Thumbnail", detected: true, impact: "positive", score: 2, reason: "Reels with human faces in thumbnails get 38% more clicks — faces create instant emotional connection", solution: "Always show your face clearly in the first frame. Use expressive emotions for maximum thumbnail appeal." });
+      }
+      if (vs.textOverlayLikely?.toLowerCase().includes("yes")) {
+        viralityFactorsBonus += 2;
+        viralityInsights.push({ factor: "Text Overlay/Hook", detected: true, impact: "positive", score: 2, reason: "On-screen text hooks stop the scroll and give viewers a reason to watch even with sound off", solution: "Keep text hooks short (5-7 words max), use bold fonts, and create curiosity gaps." });
+      }
+      if (vs.motionIntensity?.toLowerCase() === "high") {
+        viralityFactorsBonus += 2;
+        viralityInsights.push({ factor: "High Motion/Action", detected: true, impact: "positive", score: 2, reason: "Dynamic, fast-paced content with action sequences maintains viewer attention through the full video", solution: "Maintain this energy. Use quick cuts (every 2-3 seconds) and avoid static shots longer than 3 seconds." });
+      } else if (vs.motionIntensity?.toLowerCase() === "low") {
+        viralityInsights.push({ factor: "Low Motion/Static", detected: true, impact: "negative", score: -1, reason: "Static or slow-moving content has higher drop-off rates on Instagram Reels", solution: "Add camera movement, zoom transitions, B-roll clips, or text animations to create visual dynamism." });
+      }
+    }
+
+    // Trending music
+    if (aq?.musicUsage?.toLowerCase() === "trending") {
+      viralityFactorsBonus += 3;
+      reasons.push("Trending background music boosts algorithmic reach");
+      viralityInsights.push({ factor: "Trending Music", detected: true, impact: "positive", score: 3, reason: "Instagram algorithm heavily promotes content using currently trending audio — it can 2-3x your reach", solution: "Always check Instagram's trending audio section before posting. Use audio within first 48 hours of it trending." });
+    } else if (aq?.musicUsage?.toLowerCase() === "none") {
+      viralityInsights.push({ factor: "No Background Music", detected: true, impact: "negative", score: -1, reason: "Reels without any music/audio feel incomplete and get less engagement", solution: "Add trending or mood-matching background music. Even soft background music improves watch time significantly." });
+    }
+
+    // Humor/memes/pets detection from content classification
+    if (cc) {
+      const catLower = cc.primaryCategory?.toLowerCase() || "";
+      const subCatLower = cc.subCategory?.toLowerCase() || "";
+      const topicLower = cc.detectedElements?.estimatedTopic?.toLowerCase() || "";
+      
+      if (catLower.includes("meme") || subCatLower.includes("meme") || subCatLower.includes("humor") || topicLower.includes("meme") || topicLower.includes("funny")) {
+        viralityFactorsBonus += 3;
+        viralityInsights.push({ factor: "Humor/Memes", detected: true, impact: "positive", score: 3, reason: "Humorous and meme content is the most shared content type on Instagram — people love making others laugh", solution: "Keep the humor relatable. Use current meme formats and add your own twist for uniqueness." });
+      }
+      if (topicLower.includes("pet") || topicLower.includes("dog") || topicLower.includes("cat") || topicLower.includes("animal") || subCatLower.includes("pet")) {
+        viralityFactorsBonus += 3;
+        viralityInsights.push({ factor: "Cute Animals/Pets", detected: true, impact: "positive", score: 3, reason: "Pet and animal content consistently goes viral — it's universally loved and highly shareable", solution: "Capture candid, funny, or adorable moments. Add relatable captions from the pet's perspective." });
+      }
+      if (topicLower.includes("challenge") || topicLower.includes("trend") || subCatLower.includes("challenge") || topicLower.includes("festival")) {
+        viralityFactorsBonus += 3;
+        viralityInsights.push({ factor: "Challenge/Trend/Festival", detected: true, impact: "positive", score: 3, reason: "Challenges, trends, and festival content ride massive organic wave — perfect timing multiplies reach", solution: "Post challenge content within the first 48-72 hours of the trend. For festivals, start 2-3 days before." });
+      }
+    }
+
+    viralityFactorsBonus = Math.max(0, Math.min(18, viralityFactorsBonus));
+
+    // === AGE PENALTY: Refined gradual decrease ===
     let agePenalty = 0;
-    // Try to detect post date from scraped data
     let postDate: Date | null = null;
-    // Check if extracted data had a date
+    let daysSincePost: number | null = null;
     if (analysis._postDate) {
       const pd = new Date(analysis._postDate);
       if (!isNaN(pd.getTime())) postDate = pd;
     }
-    // Also try check-reel-date style extraction from meta
-    if (!postDate && metaResult?.ogDescription) {
-      // Some og:descriptions contain date hints
-    }
 
     if (postDate) {
       const now = new Date();
-      const daysSincePost = (now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24);
+      daysSincePost = (now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24);
       
-      if (daysSincePost > 90) {
-        agePenalty = -20;
-        reasons.push("Reel is 90+ days old — viral window has passed significantly");
-      } else if (daysSincePost > 60) {
-        agePenalty = -15;
-        reasons.push("Reel is 60+ days old — viral probability is very low");
-      } else if (daysSincePost > 30) {
-        agePenalty = -12;
-        reasons.push("Reel is 30+ days old — viral window is closing");
-      } else if (daysSincePost > 15) {
-        agePenalty = -8;
-        reasons.push("Reel is 15+ days old — if it hasn't gone viral yet, chances are reduced");
-      } else if (daysSincePost > 7) {
-        agePenalty = -3;
-        reasons.push("Reel is 7+ days old — most viral reels peak within first few days");
+      if (daysSincePost <= 2) {
+        // 0-2 days: Full potential, no penalty
+        agePenalty = 0;
+        viralityInsights.push({ factor: "Reel Age (Fresh)", detected: true, impact: "positive", score: 0, reason: "Reel is fresh (0-2 days old) — this is the peak viral window. Most viral reels blow up within first 48 hours", solution: "Maximize engagement NOW. Reply to every comment, share to stories, and ask friends to engage in first hour." });
+      } else if (daysSincePost <= 5) {
+        // 3-5 days: Small gradual decrease
+        agePenalty = -Math.round((daysSincePost - 2) * 2);
+        reasons.push(`Reel is ${Math.round(daysSincePost)} days old — initial viral window narrowing`);
+        viralityInsights.push({ factor: "Reel Age (3-5 Days)", detected: true, impact: "negative", score: agePenalty, reason: "Reel has passed the initial 48-hour peak window. Algorithm starts favoring newer content", solution: "Share to stories again, cross-post to other platforms, engage heavily with comments to signal activity." });
+      } else if (daysSincePost <= 7) {
+        // 6-7 days: Moderate decrease
+        agePenalty = -Math.round(6 + (daysSincePost - 5) * 2);
+        reasons.push(`Reel is ${Math.round(daysSincePost)} days old — viral potential declining`);
+        viralityInsights.push({ factor: "Reel Age (6-7 Days)", detected: true, impact: "negative", score: agePenalty, reason: "After a week, the algorithm significantly reduces push for this content. Viral chance is much lower", solution: "Focus on creating a new reel with improved elements. Learn from this reel's analytics and iterate." });
+      } else if (daysSincePost <= 15) {
+        // 8-15 days: Low chance
+        agePenalty = -Math.round(10 + (daysSincePost - 7) * 1.5);
+        reasons.push(`Reel is ${Math.round(daysSincePost)} days old — viral chance is very low`);
+        viralityInsights.push({ factor: "Reel Age (8-15 Days)", detected: true, impact: "negative", score: agePenalty, reason: "Content is too old for algorithm boost. Only exceptionally engaging content gets rediscovered after this point", solution: "Create a fresh version of this content with updated hooks and trending audio. Don't try to revive old reels." });
+      } else {
+        // 15+ days: Almost negligible
+        agePenalty = -Math.round(Math.min(25, 22 + (daysSincePost - 15) * 0.3));
+        reasons.push(`Reel is ${Math.round(daysSincePost)}+ days old — viral window has passed`);
+        viralityInsights.push({ factor: "Reel Age (15+ Days)", detected: true, impact: "negative", score: agePenalty, reason: "Viral potential is almost negligible. Instagram prioritizes fresh content. If it didn't go viral in 1-2 days, it likely won't now", solution: "Don't waste time promoting old reels. Take the best elements and create new content. Consistency beats revival." });
       }
+    }
+
+    // Old reel + low engagement = extra penalty
+    if (daysSincePost !== null && daysSincePost > 7 && hasMetrics && !isAlreadyViral && !isGrowing) {
+      agePenalty -= 5;
+      viralityInsights.push({ factor: "Old + Low Engagement", detected: true, impact: "negative", score: -5, reason: "Old reel with low engagement is a strong signal that the content won't go viral", solution: "Analyze what didn't work: Was the hook weak? Caption unengaging? Wrong posting time? Apply these learnings to your next reel." });
     }
 
     // === PATTERN MATCHING BONUS ===
@@ -1084,22 +1176,42 @@ Return ONLY valid JSON (no markdown, no code fences):
     }
     patternBonus = Math.max(-8, Math.min(8, patternBonus));
 
+    // === Hook in first 3 seconds bonus ===
+    const hookScore = analysis.hookAnalysis?.score ?? 5;
+    if (hookScore >= 7) {
+      viralityInsights.push({ factor: "Strong Hook (First 3 Sec)", detected: true, impact: "positive", score: 3, reason: "A powerful opening hook in the first 3 seconds is the #1 factor for viral reels — it stops the scroll", solution: "Keep using strong hooks. Test different types: questions, shocking facts, visual surprises, or bold statements." });
+    } else if (hookScore <= 3) {
+      viralityInsights.push({ factor: "Weak Hook (First 3 Sec)", detected: true, impact: "negative", score: -2, reason: "Weak opening causes 60-70% of viewers to scroll away within first 2 seconds", solution: "Start with a bang: bold text overlay, surprising visual, provocative question, or emotional trigger in the very first frame." });
+    }
+
+    // Trending hashtags bonus
+    if (analysis.hashtagAnalysis?.score >= 7) {
+      viralityInsights.push({ factor: "Trending/Engaging Hashtags", detected: true, impact: "positive", score: 2, reason: "Well-researched hashtags help Instagram categorize and push your content to the right audience", solution: "Mix 5-7 niche + 3-5 broad hashtags. Research trending tags daily using Instagram search." });
+    }
+
+    // Caption engagement
+    if (analysis.captionAnalysis?.score >= 7) {
+      viralityInsights.push({ factor: "Engaging Caption", detected: true, impact: "positive", score: 2, reason: "Captions that create curiosity or emotion drive comments and saves, boosting algorithmic ranking", solution: "Keep using storytelling and questions in captions. End with a CTA that encourages comments." });
+    }
+
+    // Store insights in analysis for paid PDF
+    analysis._viralityInsights = viralityInsights;
+    analysis._daysSincePost = daysSincePost;
+
     let viralStatus, viralScore, viralLabel;
     const totalBonus = qualityBonus + categoryBonus + patternBonus + viralityFactorsBonus + agePenalty;
 
     if (hasMetrics && isAlreadyViral) {
       viralStatus = "Already Viral";
-      // Even "Already Viral" capped at 80
-      viralScore = Math.min(80, Math.max(60, Math.round(65 + (engRate * 100) + totalBonus)));
+      viralScore = Math.min(80, Math.max(55, Math.round(60 + (engRate * 100) + totalBonus)));
       viralLabel = "Viral Strength";
     } else if (hasMetrics && isGrowing) {
       viralStatus = "Growing";
-      const hookS = (analysis.hookAnalysis?.score ?? 5) / 8; // Normalized to 8 max
+      const hookS = (analysis.hookAnalysis?.score ?? 5) / 8;
       const capS = (analysis.captionAnalysis?.score ?? 5) / 8;
       const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 8;
       const engS = Math.min(1, engRate / 0.07);
       const comS = Math.min(1, commentsVal / 500);
-      // Base max from components: ~80 * 0.8 = 64, plus bonus can reach ~80
       viralScore = Math.min(80, Math.max(5, Math.round((hookS * 25 + capS * 15 + hashS * 10 + engS * 20 + comS * 10) + totalBonus)));
       viralLabel = "Viral Potential";
     } else {

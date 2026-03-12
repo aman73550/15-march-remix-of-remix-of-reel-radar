@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { ReelAnalysis } from "@/lib/types";
-import { Download, FileText, Crown, BarChart3, Calendar, Target, Lightbulb, TrendingUp, CheckCircle, Star, MessageCircle } from "lucide-react";
+import { Download, FileText, Crown, BarChart3, Calendar, Target, Lightbulb, TrendingUp, CheckCircle, Star, MessageCircle, Zap, AlertTriangle, ArrowUp, ArrowDown, Minus } from "lucide-react";
 
 interface Props {
   analysis: ReelAnalysis;
@@ -240,6 +240,56 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
         </Card>
       )}
 
+      {/* Virality Factors Deep Analysis (Premium Only) */}
+      {premiumData.viralityInsights?.length > 0 && (
+        <Card className="glass p-5 space-y-3">
+          <h3 className="font-bold text-foreground flex items-center gap-2">
+            <Zap className="w-4 h-4 text-primary" /> Virality Factors Analysis
+          </h3>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Each factor that affects your reel's viral potential — with actionable solutions
+          </p>
+          <div className="space-y-2">
+            {premiumData.viralityInsights.map((insight: any, i: number) => (
+              <div key={i} className={`p-3 rounded-lg border ${
+                insight.impact === "positive" 
+                  ? "bg-[hsl(var(--viral-high))]/5 border-[hsl(var(--viral-high))]/20" 
+                  : insight.impact === "negative"
+                  ? "bg-[hsl(var(--viral-low))]/5 border-[hsl(var(--viral-low))]/20"
+                  : "bg-muted/20 border-border/30"
+              }`}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    {insight.impact === "positive" ? (
+                      <ArrowUp className="w-3.5 h-3.5 text-[hsl(var(--viral-high))]" />
+                    ) : insight.impact === "negative" ? (
+                      <ArrowDown className="w-3.5 h-3.5 text-[hsl(var(--viral-low))]" />
+                    ) : (
+                      <Minus className="w-3.5 h-3.5 text-muted-foreground" />
+                    )}
+                    <span className="text-xs font-semibold text-foreground">{insight.factor}</span>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    insight.score > 0 
+                      ? "bg-[hsl(var(--viral-high))]/20 text-[hsl(var(--viral-high))]"
+                      : insight.score < 0
+                      ? "bg-[hsl(var(--viral-low))]/20 text-[hsl(var(--viral-low))]"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {insight.score > 0 ? `+${insight.score}` : insight.score} pts
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed mb-1.5">{insight.reason}</p>
+                <div className="flex items-start gap-1.5 p-2 rounded bg-primary/5 border border-primary/10">
+                  <Lightbulb className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-primary/90 leading-relaxed">{insight.solution}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Hidden PDF content for rendering */}
       <div ref={reportRef} style={{ display: "none" }}>
         <div style={{ width: "800px", padding: "40px", backgroundColor: "#0a0b14", color: "#e5e7eb", fontFamily: "Inter, sans-serif" }}>
@@ -397,10 +447,35 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
               </div>
             )}
 
+            {/* Page 6: Virality Factors Deep Analysis */}
+            {premiumData.viralityInsights?.length > 0 && (
+              <div style={{ minHeight: "1100px", paddingBottom: "40px" }}>
+                <h2 style={{ fontSize: "18px", fontWeight: "bold", color: "#e5e7eb", marginBottom: "8px", paddingTop: "20px" }}>⚡ Virality Factors Deep Analysis</h2>
+                <p style={{ fontSize: "11px", color: "#6b7280", marginBottom: "16px" }}>Each factor affecting your reel's viral potential — with reasons and actionable solutions</p>
+                {premiumData.viralityInsights.map((insight: any, i: number) => (
+                  <div key={i} style={{ padding: "12px", borderRadius: "8px", background: "#111827", border: `1px solid ${insight.impact === "positive" ? "#064e3b" : insight.impact === "negative" ? "#7f1d1d" : "#1f2937"}`, marginBottom: "8px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                      <span style={{ fontSize: "13px", fontWeight: "600", color: "#e5e7eb" }}>
+                        {insight.impact === "positive" ? "↑" : insight.impact === "negative" ? "↓" : "→"} {insight.factor}
+                      </span>
+                      <span style={{ fontSize: "11px", fontWeight: "bold", padding: "2px 8px", borderRadius: "10px", backgroundColor: insight.score > 0 ? "#064e3b" : insight.score < 0 ? "#7f1d1d" : "#1f2937", color: insight.score > 0 ? "#10b981" : insight.score < 0 ? "#ef4444" : "#9ca3af" }}>
+                        {insight.score > 0 ? `+${insight.score}` : insight.score} pts
+                      </span>
+                    </div>
+                    <p style={{ fontSize: "11px", color: "#9ca3af", lineHeight: "1.6", marginBottom: "6px" }}>{insight.reason}</p>
+                    <div style={{ padding: "8px 10px", borderRadius: "6px", background: "#0a0b14", borderLeft: "3px solid #e63976" }}>
+                      <p style={{ fontSize: "11px", color: "#e63976", lineHeight: "1.5" }}>💡 {insight.solution}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Footer */}
             <div style={{ marginTop: "40px", paddingTop: "20px", borderTop: "1px solid #1f2937", textAlign: "center" }}>
               <p style={{ fontSize: "11px", color: "#6b7280" }}>Generated by Viral Reel Analyzer • {new Date().toLocaleDateString("en-IN")}</p>
               <p style={{ fontSize: "10px", color: "#4b5563", marginTop: "4px" }}>This report is for educational and informational purposes only.</p>
+              <p style={{ fontSize: "10px", color: "#4b5563", marginTop: "2px" }}>Scores are capped at 80/80 — no content is 100% guaranteed to go viral.</p>
             </div>
           </div>
         </div>
