@@ -8,6 +8,7 @@ Dark theme Instagram Reel viral analysis tool. Design tokens in index.css (HSL).
 - Ads: 6 slots (banner-top/mid/bottom, sidebar-left/right, processing-overlay) managed via ad_config table with ad_type (adsense/affiliate/custom)
 - Scraping: 4-layer fallback (meta tags → Firecrawl → oEmbed → noembed)
 - Usage tracked in usage_logs table
-- AI: Google Gemini direct API (GEMINI_API_KEY secret), NOT Lovable AI gateway
+- AI: Google Gemini direct API, multi-key rotation (GEMINI_API_KEYS comma-separated, fallback to GEMINI_API_KEY)
+- Auto-failover on 429/402/403 errors, tries all keys before failing
 - Payment: site_config table stores Razorpay/Stripe keys, price (default ₹29), WhatsApp number
 - No user login required - payment only via gateway
