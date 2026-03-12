@@ -30,6 +30,7 @@ import TrendingLeaderboard from "@/components/TrendingLeaderboard";
 import { BannerAd, InlineAd, SidebarAds } from "@/components/AdSlots";
 import ProcessingOverlay from "@/components/ProcessingOverlay";
 import MasterReportButton from "@/components/MasterReportButton";
+import FeedbackRating from "@/components/FeedbackRating";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
@@ -357,6 +358,9 @@ const Index = () => {
             <div ref={masterReportRef}>
               <MasterReportButton analysis={analysis} reelUrl={url} />
             </div>
+
+            {/* Feedback Rating */}
+            <FeedbackRating reelUrl={url} />
 
             <motion.div className="flex flex-col items-center gap-3 text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
               <p className="text-sm text-muted-foreground">
