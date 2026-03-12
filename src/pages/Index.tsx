@@ -37,6 +37,16 @@ import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldChec
 
 const Index = () => {
   const [url, setUrl] = useState("");
+  const [caption, setCaption] = useState("");
+  const [hashtags, setHashtags] = useState("");
+  const [likes, setLikes] = useState("");
+  const [comments, setComments] = useState("");
+  const [views, setViews] = useState("");
+  const [shares, setShares] = useState("");
+  const [saves, setSaves] = useState("");
+  const [sampleComments, setSampleComments] = useState("");
+  const [showDetails, setShowDetails] = useState(false);
+  const [showMetrics, setShowMetrics] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
   const [showInterstitial, setShowInterstitial] = useState(false);
@@ -57,7 +67,17 @@ const Index = () => {
       const { data, error } = await supabase.functions.invoke("analyze-reel", {
         body: {
           url: url.trim(),
+          caption: caption.trim() || undefined,
+          hashtags: hashtags.trim() || undefined,
           lang,
+          metrics: {
+            likes: likes ? parseInt(likes) : undefined,
+            comments: comments ? parseInt(comments) : undefined,
+            views: views ? parseInt(views) : undefined,
+            shares: shares ? parseInt(shares) : undefined,
+            saves: saves ? parseInt(saves) : undefined,
+          },
+          sampleComments: sampleComments.trim() || undefined,
         },
       });
       if (error) throw error;
@@ -71,7 +91,7 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
-  }, [url, lang, t, toast]);
+  }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast]);
 
   const handleAnalyze = async () => {
     if (!url.trim()) {
