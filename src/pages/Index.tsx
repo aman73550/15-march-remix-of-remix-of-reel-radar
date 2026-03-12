@@ -211,7 +211,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden">
       <LanguageToggle />
-      <InterstitialAd show={showInterstitial} onClose={() => setShowInterstitial(false)} />
+      <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
 
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
