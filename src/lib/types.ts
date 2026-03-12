@@ -105,12 +105,28 @@ export interface ViralClassification {
   engagementRate?: number;
 }
 
+export interface PatternComparison {
+  patternsCompared: number;
+  viralPatternsCount?: number;
+  similarityScore: number | null;
+  categoryAvgScore: number | null;
+  categoryAvgHookScore?: number;
+  categoryAvgCaptionScore?: number;
+  insights: string[];
+  topPatternFeatures: {
+    hookType: string | null;
+    facePresence: string | null;
+    motionIntensity: string | null;
+  } | null;
+}
+
 export interface ReelAnalysis {
   viralScore: number;
   overallSummary: string;
   viralClassification?: ViralClassification;
   contentClassification?: ContentClassification;
   thumbnailAnalyzed?: boolean;
+  patternComparison?: PatternComparison;
 
   hookAnalysis: HookAnalysis;
   captionAnalysis: CaptionAnalysis;
