@@ -27,7 +27,7 @@ import ShareUnlockScreen from "@/components/ShareUnlockScreen";
 import SocialProofSection, { SocialProofBadge } from "@/components/SocialProofSection";
 import SampleAnalysisPreview from "@/components/SampleAnalysisPreview";
 import TrendingLeaderboard from "@/components/TrendingLeaderboard";
-import { BannerAd, InlineAd } from "@/components/AdSlots";
+import { BannerAd, InlineAd, SidebarAds } from "@/components/AdSlots";
 import ProcessingOverlay from "@/components/ProcessingOverlay";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
