@@ -27,6 +27,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
   const [premiumData, setPremiumData] = useState<any>(null);
   const [showReport, setShowReport] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [showProcessing, setShowProcessing] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
