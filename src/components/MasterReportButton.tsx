@@ -158,7 +158,21 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
     return <MasterReportPDF analysis={analysis} premiumData={premiumData} reelUrl={reelUrl} />;
   }
 
-  // Show receipt after payment
+  // Show processing overlay for report generation
+  if (showProcessing) {
+    return (
+      <MasterReportProcessing
+        show={true}
+        reportReady={!!premiumData}
+        onDownload={() => {
+          setShowProcessing(false);
+          setShowReport(true);
+        }}
+      />
+    );
+  }
+
+  // Show receipt after payment (briefly)
   if (showReceipt && receiptData) {
     return (
       <PaymentReceipt
@@ -168,12 +182,8 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
         currency={receiptData.currency}
         reelUrl={reelUrl}
         onContinue={() => {
-          if (premiumData) {
-            setShowReceipt(false);
-            setShowReport(true);
-          } else {
-            toast.info("Report is still generating, please wait...");
-          }
+          setShowReceipt(false);
+          setShowProcessing(true);
         }}
       />
     );
