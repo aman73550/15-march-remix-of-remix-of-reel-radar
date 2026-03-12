@@ -164,10 +164,51 @@ const Index = () => {
       {/* Input — URL only */}
       <motion.div ref={inputRef} className="relative z-10 max-w-xl lg:max-w-2xl mx-auto px-3 sm:px-4 pb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
         <Card className="glass p-4 sm:p-5 space-y-3">
+          {/* URL input - always visible */}
           <div className="relative">
             <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/70" />
             <Input placeholder={t.urlPlaceholder} value={url} onChange={(e) => setUrl(e.target.value)} className="pl-9 bg-muted/50 border-border h-11" />
           </div>
+
+          {/* Add More Details toggle */}
+          <button type="button" onClick={() => setShowDetails(!showDetails)} className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-muted/30 border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <span className="flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3" />
+              Add More Details (optional — auto-extracted if skipped)
+            </span>
+            {showDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Collapsible details section */}
+          <AnimatePresence>
+            {showDetails && (
+              <motion.div className="space-y-3" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
+                <Input placeholder={t.captionPlaceholder} value={caption} onChange={(e) => setCaption(e.target.value)} className="bg-muted/50 border-border h-10 text-sm" />
+                <Input placeholder={t.hashtagPlaceholder} value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-muted/50 border-border h-10 text-sm" />
+
+                {/* Engagement Metrics sub-section */}
+                <button type="button" onClick={() => setShowMetrics(!showMetrics)} className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-muted/20 border border-border/50 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  <span>{t.metricsLabel}</span>
+                  {showMetrics ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+
+                <AnimatePresence>
+                  {showMetrics && (
+                    <motion.div className="space-y-2" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input type="number" placeholder={t.likesPlaceholder} value={likes} onChange={(e) => setLikes(e.target.value)} className="bg-muted/50 border-border h-9 text-xs" />
+                        <Input type="number" placeholder={t.commentsPlaceholder} value={comments} onChange={(e) => setComments(e.target.value)} className="bg-muted/50 border-border h-9 text-xs" />
+                        <Input type="number" placeholder={t.viewsPlaceholder} value={views} onChange={(e) => setViews(e.target.value)} className="bg-muted/50 border-border h-9 text-xs" />
+                        <Input type="number" placeholder={t.sharesPlaceholder} value={shares} onChange={(e) => setShares(e.target.value)} className="bg-muted/50 border-border h-9 text-xs" />
+                        <Input type="number" placeholder={t.savesPlaceholder} value={saves} onChange={(e) => setSaves(e.target.value)} className="bg-muted/50 border-border h-9 text-xs col-span-2 sm:col-span-1" />
+                      </div>
+                      <Textarea placeholder={t.sampleCommentsPlaceholder} value={sampleComments} onChange={(e) => setSampleComments(e.target.value)} className="bg-muted/50 border-border text-xs min-h-[70px] resize-none" rows={3} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
             <Button onClick={handleAnalyze} disabled={loading} className="w-full h-12 sm:h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity text-sm sm:text-base">
@@ -179,7 +220,7 @@ const Index = () => {
             {remaining > 0 ? `${remaining} free analysis${remaining !== 1 ? "es" : ""} remaining` : "No free analyses remaining — share to unlock more"}
           </p>
           <p className="text-center text-[10px] text-muted-foreground/60">
-            No login required • Paste link & get full analysis automatically
+            No login required • Auto-extracts data if you skip optional fields
           </p>
         </Card>
       </motion.div>
