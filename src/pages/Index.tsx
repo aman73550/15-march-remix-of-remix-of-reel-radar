@@ -32,7 +32,7 @@ import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import type { ReelAnalysis } from "@/lib/types";
-import { Loader2, Link, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
+import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
 
 const Index = () => {
   const [url, setUrl] = useState("");
