@@ -161,6 +161,24 @@ const AdminDashboard = () => {
     navigate("/admin-login");
   };
 
+  const loadFeedback = async () => {
+    const { data } = await supabase.from("feedback" as any).select("*").order("created_at", { ascending: false }).limit(20);
+    if (!data) return;
+    const all = data as any[];
+    setRecentFeedback(all.slice(0, 10));
+    const dist = [0, 0, 0, 0, 0];
+    let sum = 0;
+    for (const f of all) {
+      dist[f.rating - 1]++;
+      sum += f.rating;
+    }
+    setFeedbackStats({
+      total: all.length,
+      avg: all.length ? Math.round((sum / all.length) * 10) / 10 : 0,
+      distribution: dist,
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
