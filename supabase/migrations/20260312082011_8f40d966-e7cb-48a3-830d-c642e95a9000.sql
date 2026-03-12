@@ -1,0 +1,1 @@
+ALTER TABLE public.ad_config ADD COLUMN ad_type text NOT NULL DEFAULT 'custom';
