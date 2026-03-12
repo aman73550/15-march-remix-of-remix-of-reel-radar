@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import ViralScoreCircle from "@/components/ViralScoreCircle";
 import AnalysisCard from "@/components/AnalysisCard";
 import CategoryPieChart from "@/components/CategoryPieChart";
