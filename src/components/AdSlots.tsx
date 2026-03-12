@@ -115,3 +115,48 @@ export const InlineAd = ({ slot = "inline" }: InlineAdProps) => (
     </div>
   </div>
 );
+
+// === SIDEBAR ADS (desktop only, sticky, left & right) ===
+export const SidebarAds = () => (
+  <>
+    {/* Left sidebar */}
+    <div className="hidden xl:block fixed left-0 top-1/2 -translate-y-1/2 z-20 w-[160px] pl-2">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="text-center text-[9px] text-muted-foreground/50 py-0.5 bg-muted/20 border-b border-border">
+          Ad
+        </div>
+        <div
+          className="w-full h-[600px] flex items-center justify-center"
+          data-ad-slot="sidebar-left"
+          data-ad-format="vertical"
+          id="ad-sidebar-left"
+        >
+          <div className="w-full h-full bg-gradient-to-b from-muted/20 via-card to-muted/20 flex flex-col items-center justify-center gap-2">
+            <div className="w-8 h-8 rounded-lg gradient-primary-bg opacity-15" />
+            <span className="text-[9px] text-muted-foreground/30 [writing-mode:vertical-lr]">Ad Space</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Right sidebar */}
+    <div className="hidden xl:block fixed right-0 top-1/2 -translate-y-1/2 z-20 w-[160px] pr-2">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="text-center text-[9px] text-muted-foreground/50 py-0.5 bg-muted/20 border-b border-border">
+          Ad
+        </div>
+        <div
+          className="w-full h-[600px] flex items-center justify-center"
+          data-ad-slot="sidebar-right"
+          data-ad-format="vertical"
+          id="ad-sidebar-right"
+        >
+          <div className="w-full h-full bg-gradient-to-b from-muted/20 via-card to-muted/20 flex flex-col items-center justify-center gap-2">
+            <div className="w-8 h-8 rounded-lg gradient-primary-bg opacity-15" />
+            <span className="text-[9px] text-muted-foreground/30 [writing-mode:vertical-lr]">Ad Space</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </>
+);
