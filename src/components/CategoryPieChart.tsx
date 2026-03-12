@@ -33,7 +33,8 @@ const CategoryPieChart = ({ hookScore, captionScore, hashtagScore, engagementSco
   ];
 
   return (
-    <div className="w-full h-56">
+    <div className="w-full">
+      <div className="w-full h-56">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
