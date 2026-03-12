@@ -33,7 +33,8 @@ const CategoryPieChart = ({ hookScore, captionScore, hashtagScore, engagementSco
   ];
 
   return (
-    <div className="w-full h-56">
+    <div className="w-full">
+      <div className="w-full h-56">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -53,16 +54,19 @@ const CategoryPieChart = ({ hookScore, captionScore, hashtagScore, engagementSco
           </Pie>
           <Tooltip
             contentStyle={{
-              background: "hsl(225, 20%, 8%)",
-              border: "1px solid hsl(225, 15%, 16%)",
+              background: "hsl(225, 20%, 12%)",
+              border: "1px solid hsl(225, 15%, 22%)",
               borderRadius: "8px",
-              color: "hsl(210, 20%, 92%)",
+              color: "hsl(210, 20%, 95%)",
               fontSize: "12px",
             }}
+            itemStyle={{ color: "hsl(210, 20%, 95%)" }}
+            labelStyle={{ color: "hsl(210, 20%, 80%)" }}
             formatter={(value: number, name: string) => [`${value}/10`, name]}
           />
         </PieChart>
       </ResponsiveContainer>
+      </div>
       <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-3">
         {data.map((item, i) => (
           <div key={i} className="flex items-center gap-1.5 text-xs sm:text-sm">
