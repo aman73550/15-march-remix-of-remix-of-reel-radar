@@ -169,29 +169,14 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
               })}
             </div>
 
-            {/* Video ad area — full width on mobile, contained on desktop */}
-            <div className="-mx-6 sm:mx-0 sm:rounded-xl border-y sm:border border-border bg-card overflow-hidden">
-              <div className="text-center text-[10px] text-muted-foreground py-1 bg-muted/30 border-b border-border">
-                Sponsored · Ad
-              </div>
-              <div
-                className="w-full aspect-[9/14] sm:aspect-video sm:max-h-[280px] flex items-center justify-center"
-                data-ad-slot="processing-video"
-                data-ad-format="video"
-                id="ad-processing-video"
-              >
-                {/* Replace with real video ad */}
-                <div className="w-full h-full bg-gradient-to-br from-muted/30 via-card to-muted/30 flex flex-col items-center justify-center gap-2">
-                  <div className="w-16 h-16 sm:w-14 sm:h-14 rounded-2xl gradient-primary-bg opacity-20" />
-                  <span className="text-xs text-muted-foreground/50">Video Ad</span>
-                  <span className="text-[10px] text-muted-foreground/30">Full Screen · Video Preferred</span>
-                </div>
-              </div>
+            {/* Ad area */}
+            <div className="-mx-6 sm:mx-0">
+              <BannerAd slot="processing-overlay" />
             </div>
 
-            {/* Banner ad — full width */}
+            {/* Banner ad */}
             <div className="-mx-6 sm:mx-0">
-              <BannerAd slot="processing-banner" />
+              <BannerAd slot="banner-bottom" />
             </div>
 
             {/* Disclaimer */}
