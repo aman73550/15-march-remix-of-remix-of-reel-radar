@@ -443,6 +443,17 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
+    // Log usage for analytics
+    try {
+      const supabaseForLog = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+      await supabaseForLog.from("usage_logs").insert({
+        reel_url: url,
+        user_agent: req.headers.get("user-agent") || null,
+      });
+    } catch (e) {
+      console.error("Usage log error:", e);
+    }
+
     // === STEP 1: Direct meta tag scrape (fastest, most reliable) ===
     console.log("Step 1: Direct meta tag scrape...");
     const metaResult = await scrapeMetaTags(url);
