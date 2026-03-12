@@ -6,6 +6,61 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+function getApiKeys(): string[] {
+  const multiKeys = Deno.env.get("GEMINI_API_KEYS");
+  if (multiKeys) {
+    const keys = multiKeys.split(",").map(k => k.trim()).filter(Boolean);
+    if (keys.length > 0) return keys;
+  }
+  const singleKey = Deno.env.get("GEMINI_API_KEY");
+  if (singleKey) return [singleKey];
+  return [];
+}
+
+let currentKeyIndex = 0;
+
+async function callGemini(body: Record<string, unknown>): Promise<Response> {
+  const keys = getApiKeys();
+  if (keys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
+
+  const startIndex = currentKeyIndex % keys.length;
+  let lastError: Error | null = null;
+
+  for (let i = 0; i < keys.length; i++) {
+    const idx = (startIndex + i) % keys.length;
+    const key = keys[idx];
+    console.log(`Trying Gemini API key #${idx + 1}/${keys.length}`);
+
+    try {
+      const response = await fetch(GEMINI_API_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (response.status === 429 || response.status === 402 || response.status === 403) {
+        console.warn(`Key #${idx + 1} hit limit (${response.status}), trying next...`);
+        lastError = new Error(`Key #${idx + 1} rate limited (${response.status})`);
+        continue;
+      }
+
+      currentKeyIndex = idx;
+      return response;
+    } catch (e) {
+      console.error(`Key #${idx + 1} network error:`, e);
+      lastError = e instanceof Error ? e : new Error(String(e));
+    }
+  }
+
+  currentKeyIndex = (startIndex + 1) % keys.length;
+  throw lastError || new Error("All API keys exhausted");
+}
+
 async function getConfig(supabase: any): Promise<Record<string, string>> {
   const { data } = await supabase.from("site_config").select("config_key, config_value");
   const config: Record<string, string> = {};
@@ -17,23 +72,17 @@ async function getConfig(supabase: any): Promise<Record<string, string>> {
   return config;
 }
 
-async function generatePremiumAnalysis(analysis: any, reelUrl: string, apiKey: string): Promise<any> {
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert Instagram growth strategist creating premium PDF reports. Return ONLY valid JSON, no markdown fences.",
-        },
-        {
-          role: "user",
-          content: `Based on this reel analysis, generate a comprehensive Master Report with these sections.
+async function generatePremiumAnalysis(analysis: any, reelUrl: string): Promise<any> {
+  const response = await callGemini({
+    model: "google/gemini-2.5-flash",
+    messages: [
+      {
+        role: "system",
+        content: "You are an expert Instagram growth strategist creating premium PDF reports. Return ONLY valid JSON, no markdown fences.",
+      },
+      {
+        role: "user",
+        content: `Based on this reel analysis, generate a comprehensive Master Report with these sections.
 
 Current Analysis Data:
 ${JSON.stringify(analysis, null, 2)}
@@ -102,9 +151,8 @@ Generate ONLY valid JSON with these sections:
     "audioQuality": ${analysis.audioQuality?.qualityScore || 0}
   }
 }`,
-        },
-      ],
-    }),
+      },
+    ],
   });
 
   if (!response.ok) {
@@ -128,9 +176,8 @@ serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
+    const apiKeys = getApiKeys();
+    if (apiKeys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -153,7 +200,7 @@ serve(async (req) => {
 
     // Generate premium analysis
     console.log("Generating premium analysis...");
-    const premiumData = await generatePremiumAnalysis(analysisData, reelUrl, GEMINI_API_KEY);
+    const premiumData = await generatePremiumAnalysis(analysisData, reelUrl);
 
     // Update report with analysis data
     if (reportId) {

@@ -6,6 +6,64 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+// Multi-key rotation with auto-failover
+function getApiKeys(): string[] {
+  const multiKeys = Deno.env.get("GEMINI_API_KEYS");
+  if (multiKeys) {
+    const keys = multiKeys.split(",").map(k => k.trim()).filter(Boolean);
+    if (keys.length > 0) return keys;
+  }
+  const singleKey = Deno.env.get("GEMINI_API_KEY");
+  if (singleKey) return [singleKey];
+  return [];
+}
+
+let currentKeyIndex = 0;
+
+async function callGemini(body: Record<string, unknown>): Promise<Response> {
+  const keys = getApiKeys();
+  if (keys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
+
+  const startIndex = currentKeyIndex % keys.length;
+  let lastError: Error | null = null;
+
+  for (let i = 0; i < keys.length; i++) {
+    const idx = (startIndex + i) % keys.length;
+    const key = keys[idx];
+    console.log(`Trying Gemini API key #${idx + 1}/${keys.length}`);
+
+    try {
+      const response = await fetch(GEMINI_API_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (response.status === 429 || response.status === 402 || response.status === 403) {
+        console.warn(`Key #${idx + 1} hit limit (${response.status}), trying next...`);
+        lastError = new Error(`Key #${idx + 1} rate limited (${response.status})`);
+        continue;
+      }
+
+      // Success or other error - use this key next time too
+      currentKeyIndex = idx;
+      return response;
+    } catch (e) {
+      console.error(`Key #${idx + 1} network error:`, e);
+      lastError = e instanceof Error ? e : new Error(String(e));
+    }
+  }
+
+  // All keys exhausted - advance index for next call
+  currentKeyIndex = (startIndex + 1) % keys.length;
+  throw lastError || new Error("All API keys exhausted");
+}
+
 // Step 0a: Direct HTML fetch with browser headers to extract meta tags (bypasses 403 often)
 async function scrapeMetaTags(url: string): Promise<{
   ogImage: string;
@@ -114,7 +172,7 @@ async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshot: strin
 }
 
 // Step 0b: Use AI to extract structured data from scraped content
-async function extractDataFromScrapedContent(markdown: string, apiKey: string): Promise<{
+async function extractDataFromScrapedContent(markdown: string, _apiKey?: string): Promise<{
   caption: string;
   hashtags: string;
   likes: number | null;
@@ -129,22 +187,16 @@ async function extractDataFromScrapedContent(markdown: string, apiKey: string): 
   if (!markdown || markdown.length < 50) return null;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: "You extract structured data from scraped Instagram reel pages. Return ONLY valid JSON, no markdown fences.",
-          },
-          {
-            role: "user",
-            content: `Extract the following data from this scraped Instagram reel page content. If a field is not found, use null for numbers and empty string for text.
+    const response = await callGemini({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "system",
+          content: "You extract structured data from scraped Instagram reel pages. Return ONLY valid JSON, no markdown fences.",
+        },
+        {
+          role: "user",
+          content: `Extract the following data from this scraped Instagram reel page content. If a field is not found, use null for numbers and empty string for text.
 
 Page content:
 ${markdown.substring(0, 8000)}
@@ -162,9 +214,8 @@ Return JSON:
   "postDate": "<ISO date string or null>",
   "sampleComments": "<up to 5 sample comments, one per line>"
 }`,
-          },
-        ],
-      }),
+        },
+      ],
     });
 
     if (!response.ok) {
@@ -185,28 +236,20 @@ Return JSON:
 }
 
 // Step 1: Analyze screenshot/thumbnail with Gemini vision
-async function analyzeVisual(imageUrl: string, apiKey: string, isScreenshot: boolean): Promise<string> {
+async function analyzeVisual(imageUrl: string, _apiKey?: string, isScreenshot?: boolean): Promise<string> {
   try {
-    const imageContent = isScreenshot && imageUrl.startsWith("data:")
-      ? { type: "image_url" as const, image_url: { url: imageUrl } }
-      : { type: "image_url" as const, image_url: { url: imageUrl } };
+    const imageContent = { type: "image_url" as const, image_url: { url: imageUrl } };
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: isScreenshot
-                  ? `This is a screenshot of an Instagram Reel page. Analyze EVERYTHING visible:
+    const response = await callGemini({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: isScreenshot
+                ? `This is a screenshot of an Instagram Reel page. Analyze EVERYTHING visible:
 1. INSTAGRAM UI DATA: Extract any visible likes count, comments count, views count, username, caption text, hashtags, date posted
 2. VIDEO CONTENT: What is shown in the video player? Describe the scene, objects, people, actions
 3. TEXT ON SCREEN: Any overlay text, captions, subtitles visible
@@ -216,7 +259,7 @@ async function analyzeVisual(imageUrl: string, apiKey: string, isScreenshot: boo
 7. ENGAGEMENT SIGNALS: Any visible engagement indicators (comment previews, like counts, share counts)
 
 Be extremely specific about numbers and text you can read. This is a full page screenshot so extract ALL visible Instagram data.`
-                  : `Analyze this Instagram Reel thumbnail image in detail. Describe:
+                : `Analyze this Instagram Reel thumbnail image in detail. Describe:
 1. OBJECTS: What objects, items, or props are visible?
 2. PEOPLE: Are there people? How many? What are they doing?
 3. SCENE: What is the setting/environment?
@@ -227,12 +270,11 @@ Be extremely specific about numbers and text you can read. This is a full page s
 8. ESTIMATED CATEGORY: Content niche
 
 Be specific and factual about what you see.`,
-              },
-              imageContent,
-            ],
-          },
-        ],
-      }),
+            },
+            imageContent,
+          ],
+        },
+      ],
     });
 
     if (!response.ok) {
@@ -437,8 +479,8 @@ serve(async (req) => {
       });
     }
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+    const apiKeys = getApiKeys();
+    if (apiKeys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -510,7 +552,7 @@ serve(async (req) => {
     // Layer 2: Firecrawl data (richer, fills remaining gaps)
     if (scrapeResult) {
       console.log("Extracting data from Firecrawl content...");
-      const extracted = await extractDataFromScrapedContent(scrapeResult.markdown, GEMINI_API_KEY);
+      const extracted = await extractDataFromScrapedContent(scrapeResult.markdown);
 
       if (extracted) {
         if (!caption) caption = extracted.caption || "";
@@ -535,7 +577,7 @@ serve(async (req) => {
         const screenshotUrl = scrapeResult.screenshot.startsWith("data:")
           ? scrapeResult.screenshot
           : `data:image/png;base64,${scrapeResult.screenshot}`;
-        visionAnalysis = await analyzeVisual(screenshotUrl, GEMINI_API_KEY, true);
+        visionAnalysis = await analyzeVisual(screenshotUrl, undefined, true);
         screenshotUsed = true;
         console.log("Screenshot vision analysis complete");
       }
@@ -579,7 +621,7 @@ serve(async (req) => {
     // Vision analysis on thumbnail if screenshot wasn't available
     if (thumbnailUrl && !visionAnalysis) {
       console.log("Running vision analysis on thumbnail (fallback)...");
-      visionAnalysis = await analyzeVisual(thumbnailUrl, GEMINI_API_KEY, false);
+      visionAnalysis = await analyzeVisual(thumbnailUrl, undefined, false);
     }
 
     if (!metadata && authorName) {
@@ -800,31 +842,13 @@ Return ONLY valid JSON (no markdown, no code fences):
   "topRecommendations": ["<actionable rec 1>", "<rec 2>", "<rec 3>", "<rec 4>", "<rec 5>"]
 }`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from screenshots and thumbnails to understand what a reel is actually about. Return only valid JSON. Be specific and actionable in your analysis." },
-          { role: "user", content: prompt },
-        ],
-      }),
+    const response = await callGemini({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from screenshots and thumbnails to understand what a reel is actually about. Return only valid JSON. Be specific and actionable in your analysis." },
+        { role: "user", content: prompt },
+      ],
     });
-
-    if (response.status === 429) {
-      return new Response(JSON.stringify({ success: false, error: "Rate limited. Please try again in a moment." }), {
-        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (response.status === 402) {
-      return new Response(JSON.stringify({ success: false, error: "AI credits exhausted. Please add credits." }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
     if (!response.ok) {
       const errText = await response.text();
       console.error("AI gateway error:", response.status, errText);
