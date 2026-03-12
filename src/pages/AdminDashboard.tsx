@@ -638,6 +638,53 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {/* Admin Master Report Generator */}
+        <div>
+          <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">👑 Generate Master Report (Free)</h2>
+          <Card className="border-border bg-card">
+            <CardContent className="p-4 sm:p-6 space-y-4">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Enter any Instagram Reel URL to generate a Master Report without payment.</p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={adminReelUrl}
+                  onChange={(e) => setAdminReelUrl(e.target.value)}
+                  placeholder="https://www.instagram.com/reel/..."
+                  className="bg-muted/50 border-border h-9 sm:h-10 text-xs sm:text-sm flex-1"
+                />
+                <Button
+                  onClick={handleAdminGenerateReport}
+                  disabled={adminGenerating}
+                  className="gradient-primary-bg text-primary-foreground h-9 sm:h-10 text-xs sm:text-sm px-4 sm:px-6 flex-shrink-0"
+                >
+                  {adminGenerating ? (
+                    <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Generating...</>
+                  ) : (
+                    <><Crown className="w-3.5 h-3.5 mr-1.5" /> Generate Report</>
+                  )}
+                </Button>
+              </div>
+
+              {adminReportData && (
+                <div className="rounded-lg bg-[hsl(var(--viral-high))]/10 border border-[hsl(var(--viral-high))]/30 p-3 sm:p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold text-foreground">Report Ready!</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--viral-high))]/20 text-[hsl(var(--viral-high))] font-medium">
+                      Score: {adminReportData.analysis.viralClassification?.score || adminReportData.analysis.viralScore || 0}/80
+                    </span>
+                  </div>
+                  <Button
+                    onClick={handleAdminDownloadTxt}
+                    className="w-full sm:w-auto gradient-primary-bg text-primary-foreground h-9 text-xs sm:text-sm"
+                  >
+                    <Download className="w-3.5 h-3.5 mr-1.5" /> Download Master Report (TXT)
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         {/* User Feedback */}
         <div>
           <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">⭐ User Feedback</h2>
