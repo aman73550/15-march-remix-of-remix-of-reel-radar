@@ -143,10 +143,21 @@ const AdminDashboard = () => {
     setSavingConfig(true);
     try {
       for (const [key, value] of Object.entries(config)) {
-        await supabase
+        const { data: existing } = await supabase
           .from("site_config" as any)
-          .update({ config_value: value, updated_at: new Date().toISOString() })
-          .eq("config_key", key);
+          .select("id")
+          .eq("config_key", key)
+          .single();
+        if (existing) {
+          await supabase
+            .from("site_config" as any)
+            .update({ config_value: value, updated_at: new Date().toISOString() })
+            .eq("config_key", key);
+        } else {
+          await supabase
+            .from("site_config" as any)
+            .insert({ config_key: key, config_value: value } as any);
+        }
       }
       toast.success("Configuration saved!");
     } catch {
@@ -344,6 +355,19 @@ const AdminDashboard = () => {
                   placeholder="919876543210"
                   className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1">
+                  <FileText className="w-3 h-3" /> Example PDF URL (Sample Report)
+                </Label>
+                <Input
+                  value={config.example_pdf_url || ""}
+                  onChange={(e) => updateConfig("example_pdf_url", e.target.value)}
+                  placeholder="https://drive.google.com/file/d/.../preview"
+                  className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
+                />
+                <p className="text-[9px] text-muted-foreground/60">Paste a direct PDF link or Google Drive embed URL. Leave empty to hide.</p>
               </div>
 
               <Button onClick={saveConfig} disabled={savingConfig} className="w-full gradient-primary-bg text-primary-foreground h-9 sm:h-10 text-xs sm:text-sm">
