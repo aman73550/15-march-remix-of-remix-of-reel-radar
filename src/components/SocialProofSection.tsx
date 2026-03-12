@@ -28,6 +28,9 @@ const CITIES = [
   "Kolkata", "Jaipur", "Lucknow", "Ahmedabad", "Chandigarh", "Indore",
   "Surat", "Nagpur", "Patna", "Bhopal", "Kochi", "Goa",
   "Noida", "Gurgaon", "Vadodara", "Ranchi", "Dehradun", "Mysore",
+  "Dubai", "London", "New York", "Toronto", "Singapore", "Sydney",
+  "Los Angeles", "San Francisco", "Berlin", "Tokyo", "Jakarta",
+  "Kuala Lumpur", "Bangkok", "Riyadh", "Doha", "Amsterdam",
 ];
 const ROLES = ["creator", "marketer", "influencer", "brand strategist", "content creator", "social media manager", "blogger"];
 const ACTIONS = [
