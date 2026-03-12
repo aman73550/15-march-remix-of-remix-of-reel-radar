@@ -73,61 +73,268 @@ async function getConfig(supabase: any): Promise<Record<string, string>> {
 }
 
 async function generatePremiumAnalysis(analysis: any, reelUrl: string): Promise<any> {
-  // Extract virality insights from analysis (already computed by analyze-reel)
   const viralityInsights = analysis._viralityInsights || [];
   const daysSincePost = analysis._daysSincePost || null;
+  const viralScore = analysis.viralClassification?.score || analysis.viralScore || 0;
+  const category = analysis.contentClassification?.primaryCategory || "unknown";
 
   const response = await callGemini({
     model: "gemini-2.5-flash",
     messages: [
       {
         role: "system",
-        content: "You are an expert Instagram growth strategist creating premium PDF reports. Return ONLY valid JSON, no markdown fences.",
+        content: `You are an expert Instagram growth strategist creating a PREMIUM, highly detailed PDF report. This is a PAID product — make it thorough, insightful, and actionable. Write in a professional but friendly tone. Include specific examples, real-world references, and data-backed insights. Return ONLY valid JSON, no markdown fences.`,
       },
       {
         role: "user",
-        content: `Based on this reel analysis, generate a comprehensive Master Report with these sections.
+        content: `Based on this reel analysis, generate an extremely comprehensive Master Report.
 
 Current Analysis Data:
 ${JSON.stringify(analysis, null, 2)}
 
 Reel URL: ${reelUrl}
+Category: ${category}
+Viral Score: ${viralScore}/80
+Days Since Post: ${daysSincePost ?? "unknown"}
 
-Generate ONLY valid JSON with these sections:
+Generate ONLY valid JSON with ALL these sections:
 
 {
-  "executiveSummary": "<4-5 sentence professional summary of the reel's performance and potential>",
-  
+  "reportIntro": {
+    "title": "Viral Prediction Framework Report",
+    "whatIsThis": "<2-3 sentences explaining what this viral prediction framework is and how to use this report to improve content>",
+    "disclaimer": "This report provides a realistic viral probability estimate based on AI analysis of 20+ content signals. No tool can guarantee 100% virality — Instagram's algorithm considers hundreds of factors including timing, audience behavior, and platform trends. Use this as a data-driven guide, not a guarantee.",
+    "baselineExplanation": "<2-3 sentences explaining that every reel starts with a neutral baseline score, and various factors (category, quality, timing, trending elements) adjust this score up or down. Explain that the maximum score is 80/80 because nothing is 100% guaranteed to go viral.>"
+  },
+
+  "executiveSummary": "<5-6 sentence comprehensive summary covering: what the reel is about, its strengths, weaknesses, viral probability assessment, and the single most important thing to improve>",
+
+  "categoryInfluence": {
+    "explanation": "<2-3 sentences explaining how content category dramatically affects viral potential on Instagram>",
+    "highViralCategories": [
+      {"category": "Entertainment/Comedy", "viralChance": "Very High", "reason": "<why this goes viral>", "examples": "Skits, pranks, funny reactions"},
+      {"category": "Music/Dance", "viralChance": "Very High", "reason": "<why>", "examples": "Dance challenges, lip sync, music covers"},
+      {"category": "GRWM (Get Ready With Me)", "viralChance": "High", "reason": "<why>", "examples": "Morning routines, outfit reveals, makeup transformations"},
+      {"category": "Cars/Bikes/Luxury", "viralChance": "High", "reason": "<why>", "examples": "Supercar reveals, bike stunts, luxury lifestyle"},
+      {"category": "Fashion/Beauty", "viralChance": "High", "reason": "<why>", "examples": "Outfit transitions, beauty hacks, style tips"},
+      {"category": "Motivation/Fitness", "viralChance": "Medium-High", "reason": "<why>", "examples": "Transformation videos, motivational speeches, gym clips"}
+    ],
+    "lowViralCategories": [
+      {"category": "Educational/Tutorials", "viralChance": "Low-Medium", "reason": "<why educational content struggles on IG>", "examples": "History facts, science explanations, how-to guides"},
+      {"category": "News/Analysis", "viralChance": "Low", "reason": "<why>", "examples": "News commentary, political analysis"}
+    ],
+    "yourCategory": "<assessment of this reel's category and its viral potential with specific advice>"
+  },
+
+  "reelAgeFactor": {
+    "explanation": "<2-3 sentences about why fresh content has the highest viral chance>",
+    "peakWindow": "The first 1-2 days after posting is the PEAK viral window. Instagram's algorithm tests new content with a small audience first — if engagement is strong, it pushes to more people. After 48 hours, this initial boost significantly decreases.",
+    "decayData": [
+      {"period": "0-2 days", "viralProbability": "100%", "description": "Peak window — algorithm actively testing and pushing your content"},
+      {"period": "3-5 days", "viralProbability": "60-70%", "description": "Initial push declining — still possible if engagement is strong"},
+      {"period": "6-7 days", "viralProbability": "30-40%", "description": "Significant drop — algorithm favoring newer content"},
+      {"period": "8-15 days", "viralProbability": "10-20%", "description": "Very low chance — only exceptional content gets rediscovered"},
+      {"period": "15-30 days", "viralProbability": "2-5%", "description": "Almost negligible — viral window has essentially closed"},
+      {"period": "30+ days", "viralProbability": "<1%", "description": "Extremely rare — would need external trigger (celebrity share, news event)"}
+    ],
+    "yourReelAge": "<specific assessment of this reel's age and what it means for viral potential>"
+  },
+
+  "famousElementsAnalysis": {
+    "explanation": "<2-3 sentences about why famous elements dramatically increase viral potential>",
+    "celebrityImpact": {
+      "description": "<explain how celebrities/famous people boost virality>",
+      "examples": ["A reel featuring a celebrity cameo gets 3-5x more shares", "Reacting to a trending celebrity moment can ride their massive audience", "Even mentioning a celebrity in caption/hashtags increases discoverability"],
+      "yourReel": "<whether this reel has celebrity/famous person elements and what to do>"
+    },
+    "landmarkImpact": {
+      "description": "<explain how famous places/landmarks/objects boost engagement>",
+      "examples": ["Eiffel Tower, Taj Mahal, Times Square backgrounds create instant aspirational content", "Luxury cars (Lamborghini, Ferrari) and designer items (Gucci, Louis Vuitton) trigger curiosity", "Iconic food locations and tourist spots get high saves and shares"],
+      "yourReel": "<assessment for this reel>"
+    },
+    "trendingIncidents": {
+      "description": "<explain how trending news/incidents create viral opportunities>",
+      "howToIdentify": ["Check Twitter/X trending topics daily", "Monitor Instagram Explore page for emerging content patterns", "Follow news accounts and react quickly to breaking stories", "Watch for festival/sports event/award show moments"],
+      "examples": ["Cricket World Cup moments → massive engagement in India", "Festival content (Diwali, Holi, Eid) → seasonal viral waves", "Viral challenges (Ice bucket, bottle cap) → riding global trends"],
+      "yourReel": "<assessment for this reel>"
+    }
+  },
+
+  "presenterAnalysis": {
+    "explanation": "<explain how presenter appearance, charisma, and style affect engagement — be respectful and nuanced>",
+    "factors": [
+      {"factor": "Visual Appeal", "description": "<attractive, well-groomed presenters naturally hold attention longer — this includes body language, confidence, eye contact>"},
+      {"factor": "Body Language & Charisma", "description": "<energetic, expressive presenters create emotional connection — hand gestures, facial expressions, body movement>"},
+      {"factor": "Style & Grooming", "description": "<well-styled appearance (fashion, hair, makeup) creates aspirational content that viewers want to share>"},
+      {"factor": "Fitness/Physique", "description": "<fitness content with bodybuilders or fit presenters gets high engagement due to aspirational/motivational appeal>"}
+    ],
+    "yourReel": "<respectful assessment of presenter impact in this reel>"
+  },
+
+  "audioVoiceAnalysis": {
+    "explanation": "<explain how audio/voice quality impacts reel performance>",
+    "voiceImpact": {
+      "deepVoice": "Deep, authoritative voices create a sense of expertise and trust — viewers are more likely to watch till the end and follow for more",
+      "uniqueVoice": "Unique or catchy voices become recognizable brand signatures — think of how some creators are known just by their voice",
+      "voiceTrends": ["ASMR-style whispering for relaxation content", "Fast-paced energetic narration for educational content", "Deep bass voice for motivation/storytelling", "Funny voice effects for comedy"],
+      "yourReel": "<assessment of voice/audio in this reel>"
+    },
+    "musicImpact": {
+      "trendingAudio": "Using trending audio can 2-3x your reach because Instagram actively promotes content with popular sounds",
+      "howToFind": ["Instagram Reels → scroll and save trending sounds", "Check the audio page to see how many reels use it", "Use Instagram's music search to find trending tracks", "Follow audio trend accounts on Instagram"],
+      "yourReel": "<assessment of music usage in this reel>"
+    }
+  },
+
+  "thumbnailHookAnalysis": {
+    "whyFirst3SecondsMatter": "<detailed explanation of why the first 3 seconds determine if someone watches or scrolls — Instagram tracks 'watch through rate' and rewards high retention>",
+    "thumbnailTips": [
+      {"tip": "<specific tip about thumbnail composition>", "reason": "<why it works>"},
+      {"tip": "<tip about colors/contrast>", "reason": "<why>"},
+      {"tip": "<tip about face/emotion in thumbnail>", "reason": "<why>"},
+      {"tip": "<tip about text overlay in thumbnail>", "reason": "<why>"}
+    ],
+    "hookTypes": [
+      {"type": "Question Hook", "example": "'Did you know this about...?'", "effectiveness": "High — creates curiosity gap"},
+      {"type": "Shock/Surprise Hook", "example": "'This changed everything...'", "effectiveness": "Very High — triggers emotional response"},
+      {"type": "Visual Hook", "example": "Stunning visual or unexpected scene in first frame", "effectiveness": "High — stops the scroll instantly"},
+      {"type": "Story Hook", "example": "'The day I lost everything...'", "effectiveness": "High — humans are hardwired for stories"},
+      {"type": "Result-First Hook", "example": "Show the end result first, then the process", "effectiveness": "Very High — creates 'how did they do that' curiosity"}
+    ],
+    "yourReel": "<specific assessment of this reel's thumbnail and hook with improvement suggestions>"
+  },
+
+  "motionDynamicsAnalysis": {
+    "explanation": "<explain why dynamic, high-motion content performs better on Reels>",
+    "tips": [
+      {"tip": "Use quick cuts (every 2-3 seconds)", "reason": "Prevents viewer boredom and maintains attention through novelty"},
+      {"tip": "Add camera movement (pan, zoom, dolly)", "reason": "Static shots feel 'dead' — movement creates energy and engagement"},
+      {"tip": "Include transitions between scenes", "reason": "Smooth transitions look professional and keep viewers watching"},
+      {"tip": "Use speed ramps (slow-mo + fast forward)", "reason": "Creates dramatic emphasis and visual interest"},
+      {"tip": "Add B-roll and cutaway shots", "reason": "Breaks monotony of single-angle footage"}
+    ],
+    "yourReel": "<assessment of motion/dynamics in this reel>"
+  },
+
+  "hashtagCaptionStrategy": {
+    "hashtagTips": {
+      "explanation": "<why hashtags matter for discoverability>",
+      "strategy": [
+        {"type": "Niche Hashtags (3-5)", "description": "<specific to your content category>", "examples": "<relevant examples>"},
+        {"type": "Broad Hashtags (2-3)", "description": "<wider reach tags>", "examples": "<relevant examples>"},
+        {"type": "Trending Hashtags (1-2)", "description": "<currently trending>", "examples": "<relevant examples>"}
+      ],
+      "howToResearch": ["Use Instagram search bar — type keywords and see suggested tags", "Check competitor posts for their hashtag strategy", "Use the 'Recent' tab to see if a hashtag is actively being used", "Avoid banned/spammy hashtags that can limit reach"],
+      "microCaseStudy": "<brief example: 'A reel posted with trending #GRWM hashtag got 5x more reach than the same creator's previous reel without it'>"
+    },
+    "captionTips": {
+      "explanation": "<why captions drive engagement — saves, shares, comments>",
+      "bestPractices": ["Start with a hook line that creates curiosity", "Include a call-to-action (save this, share with friend, comment below)", "Use line breaks for readability", "Add relevant emojis to break up text", "End with a question to encourage comments"],
+      "yourCaption": "<assessment of this reel's caption with specific rewrite suggestions>"
+    }
+  },
+
+  "humorMemePetsFactor": {
+    "explanation": "<explain why humor, memes, pets, and challenges consistently go viral>",
+    "categories": [
+      {"type": "Humor/Comedy", "viralReason": "Most shared content type — people tag friends", "tips": "Keep it relatable, use current meme formats, add your twist"},
+      {"type": "Cute Animals/Pets", "viralReason": "Universally loved, high save rate", "tips": "Capture candid moments, add funny captions from pet's perspective"},
+      {"type": "Challenges/Trends", "viralReason": "Rides massive organic wave", "tips": "Join within first 48-72 hours of trend, add your unique spin"},
+      {"type": "Festival/Cultural Content", "viralReason": "Seasonal viral waves with massive search traffic", "tips": "Start 2-3 days before festival, use festival-specific hashtags"}
+    ],
+    "yourReel": "<assessment of whether this reel leverages any of these>"
+  },
+
+  "nicheViralityTable": {
+    "explanation": "<explain that niche choice is a foundational decision that affects all future content>",
+    "niches": [
+      {"niche": "Comedy/Entertainment", "viralFriendliness": "⭐⭐⭐⭐⭐", "avgEngagement": "High", "bestFormat": "Skits, reactions, pranks", "trendExample": "POV videos, relatable situations"},
+      {"niche": "Music/Dance", "viralFriendliness": "⭐⭐⭐⭐⭐", "avgEngagement": "Very High", "bestFormat": "Challenges, covers, transitions", "trendExample": "Dance challenges, lip sync trends"},
+      {"niche": "Fashion/Beauty/GRWM", "viralFriendliness": "⭐⭐⭐⭐", "avgEngagement": "High", "bestFormat": "Transformations, hauls, routines", "trendExample": "Outfit transitions, GRWM routines"},
+      {"niche": "Cars/Bikes/Luxury", "viralFriendliness": "⭐⭐⭐⭐", "avgEngagement": "High", "bestFormat": "Reveals, reviews, lifestyle", "trendExample": "Supercar reveals, modification builds"},
+      {"niche": "Fitness/Motivation", "viralFriendliness": "⭐⭐⭐⭐", "avgEngagement": "Medium-High", "bestFormat": "Transformations, tips, routines", "trendExample": "Before/after, workout challenges"},
+      {"niche": "Food/Cooking", "viralFriendliness": "⭐⭐⭐", "avgEngagement": "Medium", "bestFormat": "Recipes, reviews, ASMR", "trendExample": "Street food, recipe hacks"},
+      {"niche": "Tech/Gaming", "viralFriendliness": "⭐⭐⭐", "avgEngagement": "Medium", "bestFormat": "Reviews, tips, gameplay", "trendExample": "Unboxing, tech hacks"},
+      {"niche": "Education/Learning", "viralFriendliness": "⭐⭐", "avgEngagement": "Low-Medium", "bestFormat": "Edutainment, quick facts", "trendExample": "Did you know, myth-busting"},
+      {"niche": "News/Analysis", "viralFriendliness": "⭐", "avgEngagement": "Low", "bestFormat": "Hot takes, breaking news", "trendExample": "Trending news reactions"}
+    ]
+  },
+
+  "videoQualityGuide": {
+    "explanation": "<explain how video quality directly impacts viewer retention and algorithm ranking>",
+    "tips": [
+      {"area": "Resolution", "recommendation": "Always record in 1080p or higher — HD content gets 40% more engagement", "quick": "Settings → Camera → Record Video → 1080p/4K"},
+      {"area": "Lighting", "recommendation": "Natural light is best. Face a window or use a ring light. Avoid harsh overhead lighting that creates shadows", "quick": "Golden hour (sunrise/sunset) = best natural light"},
+      {"area": "Stability", "recommendation": "Use a tripod or stabilizer. Shaky footage = instant scroll-away. Even a phone stand works", "quick": "₹200-500 phone tripod from Amazon"},
+      {"area": "Framing", "recommendation": "Rule of thirds — place your subject off-center. Fill the frame. Vertical 9:16 format always", "quick": "Use grid overlay on camera app"},
+      {"area": "Color/Exposure", "recommendation": "Slightly warm tones and good contrast perform better. Avoid overexposed or underexposed footage", "quick": "Use Instagram's built-in editing tools for quick fixes"}
+    ],
+    "yourReel": "<specific quality assessment with improvement points>"
+  },
+
+  "creatorChecklist": [
+    {"item": "Hook in first 3 seconds that stops the scroll", "category": "Hook", "priority": "Critical"},
+    {"item": "Trending or popular background audio", "category": "Audio", "priority": "High"},
+    {"item": "HD video quality (1080p minimum)", "category": "Quality", "priority": "High"},
+    {"item": "Good lighting (natural or ring light)", "category": "Quality", "priority": "High"},
+    {"item": "Engaging caption with CTA", "category": "Caption", "priority": "High"},
+    {"item": "5-10 relevant hashtags (mix of niche + broad)", "category": "Hashtags", "priority": "Medium"},
+    {"item": "Face visible in thumbnail/first frame", "category": "Thumbnail", "priority": "High"},
+    {"item": "Text overlay with hook/key message", "category": "Visual", "priority": "Medium"},
+    {"item": "Quick cuts (every 2-3 seconds)", "category": "Editing", "priority": "Medium"},
+    {"item": "Posted during peak hours (7-9 PM or 12-2 PM)", "category": "Timing", "priority": "High"},
+    {"item": "Reply to comments within first hour", "category": "Engagement", "priority": "Critical"},
+    {"item": "Share to Stories immediately after posting", "category": "Distribution", "priority": "High"},
+    {"item": "Content matches a trending topic/format", "category": "Trend", "priority": "Medium"},
+    {"item": "Video length under 30 seconds for max retention", "category": "Format", "priority": "Medium"}
+  ],
+
+  "commonMistakes": [
+    {"mistake": "<common mistake 1>", "why": "<why it hurts performance>", "fix": "<how to fix>"},
+    {"mistake": "<common mistake 2>", "why": "<why>", "fix": "<fix>"},
+    {"mistake": "<common mistake 3>", "why": "<why>", "fix": "<fix>"},
+    {"mistake": "<common mistake 4>", "why": "<why>", "fix": "<fix>"},
+    {"mistake": "<common mistake 5>", "why": "<why>", "fix": "<fix>"},
+    {"mistake": "<common mistake 6>", "why": "<why>", "fix": "<fix>"},
+    {"mistake": "<common mistake 7>", "why": "<why>", "fix": "<fix>"}
+  ],
+
+  "quickTips": {
+    "lighting": ["<3 quick lighting tips>"],
+    "audio": ["<3 quick audio tips>"],
+    "thumbnail": ["<3 quick thumbnail tips>"],
+    "hashtags": ["<3 quick hashtag tips>"],
+    "posting": ["<3 quick posting time tips>"]
+  },
+
   "competitorComparison": {
     "summary": "<2-3 sentence overview>",
     "topPerformers": [
-      {"rank": 1, "trait": "<what top reels in this niche do>", "yourScore": "<how this reel compares>", "recommendation": "<specific action>"},
+      {"rank": 1, "trait": "<what top reels in this niche do>", "yourScore": "<comparison>", "recommendation": "<action>"},
       {"rank": 2, "trait": "...", "yourScore": "...", "recommendation": "..."},
       {"rank": 3, "trait": "...", "yourScore": "...", "recommendation": "..."},
       {"rank": 4, "trait": "...", "yourScore": "...", "recommendation": "..."},
       {"rank": 5, "trait": "...", "yourScore": "...", "recommendation": "..."}
     ],
-    "categoryInsight": "<what percentage of viral reels in this niche share common traits>"
+    "categoryInsight": "<what traits viral reels in this niche share>"
   },
 
   "contentCalendar": {
     "bestPostingTimes": [
-      {"day": "Monday", "time": "9:00 AM - 11:00 AM", "reason": "<why this time works>"},
+      {"day": "Monday", "time": "9:00 AM - 11:00 AM", "reason": "<why>"},
       {"day": "Wednesday", "time": "12:00 PM - 2:00 PM", "reason": "..."},
       {"day": "Friday", "time": "6:00 PM - 8:00 PM", "reason": "..."},
       {"day": "Saturday", "time": "10:00 AM - 12:00 PM", "reason": "..."},
       {"day": "Sunday", "time": "7:00 PM - 9:00 PM", "reason": "..."}
     ],
-    "postingFrequency": "<recommended frequency>",
-    "contentMix": [
-      {"type": "<content type>", "percentage": "<recommended %>", "reason": "<why>"}
-    ],
-    "weeklyPlan": "<brief 7-day content plan outline>"
+    "postingFrequency": "<recommended>",
+    "contentMix": [{"type": "<type>", "percentage": "<>", "reason": "<>"}],
+    "weeklyPlan": "<7-day content plan>"
   },
 
   "improvementRoadmap": {
     "steps": [
-      {"step": 1, "title": "<action title>", "description": "<detailed 2-3 sentence description>", "impact": "high/medium/low", "effort": "easy/medium/hard", "timeline": "<when to do this>"},
+      {"step": 1, "title": "<title>", "description": "<2-3 sentences>", "impact": "high/medium/low", "effort": "easy/medium/hard", "timeline": "<when>"},
       {"step": 2, "title": "...", "description": "...", "impact": "...", "effort": "...", "timeline": "..."},
       {"step": 3, "title": "...", "description": "...", "impact": "...", "effort": "...", "timeline": "..."},
       {"step": 4, "title": "...", "description": "...", "impact": "...", "effort": "...", "timeline": "..."},
@@ -136,16 +343,16 @@ Generate ONLY valid JSON with these sections:
   },
 
   "aiRecommendations": {
-    "hookAlternatives": ["<alternative hook 1>", "<alternative hook 2>", "<alternative hook 3>"],
-    "captionRewrite": "<improved caption suggestion>",
-    "hashtagStrategy": ["<suggested hashtag 1>", "<hashtag 2>", "<hashtag 3>", "<hashtag 4>", "<hashtag 5>"],
-    "trendingAudioSuggestions": ["<audio/sound suggestion 1>", "<suggestion 2>", "<suggestion 3>"],
-    "thumbnailTips": ["<tip 1>", "<tip 2>", "<tip 3>"],
-    "engagementBoostTips": ["<actionable tip 1>", "<tip 2>", "<tip 3>", "<tip 4>", "<tip 5>"]
+    "hookAlternatives": ["<hook 1>", "<hook 2>", "<hook 3>"],
+    "captionRewrite": "<improved caption>",
+    "hashtagStrategy": ["<tag1>", "<tag2>", "<tag3>", "<tag4>", "<tag5>"],
+    "trendingAudioSuggestions": ["<audio1>", "<audio2>", "<audio3>"],
+    "thumbnailTips": ["<tip1>", "<tip2>", "<tip3>"],
+    "engagementBoostTips": ["<tip1>", "<tip2>", "<tip3>", "<tip4>", "<tip5>"]
   },
 
   "scoreBreakdown": {
-    "overall": ${analysis.viralClassification?.score || analysis.viralScore || 0},
+    "overall": ${viralScore},
     "hook": ${analysis.hookAnalysis?.score || 0},
     "caption": ${analysis.captionAnalysis?.score || 0},
     "hashtag": ${analysis.hashtagAnalysis?.score || 0},
@@ -171,7 +378,6 @@ Generate ONLY valid JSON with these sections:
   }
   const parsed = JSON.parse(content);
   
-  // Attach virality insights directly (pre-computed, not AI-generated)
   parsed.viralityInsights = viralityInsights;
   parsed.daysSincePost = daysSincePost;
   
