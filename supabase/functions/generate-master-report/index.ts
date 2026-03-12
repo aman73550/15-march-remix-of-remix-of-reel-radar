@@ -72,23 +72,17 @@ async function getConfig(supabase: any): Promise<Record<string, string>> {
   return config;
 }
 
-async function generatePremiumAnalysis(analysis: any, reelUrl: string, apiKey: string): Promise<any> {
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert Instagram growth strategist creating premium PDF reports. Return ONLY valid JSON, no markdown fences.",
-        },
-        {
-          role: "user",
-          content: `Based on this reel analysis, generate a comprehensive Master Report with these sections.
+async function generatePremiumAnalysis(analysis: any, reelUrl: string): Promise<any> {
+  const response = await callGemini({
+    model: "google/gemini-2.5-flash",
+    messages: [
+      {
+        role: "system",
+        content: "You are an expert Instagram growth strategist creating premium PDF reports. Return ONLY valid JSON, no markdown fences.",
+      },
+      {
+        role: "user",
+        content: `Based on this reel analysis, generate a comprehensive Master Report with these sections.
 
 Current Analysis Data:
 ${JSON.stringify(analysis, null, 2)}
@@ -157,9 +151,8 @@ Generate ONLY valid JSON with these sections:
     "audioQuality": ${analysis.audioQuality?.qualityScore || 0}
   }
 }`,
-        },
-      ],
-    }),
+      },
+    ],
   });
 
   if (!response.ok) {
