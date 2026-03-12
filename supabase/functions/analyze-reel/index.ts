@@ -1148,3 +1148,4 @@ Return ONLY valid JSON (no markdown, no code fences):
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
+});
