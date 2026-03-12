@@ -241,7 +241,7 @@ async function analyzeVisual(imageUrl: string, _apiKey?: string, isScreenshot?: 
     const imageContent = { type: "image_url" as const, image_url: { url: imageUrl } };
 
     const response = await callGemini({
-      model: "google/gemini-2.5-flash",
+      model: "gemini-2.5-flash",
       messages: [
         {
           role: "user",
