@@ -153,7 +153,7 @@ serve(async (req) => {
 
     // Generate premium analysis
     console.log("Generating premium analysis...");
-    const premiumData = await generatePremiumAnalysis(analysisData, reelUrl, LOVABLE_API_KEY);
+    const premiumData = await generatePremiumAnalysis(analysisData, reelUrl, GEMINI_API_KEY);
 
     // Update report with analysis data
     if (reportId) {

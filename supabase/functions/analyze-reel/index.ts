@@ -579,7 +579,7 @@ serve(async (req) => {
     // Vision analysis on thumbnail if screenshot wasn't available
     if (thumbnailUrl && !visionAnalysis) {
       console.log("Running vision analysis on thumbnail (fallback)...");
-      visionAnalysis = await analyzeVisual(thumbnailUrl, LOVABLE_API_KEY, false);
+      visionAnalysis = await analyzeVisual(thumbnailUrl, GEMINI_API_KEY, false);
     }
 
     if (!metadata && authorName) {
