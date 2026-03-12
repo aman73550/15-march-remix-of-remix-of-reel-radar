@@ -18,7 +18,7 @@ async function getConfig(supabase: any): Promise<Record<string, string>> {
 }
 
 async function generatePremiumAnalysis(analysis: any, reelUrl: string, apiKey: string): Promise<any> {
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
