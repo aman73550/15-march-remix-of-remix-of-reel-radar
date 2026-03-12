@@ -177,23 +177,7 @@ Generate ONLY valid JSON with these sections:
   
   return parsed;
 }
-}`,
-      },
-    ],
-  });
 
-  if (!response.ok) {
-    console.error("Premium analysis AI failed:", response.status);
-    throw new Error("Failed to generate premium analysis");
-  }
-
-  const data = await response.json();
-  let content = data.choices?.[0]?.message?.content?.trim() || "";
-  if (content.startsWith("```")) {
-    content = content.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
-  }
-  return JSON.parse(content);
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
