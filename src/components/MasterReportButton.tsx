@@ -238,7 +238,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
         </div>
       </Card>
 
-      {/* WhatsApp support on error */}
+      {/* Error message */}
       {errorMsg && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -246,9 +246,13 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
           className="flex flex-col items-center gap-2"
         >
           <p className="text-xs text-destructive text-center">{errorMsg}</p>
-          <WhatsAppErrorButton errorMessage={errorMsg} className="w-full sm:w-auto" />
         </motion.div>
       )}
+
+      {/* WhatsApp support - always visible */}
+      <div className="flex justify-center">
+        <WhatsAppErrorButton errorMessage={errorMsg || "I need help with the Master Report"} className="w-full sm:w-auto" />
+      </div>
     </motion.div>
   );
 };
