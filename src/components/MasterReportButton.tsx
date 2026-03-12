@@ -86,7 +86,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
                 throw new Error("Payment verification failed");
               }
 
-              // Show receipt
+              // Show receipt briefly then processing overlay
               setReceiptData({
                 reportId: paymentData.reportId,
                 paymentId: response.razorpay_payment_id,
@@ -96,7 +96,11 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
               setShowReceipt(true);
               toast.success("Payment successful! 🎉");
 
-              // Generate report in background
+              // Generate report in background and show processing
+              setTimeout(() => {
+                setShowReceipt(false);
+                setShowProcessing(true);
+              }, 2000);
               await generateReport(paymentData.reportId);
             } catch (err: any) {
               handleError("Payment verification failed: " + (err.message || "Unknown error"));
