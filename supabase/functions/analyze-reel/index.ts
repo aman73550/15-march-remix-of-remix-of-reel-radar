@@ -236,28 +236,20 @@ Return JSON:
 }
 
 // Step 1: Analyze screenshot/thumbnail with Gemini vision
-async function analyzeVisual(imageUrl: string, apiKey: string, isScreenshot: boolean): Promise<string> {
+async function analyzeVisual(imageUrl: string, _apiKey?: string, isScreenshot?: boolean): Promise<string> {
   try {
-    const imageContent = isScreenshot && imageUrl.startsWith("data:")
-      ? { type: "image_url" as const, image_url: { url: imageUrl } }
-      : { type: "image_url" as const, image_url: { url: imageUrl } };
+    const imageContent = { type: "image_url" as const, image_url: { url: imageUrl } };
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: isScreenshot
-                  ? `This is a screenshot of an Instagram Reel page. Analyze EVERYTHING visible:
+    const response = await callGemini({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: isScreenshot
+                ? `This is a screenshot of an Instagram Reel page. Analyze EVERYTHING visible:
 1. INSTAGRAM UI DATA: Extract any visible likes count, comments count, views count, username, caption text, hashtags, date posted
 2. VIDEO CONTENT: What is shown in the video player? Describe the scene, objects, people, actions
 3. TEXT ON SCREEN: Any overlay text, captions, subtitles visible
@@ -267,7 +259,7 @@ async function analyzeVisual(imageUrl: string, apiKey: string, isScreenshot: boo
 7. ENGAGEMENT SIGNALS: Any visible engagement indicators (comment previews, like counts, share counts)
 
 Be extremely specific about numbers and text you can read. This is a full page screenshot so extract ALL visible Instagram data.`
-                  : `Analyze this Instagram Reel thumbnail image in detail. Describe:
+                : `Analyze this Instagram Reel thumbnail image in detail. Describe:
 1. OBJECTS: What objects, items, or props are visible?
 2. PEOPLE: Are there people? How many? What are they doing?
 3. SCENE: What is the setting/environment?
@@ -278,12 +270,11 @@ Be extremely specific about numbers and text you can read. This is a full page s
 8. ESTIMATED CATEGORY: Content niche
 
 Be specific and factual about what you see.`,
-              },
-              imageContent,
-            ],
-          },
-        ],
-      }),
+            },
+            imageContent,
+          ],
+        },
+      ],
     });
 
     if (!response.ok) {
