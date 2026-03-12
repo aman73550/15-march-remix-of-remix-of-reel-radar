@@ -29,6 +29,8 @@ import SampleAnalysisPreview from "@/components/SampleAnalysisPreview";
 import TrendingLeaderboard from "@/components/TrendingLeaderboard";
 import { BannerAd, InlineAd, SidebarAds } from "@/components/AdSlots";
 import ProcessingOverlay from "@/components/ProcessingOverlay";
+import MasterReportButton from "@/components/MasterReportButton";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
@@ -329,6 +331,9 @@ const Index = () => {
               </Card>
             </motion.div>
 
+            {/* Master Report CTA */}
+            <MasterReportButton analysis={analysis} reelUrl={url} />
+
             <motion.div className="flex flex-col items-center gap-3 text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
               <p className="text-sm text-muted-foreground">
                 Want to check another reel?{" "}
@@ -353,6 +358,7 @@ const Index = () => {
         </div>
       )}
 
+      <WhatsAppButton />
       <footer className="relative z-10 mt-12 sm:mt-16">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="border-t border-border/40" />

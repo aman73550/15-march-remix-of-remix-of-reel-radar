@@ -38,6 +38,75 @@ export type Database = {
         }
         Relationships: []
       }
+      paid_reports: {
+        Row: {
+          amount: number
+          analysis_data: Json | null
+          completed_at: string | null
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_phone: string | null
+          id: string
+          payment_gateway: string | null
+          payment_id: string | null
+          pdf_url: string | null
+          reel_url: string
+          status: string
+        }
+        Insert: {
+          amount?: number
+          analysis_data?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_phone?: string | null
+          id?: string
+          payment_gateway?: string | null
+          payment_id?: string | null
+          pdf_url?: string | null
+          reel_url: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          analysis_data?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_phone?: string | null
+          id?: string
+          payment_gateway?: string | null
+          payment_id?: string | null
+          pdf_url?: string | null
+          reel_url?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      site_config: {
+        Row: {
+          config_key: string
+          config_value: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_value?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_value?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       usage_logs: {
         Row: {
           created_at: string
