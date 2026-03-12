@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import type { ReelAnalysis } from "@/lib/types";
 import { Crown, FileText, Download, Loader2, CheckCircle, TrendingUp, Calendar, Target, Lightbulb, BarChart3, MessageCircle } from "lucide-react";
 import MasterReportPDF from "./MasterReportPDF";
+import MasterReportProcessing from "./MasterReportProcessing";
 import PaymentReceipt from "./PaymentReceipt";
 import WhatsAppErrorButton from "./WhatsAppErrorButton";
 
