@@ -14,7 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      viral_patterns: {
+        Row: {
+          audio_quality_score: number | null
+          author_name: string | null
+          caption_length: number | null
+          caption_score: number | null
+          comments: number | null
+          content_type: string | null
+          created_at: string
+          curiosity_level: number | null
+          emotional_triggers: string[] | null
+          engagement_rate: number | null
+          engagement_score: number | null
+          face_presence: string | null
+          has_cta: boolean | null
+          hashtag_count: number | null
+          hashtag_score: number | null
+          hook_score: number | null
+          hook_type: string | null
+          id: string
+          likes: number | null
+          matched_trends: string[] | null
+          motion_intensity: string | null
+          music_usage: string | null
+          primary_category: string | null
+          reel_url: string
+          saves: number | null
+          scene_cuts: string | null
+          shares: number | null
+          sub_category: string | null
+          text_overlay: string | null
+          thumbnail_analyzed: boolean | null
+          trend_score: number | null
+          video_length_estimate: string | null
+          video_quality_score: number | null
+          views: number | null
+          viral_score: number | null
+          viral_status: string | null
+        }
+        Insert: {
+          audio_quality_score?: number | null
+          author_name?: string | null
+          caption_length?: number | null
+          caption_score?: number | null
+          comments?: number | null
+          content_type?: string | null
+          created_at?: string
+          curiosity_level?: number | null
+          emotional_triggers?: string[] | null
+          engagement_rate?: number | null
+          engagement_score?: number | null
+          face_presence?: string | null
+          has_cta?: boolean | null
+          hashtag_count?: number | null
+          hashtag_score?: number | null
+          hook_score?: number | null
+          hook_type?: string | null
+          id?: string
+          likes?: number | null
+          matched_trends?: string[] | null
+          motion_intensity?: string | null
+          music_usage?: string | null
+          primary_category?: string | null
+          reel_url: string
+          saves?: number | null
+          scene_cuts?: string | null
+          shares?: number | null
+          sub_category?: string | null
+          text_overlay?: string | null
+          thumbnail_analyzed?: boolean | null
+          trend_score?: number | null
+          video_length_estimate?: string | null
+          video_quality_score?: number | null
+          views?: number | null
+          viral_score?: number | null
+          viral_status?: string | null
+        }
+        Update: {
+          audio_quality_score?: number | null
+          author_name?: string | null
+          caption_length?: number | null
+          caption_score?: number | null
+          comments?: number | null
+          content_type?: string | null
+          created_at?: string
+          curiosity_level?: number | null
+          emotional_triggers?: string[] | null
+          engagement_rate?: number | null
+          engagement_score?: number | null
+          face_presence?: string | null
+          has_cta?: boolean | null
+          hashtag_count?: number | null
+          hashtag_score?: number | null
+          hook_score?: number | null
+          hook_type?: string | null
+          id?: string
+          likes?: number | null
+          matched_trends?: string[] | null
+          motion_intensity?: string | null
+          music_usage?: string | null
+          primary_category?: string | null
+          reel_url?: string
+          saves?: number | null
+          scene_cuts?: string | null
+          shares?: number | null
+          sub_category?: string | null
+          text_overlay?: string | null
+          thumbnail_analyzed?: boolean | null
+          trend_score?: number | null
+          video_length_estimate?: string | null
+          video_quality_score?: number | null
+          views?: number | null
+          viral_score?: number | null
+          viral_status?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
