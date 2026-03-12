@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -57,6 +58,187 @@ Be specific and factual about what you see. Do not guess beyond what's visible.`
   }
 }
 
+// Step 2: Fetch similar viral patterns from database
+async function fetchViralPatterns(category: string, supabaseUrl: string, serviceKey: string): Promise<any[]> {
+  try {
+    const supabase = createClient(supabaseUrl, serviceKey);
+    
+    // Fetch patterns in same category with high viral scores
+    const { data, error } = await supabase
+      .from("viral_patterns")
+      .select("*")
+      .eq("primary_category", category)
+      .gte("viral_score", 50)
+      .order("viral_score", { ascending: false })
+      .limit(20);
+
+    if (error) {
+      console.error("Error fetching patterns:", error);
+      return [];
+    }
+    return data || [];
+  } catch (e) {
+    console.error("Pattern fetch error:", e);
+    return [];
+  }
+}
+
+// Step 3: Store new pattern in database
+async function storePattern(analysis: any, url: string, metrics: any, caption: string, hashtags: string, supabaseUrl: string, serviceKey: string) {
+  try {
+    const supabase = createClient(supabaseUrl, serviceKey);
+    
+    const cc = analysis.contentClassification;
+    const hashtagCount = hashtags ? hashtags.split(/[#\s,]+/).filter((h: string) => h.length > 0).length : 0;
+
+    const pattern = {
+      reel_url: url,
+      primary_category: cc?.primaryCategory || "other",
+      sub_category: cc?.subCategory || null,
+      content_type: cc?.contentType || null,
+      hook_type: analysis.hookAnalysis?.openingType || null,
+      hook_score: analysis.hookAnalysis?.score || null,
+      caption_score: analysis.captionAnalysis?.score || null,
+      hashtag_score: analysis.hashtagAnalysis?.score || null,
+      engagement_score: analysis.engagementScore || null,
+      trend_score: analysis.trendMatching?.score || null,
+      viral_score: analysis.viralClassification?.score || analysis.viralScore || null,
+      viral_status: analysis.viralClassification?.status || null,
+      scene_cuts: analysis.videoSignals?.estimatedSceneCuts || null,
+      face_presence: analysis.videoSignals?.facePresenceLikely || null,
+      text_overlay: analysis.videoSignals?.textOverlayLikely || null,
+      motion_intensity: analysis.videoSignals?.motionIntensity || null,
+      video_quality_score: analysis.videoQuality?.qualityScore || null,
+      audio_quality_score: analysis.audioQuality?.qualityScore || null,
+      music_usage: analysis.audioQuality?.musicUsage || null,
+      hashtag_count: hashtagCount,
+      caption_length: caption?.length || 0,
+      has_cta: analysis.captionAnalysis?.callToAction && analysis.captionAnalysis.callToAction !== "None detected",
+      curiosity_level: analysis.captionAnalysis?.curiosityLevel || null,
+      likes: metrics?.likes || null,
+      comments: metrics?.comments || null,
+      views: metrics?.views || null,
+      shares: metrics?.shares || null,
+      saves: metrics?.saves || null,
+      engagement_rate: analysis.viralClassification?.engagementRate || null,
+      matched_trends: analysis.trendMatching?.matchedTrends || [],
+      emotional_triggers: analysis.captionAnalysis?.emotionalTriggers || [],
+      thumbnail_analyzed: analysis.thumbnailAnalyzed || false,
+    };
+
+    const { error } = await supabase.from("viral_patterns").insert(pattern);
+    if (error) console.error("Error storing pattern:", error);
+    else console.log("Pattern stored successfully");
+  } catch (e) {
+    console.error("Pattern store error:", e);
+  }
+}
+
+// Step 4: Compare current reel against viral patterns
+function compareWithPatterns(analysis: any, patterns: any[]): any {
+  if (patterns.length === 0) {
+    return {
+      patternsCompared: 0,
+      similarityScore: null,
+      categoryAvgScore: null,
+      insights: ["No viral patterns in database yet for this category. Your analysis will help build the pattern database!"],
+      topPatternFeatures: null,
+    };
+  }
+
+  const scores = patterns.map(p => p.viral_score).filter(Boolean);
+  const categoryAvg = scores.length > 0 ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length) : 0;
+  
+  // Calculate feature similarity
+  let matchCount = 0;
+  let totalChecks = 0;
+  const currentHookType = analysis.hookAnalysis?.openingType?.toLowerCase();
+  const currentCategory = analysis.contentClassification?.primaryCategory?.toLowerCase();
+  const currentFace = analysis.videoSignals?.facePresenceLikely?.toLowerCase();
+  const currentMotion = analysis.videoSignals?.motionIntensity?.toLowerCase();
+  const currentSceneCuts = analysis.videoSignals?.estimatedSceneCuts?.toLowerCase();
+
+  // Count how many top viral patterns share features
+  const viralPatterns = patterns.filter(p => (p.viral_score || 0) >= 70);
+  
+  for (const p of viralPatterns) {
+    if (p.hook_type) {
+      totalChecks++;
+      if (p.hook_type.toLowerCase() === currentHookType) matchCount++;
+    }
+    if (p.face_presence) {
+      totalChecks++;
+      if (p.face_presence.toLowerCase().includes(currentFace?.split("/")[0] || "")) matchCount++;
+    }
+    if (p.motion_intensity) {
+      totalChecks++;
+      if (p.motion_intensity.toLowerCase() === currentMotion) matchCount++;
+    }
+    if (p.scene_cuts) {
+      totalChecks++;
+      if (p.scene_cuts.toLowerCase() === currentSceneCuts) matchCount++;
+    }
+  }
+
+  const similarityScore = totalChecks > 0 ? Math.round((matchCount / totalChecks) * 100) : 50;
+
+  // Find most common features among viral patterns
+  const hookTypes: Record<string, number> = {};
+  const facePresence: Record<string, number> = {};
+  const motionLevels: Record<string, number> = {};
+  
+  for (const p of viralPatterns) {
+    if (p.hook_type) hookTypes[p.hook_type] = (hookTypes[p.hook_type] || 0) + 1;
+    if (p.face_presence) facePresence[p.face_presence] = (facePresence[p.face_presence] || 0) + 1;
+    if (p.motion_intensity) motionLevels[p.motion_intensity] = (motionLevels[p.motion_intensity] || 0) + 1;
+  }
+
+  const topHook = Object.entries(hookTypes).sort((a, b) => b[1] - a[1])[0];
+  const topFace = Object.entries(facePresence).sort((a, b) => b[1] - a[1])[0];
+  const topMotion = Object.entries(motionLevels).sort((a, b) => b[1] - a[1])[0];
+
+  const insights: string[] = [];
+  const currentScore = analysis.viralClassification?.score || analysis.viralScore || 0;
+  
+  if (currentScore > categoryAvg) {
+    insights.push(`Your reel scores ${currentScore - categoryAvg} points above the category average (${categoryAvg})`);
+  } else if (currentScore < categoryAvg) {
+    insights.push(`Your reel scores ${categoryAvg - currentScore} points below the category average (${categoryAvg})`);
+  } else {
+    insights.push(`Your reel matches the category average score of ${categoryAvg}`);
+  }
+
+  if (similarityScore >= 70) {
+    insights.push(`High similarity (${similarityScore}%) with proven viral patterns in ${currentCategory}`);
+  } else if (similarityScore >= 40) {
+    insights.push(`Moderate similarity (${similarityScore}%) with viral patterns — some features align`);
+  } else {
+    insights.push(`Low similarity (${similarityScore}%) with known viral patterns — unique approach detected`);
+  }
+
+  if (topHook) insights.push(`Most viral hook type in ${currentCategory}: "${topHook[0]}" (${Math.round((topHook[1] / viralPatterns.length) * 100)}% of viral reels)`);
+  if (topFace) insights.push(`Face presence in viral reels: "${topFace[0]}" is most common`);
+  if (topMotion) insights.push(`Dominant motion style: "${topMotion[0]}" among top performers`);
+
+  const avgHookScore = Math.round(viralPatterns.reduce((s, p) => s + (p.hook_score || 0), 0) / Math.max(viralPatterns.length, 1));
+  const avgCaptionScore = Math.round(viralPatterns.reduce((s, p) => s + (p.caption_score || 0), 0) / Math.max(viralPatterns.length, 1));
+  
+  return {
+    patternsCompared: patterns.length,
+    viralPatternsCount: viralPatterns.length,
+    similarityScore,
+    categoryAvgScore: categoryAvg,
+    categoryAvgHookScore: avgHookScore,
+    categoryAvgCaptionScore: avgCaptionScore,
+    insights,
+    topPatternFeatures: {
+      hookType: topHook?.[0] || null,
+      facePresence: topFace?.[0] || null,
+      motionIntensity: topMotion?.[0] || null,
+    },
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -73,6 +255,9 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     // oEmbed metadata + thumbnail
     let metadata = "";
@@ -363,7 +548,6 @@ Return ONLY valid JSON (no markdown, no code fences):
 
     const reasons: string[] = [];
 
-    // Content classification reason
     if (analysis.contentClassification) {
       const cc = analysis.contentClassification;
       if (cc.confidence === "high") {
@@ -381,7 +565,6 @@ Return ONLY valid JSON (no markdown, no code fences):
       if (commentsVal > 500) reasons.push("Active comment section shows high audience engagement");
       else if (commentsVal > 50) reasons.push("Good comment activity");
     }
-    // Add AI-derived reasons
     if (analysis.hookAnalysis?.score >= 7) reasons.push("Effective hook grabs attention in first 3 seconds");
     if (analysis.captionAnalysis?.score >= 7) reasons.push("Strong caption drives curiosity and engagement");
     if (analysis.hashtagAnalysis?.score >= 7) reasons.push("Well-optimized hashtag strategy");
@@ -393,29 +576,17 @@ Return ONLY valid JSON (no markdown, no code fences):
     const vq = analysis.videoQuality;
     if (vq) {
       const vqScore = vq.qualityScore ?? 5;
-      if (vqScore >= 8) {
-        qualityBonus += 8;
-        reasons.push("High video quality boosts viewer retention");
-      } else if (vqScore >= 6) {
-        qualityBonus += 3;
-      } else if (vqScore <= 3) {
-        qualityBonus -= 5;
-        reasons.push("Low video quality may reduce viewer retention");
-      }
+      if (vqScore >= 8) { qualityBonus += 8; reasons.push("High video quality boosts viewer retention"); }
+      else if (vqScore >= 6) { qualityBonus += 3; }
+      else if (vqScore <= 3) { qualityBonus -= 5; reasons.push("Low video quality may reduce viewer retention"); }
     }
 
     const aq = analysis.audioQuality;
     if (aq) {
       const aqScore = aq.qualityScore ?? 5;
-      if (aqScore >= 8) {
-        qualityBonus += 5;
-        reasons.push("Clean audio quality enhances engagement");
-      } else if (aqScore >= 6) {
-        qualityBonus += 3;
-      } else if (aqScore <= 3) {
-        qualityBonus -= 5;
-        reasons.push("Poor audio quality may cause viewers to skip");
-      }
+      if (aqScore >= 8) { qualityBonus += 5; reasons.push("Clean audio quality enhances engagement"); }
+      else if (aqScore >= 6) { qualityBonus += 3; }
+      else if (aqScore <= 3) { qualityBonus -= 5; reasons.push("Poor audio quality may cause viewers to skip"); }
     }
 
     qualityBonus = Math.max(-15, Math.min(15, qualityBonus));
@@ -424,23 +595,41 @@ Return ONLY valid JSON (no markdown, no code fences):
     let categoryBonus = 0;
     const cc = analysis.contentClassification;
     if (cc) {
-      // High-viral categories get a small boost
       const highViralCategories = ["comedy", "motivation", "fitness", "storytelling"];
-      if (highViralCategories.includes(cc.primaryCategory?.toLowerCase())) {
-        categoryBonus += 3;
-      }
-      // Hashtag-content alignment bonus
-      if (cc.hashtagAlignment?.toLowerCase().startsWith("yes")) {
-        categoryBonus += 2;
-      } else if (cc.hashtagAlignment?.toLowerCase().startsWith("no")) {
+      if (highViralCategories.includes(cc.primaryCategory?.toLowerCase())) categoryBonus += 3;
+      if (cc.hashtagAlignment?.toLowerCase().startsWith("yes")) categoryBonus += 2;
+      else if (cc.hashtagAlignment?.toLowerCase().startsWith("no")) {
         categoryBonus -= 3;
         reasons.push("Hashtags don't match actual content — reduces discoverability");
       }
     }
     categoryBonus = Math.max(-5, Math.min(5, categoryBonus));
 
+    // === PATTERN MATCHING BONUS (±10) ===
+    let patternBonus = 0;
+    let patternComparison = null;
+
+    if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      const category = cc?.primaryCategory?.toLowerCase() || "other";
+      const patterns = await fetchViralPatterns(category, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      patternComparison = compareWithPatterns(analysis, patterns);
+
+      if (patternComparison.similarityScore !== null) {
+        if (patternComparison.similarityScore >= 70) {
+          patternBonus = 10;
+          reasons.push(`High match (${patternComparison.similarityScore}%) with proven viral patterns`);
+        } else if (patternComparison.similarityScore >= 40) {
+          patternBonus = 5;
+          reasons.push(`Moderate match (${patternComparison.similarityScore}%) with viral patterns`);
+        } else {
+          patternBonus = -3;
+        }
+      }
+    }
+    patternBonus = Math.max(-10, Math.min(10, patternBonus));
+
     let viralStatus, viralScore, viralLabel;
-    const totalBonus = qualityBonus + categoryBonus;
+    const totalBonus = qualityBonus + categoryBonus + patternBonus;
 
     if (hasMetrics && isAlreadyViral) {
       viralStatus = "Already Viral";
@@ -475,12 +664,18 @@ Return ONLY valid JSON (no markdown, no code fences):
       status: viralStatus,
       score: viralScore,
       label: viralLabel,
-      reasons: reasons.slice(0, 6),
+      reasons: reasons.slice(0, 8),
       engagementRate: hasMetrics && viewsVal > 0 ? engRate : undefined,
     };
 
-    // Add thumbnail analysis flag
     analysis.thumbnailAnalyzed = !!visionAnalysis;
+    analysis.patternComparison = patternComparison;
+
+    // Store pattern in background (don't block response)
+    if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      storePattern(analysis, url, metrics, caption || "", hashtags || "", SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+        .catch(e => console.error("Background pattern store failed:", e));
+    }
 
     return new Response(JSON.stringify({ success: true, analysis }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
