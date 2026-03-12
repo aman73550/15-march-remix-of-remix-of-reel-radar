@@ -45,7 +45,7 @@ const AdminDashboard = () => {
       return;
     }
 
-    await Promise.all([loadStats(), loadAdConfig(), loadRecentUsage(), loadConfig(), loadPaidStats(), loadRecentReports()]);
+    await Promise.all([loadStats(), loadAdConfig(), loadRecentUsage(), loadConfig(), loadPaidStats(), loadRecentReports(), loadFeedback()]);
     setLoading(false);
   };
 
