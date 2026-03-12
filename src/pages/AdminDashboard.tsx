@@ -24,6 +24,9 @@ const AdminDashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [feedbackStats, setFeedbackStats] = useState({ total: 0, avg: 0, distribution: [0, 0, 0, 0, 0] });
   const [recentFeedback, setRecentFeedback] = useState<any[]>([]);
+  const [adminReelUrl, setAdminReelUrl] = useState("");
+  const [adminGenerating, setAdminGenerating] = useState(false);
+  const [adminReportData, setAdminReportData] = useState<{ analysis: any; premium: any } | null>(null);
 
   useEffect(() => {
     checkAdminAndLoad();
