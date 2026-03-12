@@ -50,12 +50,14 @@ const MetricsComparison = ({ metrics }: MetricsComparisonProps) => {
               <YAxis hide />
               <Tooltip
                 contentStyle={{
-                  background: "hsl(225, 20%, 8%)",
-                  border: "1px solid hsl(225, 15%, 16%)",
+                  background: "hsl(225, 20%, 12%)",
+                  border: "1px solid hsl(225, 15%, 22%)",
                   borderRadius: "8px",
-                  color: "hsl(210, 20%, 92%)",
+                  color: "hsl(210, 20%, 95%)",
                   fontSize: "12px",
                 }}
+                itemStyle={{ color: "hsl(210, 20%, 95%)" }}
+                labelStyle={{ color: "hsl(210, 20%, 80%)" }}
               />
               <Legend
                 wrapperStyle={{ fontSize: "11px" }}
