@@ -360,6 +360,9 @@ const Index = () => {
               <MasterReportButton analysis={analysis} reelUrl={url} />
             </div>
 
+            {/* Example PDF Preview */}
+            <ExamplePDFPreview />
+
             {/* Feedback Rating */}
             <FeedbackRating reelUrl={url} />
 
