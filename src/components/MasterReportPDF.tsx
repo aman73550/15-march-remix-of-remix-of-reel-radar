@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { ReelAnalysis } from "@/lib/types";
-import { Download, FileText, Crown, BarChart3, Calendar, Target, Lightbulb, TrendingUp, CheckCircle, Star, MessageCircle } from "lucide-react";
+import { Download, FileText, Crown, BarChart3, Calendar, Target, Lightbulb, TrendingUp, CheckCircle, Star, MessageCircle, Zap, AlertTriangle, ArrowUp, ArrowDown, Minus } from "lucide-react";
 
 interface Props {
   analysis: ReelAnalysis;
