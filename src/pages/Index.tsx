@@ -182,7 +182,7 @@ const Index = () => {
           <button type="button" onClick={() => setShowDetails(!showDetails)} className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-muted/30 border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">
             <span className="flex items-center gap-1.5">
               <Sparkles className="w-3 h-3" />
-              Add More Details (optional — auto-extracted if skipped)
+              ⚡ Boost Accuracy — Add Details (Highly Recommended!)
             </span>
             {showDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
