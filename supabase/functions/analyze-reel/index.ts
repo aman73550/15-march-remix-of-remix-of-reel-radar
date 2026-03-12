@@ -843,7 +843,7 @@ Return ONLY valid JSON (no markdown, no code fences):
 }`;
 
     const response = await callGemini({
-      model: "google/gemini-2.5-flash",
+      model: "gemini-2.5-flash",
       messages: [
         { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from screenshots and thumbnails to understand what a reel is actually about. Return only valid JSON. Be specific and actionable in your analysis." },
         { role: "user", content: prompt },

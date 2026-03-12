@@ -74,7 +74,7 @@ async function getConfig(supabase: any): Promise<Record<string, string>> {
 
 async function generatePremiumAnalysis(analysis: any, reelUrl: string): Promise<any> {
   const response = await callGemini({
-    model: "google/gemini-2.5-flash",
+    model: "gemini-2.5-flash",
     messages: [
       {
         role: "system",
