@@ -6,7 +6,73 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Step 0: Scrape reel page with Firecrawl to get screenshot + page content
+// Step 0a: Direct HTML fetch with browser headers to extract meta tags (bypasses 403 often)
+async function scrapeMetaTags(url: string): Promise<{
+  ogImage: string;
+  ogDescription: string;
+  ogTitle: string;
+  authorName: string;
+} | null> {
+  try {
+    console.log("Attempting direct meta tag scrape:", url);
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Cache-Control": "no-cache",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+      },
+      redirect: "follow",
+    });
+
+    if (!response.ok) {
+      console.log("Direct fetch failed:", response.status);
+      return null;
+    }
+
+    const html = await response.text();
+    
+    const getMetaContent = (property: string): string => {
+      // Match both property="og:x" and name="og:x" patterns
+      const regex = new RegExp(`<meta[^>]*(?:property|name)=["']${property}["'][^>]*content=["']([^"']*)["']`, "i");
+      const regex2 = new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*(?:property|name)=["']${property}["']`, "i");
+      return regex.exec(html)?.[1] || regex2.exec(html)?.[1] || "";
+    };
+
+    const ogImage = getMetaContent("og:image");
+    const ogDescription = getMetaContent("og:description");
+    const ogTitle = getMetaContent("og:title");
+    
+    // Extract author from og:title pattern "Author on Instagram: ..."
+    let authorName = "";
+    const authorMatch = ogTitle.match(/^(.+?)\s+on\s+Instagram/i);
+    if (authorMatch) authorName = authorMatch[1];
+
+    // Also try to get from description pattern
+    if (!authorName) {
+      const descAuthor = ogDescription.match(/^(\d[\d,.KMBkmb]*)\s+likes?,\s+\d+\s+comments?\s+-\s+(.+?)\s+\(/i);
+      if (descAuthor) authorName = descAuthor[2];
+    }
+
+    console.log("Meta scrape result - ogImage:", ogImage ? "yes" : "no", "ogDesc length:", ogDescription.length, "author:", authorName);
+
+    if (!ogImage && !ogDescription) {
+      console.log("No useful meta tags found");
+      return null;
+    }
+
+    return { ogImage, ogDescription, ogTitle, authorName };
+  } catch (e) {
+    console.error("Direct meta scrape error:", e);
+    return null;
+  }
+}
+
+// Step 0b: Scrape reel page with Firecrawl to get screenshot + page content
 async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshot: string; markdown: string; html: string } | null> {
   const apiKey = Deno.env.get("FIRECRAWL_API_KEY");
   if (!apiKey) {
