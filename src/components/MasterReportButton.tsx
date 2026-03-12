@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import type { ReelAnalysis } from "@/lib/types";
 import { Crown, FileText, Download, Loader2, CheckCircle, TrendingUp, Calendar, Target, Lightbulb, BarChart3, MessageCircle } from "lucide-react";
 import MasterReportPDF from "./MasterReportPDF";
+import PaymentReceipt from "./PaymentReceipt";
+import WhatsAppErrorButton from "./WhatsAppErrorButton";
 
 interface Props {
   analysis: ReelAnalysis;
@@ -23,7 +25,9 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
   const [loading, setLoading] = useState(false);
   const [premiumData, setPremiumData] = useState<any>(null);
   const [showReport, setShowReport] = useState(false);
-  const [paymentConfig, setPaymentConfig] = useState<{ amount: number; currency: string } | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState<any>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -36,10 +40,16 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
     });
   };
 
+  const handleError = (msg: string) => {
+    setErrorMsg(msg);
+    toast.error(msg);
+    setLoading(false);
+  };
+
   const handleUnlock = async () => {
     setLoading(true);
+    setErrorMsg(null);
     try {
-      // Step 1: Create payment order
       const { data: paymentData, error: paymentErr } = await supabase.functions.invoke("create-payment", {
         body: { reelUrl, analysisData: analysis },
       });
@@ -48,10 +58,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
         throw new Error(paymentData?.error || "Payment creation failed");
       }
 
-      setPaymentConfig({ amount: paymentData.amount, currency: paymentData.currency });
-
       if (paymentData.gateway === "razorpay") {
-        // Load Razorpay
         const loaded = await loadRazorpayScript();
         if (!loaded) throw new Error("Payment gateway failed to load");
 
@@ -63,7 +70,6 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
           description: "Master Analysis Report",
           order_id: paymentData.orderId,
           handler: async (response: any) => {
-            // Verify payment
             try {
               const { data: verifyData, error: verifyErr } = await supabase.functions.invoke("verify-payment", {
                 body: {
@@ -78,12 +84,20 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
                 throw new Error("Payment verification failed");
               }
 
-              // Generate report
-              toast.success("Payment successful! Generating your report...");
+              // Show receipt
+              setReceiptData({
+                reportId: paymentData.reportId,
+                paymentId: response.razorpay_payment_id,
+                amount: paymentData.amount,
+                currency: paymentData.currency,
+              });
+              setShowReceipt(true);
+              toast.success("Payment successful! 🎉");
+
+              // Generate report in background
               await generateReport(paymentData.reportId);
             } catch (err: any) {
-              toast.error("Payment verification failed: " + (err.message || "Unknown error"));
-              setLoading(false);
+              handleError("Payment verification failed: " + (err.message || "Unknown error"));
             }
           },
           modal: {
@@ -94,7 +108,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
 
         const rzp = new window.Razorpay(options);
         rzp.open();
-        return; // Don't set loading false here, Razorpay is open
+        return;
       }
 
       // Manual/WhatsApp payment fallback
@@ -102,8 +116,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
       setLoading(false);
     } catch (err: any) {
       console.error("Payment error:", err);
-      toast.error(err.message || "Payment failed");
-      setLoading(false);
+      handleError(err.message || "Payment failed. Please try again.");
     }
   };
 
@@ -118,10 +131,9 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
       }
 
       setPremiumData(data.premiumAnalysis);
-      setShowReport(true);
       toast.success("Master Report ready! 🎉");
     } catch (err: any) {
-      toast.error("Report generation failed: " + (err.message || "Unknown error"));
+      handleError("Report generation failed: " + (err.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -135,8 +147,30 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
     { icon: FileText, text: "4-5 Page Professional PDF" },
   ];
 
+  // Show full report
   if (showReport && premiumData) {
     return <MasterReportPDF analysis={analysis} premiumData={premiumData} reelUrl={reelUrl} />;
+  }
+
+  // Show receipt after payment
+  if (showReceipt && receiptData) {
+    return (
+      <PaymentReceipt
+        reportId={receiptData.reportId}
+        paymentId={receiptData.paymentId}
+        amount={receiptData.amount}
+        currency={receiptData.currency}
+        reelUrl={reelUrl}
+        onContinue={() => {
+          if (premiumData) {
+            setShowReceipt(false);
+            setShowReport(true);
+          } else {
+            toast.info("Report is still generating, please wait...");
+          }
+        }}
+      />
+    );
   }
 
   return (
@@ -144,13 +178,12 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.6 }}
+      className="space-y-3"
     >
       <Card className="relative overflow-hidden border-2 border-primary/30 bg-gradient-to-br from-primary/5 via-card to-secondary/5">
-        {/* Glow effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-secondary/10 pointer-events-none" />
 
         <div className="relative p-5 sm:p-6 space-y-4">
-          {/* Header */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl gradient-primary-bg flex items-center justify-center shadow-glow">
               <Crown className="w-5 h-5 text-primary-foreground" />
@@ -166,7 +199,6 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
             </div>
           </div>
 
-          {/* Features grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {features.map((f, i) => (
               <motion.div
@@ -183,7 +215,6 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
             ))}
           </div>
 
-          {/* CTA */}
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
             <Button
               onClick={handleUnlock}
@@ -206,6 +237,18 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
           </p>
         </div>
       </Card>
+
+      {/* WhatsApp support on error */}
+      {errorMsg && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center gap-2"
+        >
+          <p className="text-xs text-destructive text-center">{errorMsg}</p>
+          <WhatsAppErrorButton errorMessage={errorMsg} className="w-full sm:w-auto" />
+        </motion.div>
+      )}
     </motion.div>
   );
 };
