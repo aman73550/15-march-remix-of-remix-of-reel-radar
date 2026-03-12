@@ -129,7 +129,7 @@ async function extractDataFromScrapedContent(markdown: string, apiKey: string): 
   if (!markdown || markdown.length < 50) return null;
 
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -191,7 +191,7 @@ async function analyzeVisual(imageUrl: string, apiKey: string, isScreenshot: boo
       ? { type: "image_url" as const, image_url: { url: imageUrl } }
       : { type: "image_url" as const, image_url: { url: imageUrl } };
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -437,8 +437,8 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -510,7 +510,7 @@ serve(async (req) => {
     // Layer 2: Firecrawl data (richer, fills remaining gaps)
     if (scrapeResult) {
       console.log("Extracting data from Firecrawl content...");
-      const extracted = await extractDataFromScrapedContent(scrapeResult.markdown, LOVABLE_API_KEY);
+      const extracted = await extractDataFromScrapedContent(scrapeResult.markdown, GEMINI_API_KEY);
 
       if (extracted) {
         if (!caption) caption = extracted.caption || "";
@@ -535,7 +535,7 @@ serve(async (req) => {
         const screenshotUrl = scrapeResult.screenshot.startsWith("data:")
           ? scrapeResult.screenshot
           : `data:image/png;base64,${scrapeResult.screenshot}`;
-        visionAnalysis = await analyzeVisual(screenshotUrl, LOVABLE_API_KEY, true);
+        visionAnalysis = await analyzeVisual(screenshotUrl, GEMINI_API_KEY, true);
         screenshotUsed = true;
         console.log("Screenshot vision analysis complete");
       }
@@ -579,7 +579,7 @@ serve(async (req) => {
     // Vision analysis on thumbnail if screenshot wasn't available
     if (thumbnailUrl && !visionAnalysis) {
       console.log("Running vision analysis on thumbnail (fallback)...");
-      visionAnalysis = await analyzeVisual(thumbnailUrl, LOVABLE_API_KEY, false);
+      visionAnalysis = await analyzeVisual(thumbnailUrl, GEMINI_API_KEY, false);
     }
 
     if (!metadata && authorName) {
@@ -800,10 +800,10 @@ Return ONLY valid JSON (no markdown, no code fences):
   "topRecommendations": ["<actionable rec 1>", "<rec 2>", "<rec 3>", "<rec 4>", "<rec 5>"]
 }`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

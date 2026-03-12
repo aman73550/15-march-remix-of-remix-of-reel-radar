@@ -18,7 +18,7 @@ async function getConfig(supabase: any): Promise<Record<string, string>> {
 }
 
 async function generatePremiumAnalysis(analysis: any, reelUrl: string, apiKey: string): Promise<any> {
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -128,9 +128,9 @@ serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -153,7 +153,7 @@ serve(async (req) => {
 
     // Generate premium analysis
     console.log("Generating premium analysis...");
-    const premiumData = await generatePremiumAnalysis(analysisData, reelUrl, LOVABLE_API_KEY);
+    const premiumData = await generatePremiumAnalysis(analysisData, reelUrl, GEMINI_API_KEY);
 
     // Update report with analysis data
     if (reportId) {
