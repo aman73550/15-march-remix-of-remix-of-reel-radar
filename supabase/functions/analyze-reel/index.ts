@@ -188,7 +188,7 @@ async function extractDataFromScrapedContent(markdown: string, _apiKey?: string)
 
   try {
     const response = await callGemini({
-      model: "google/gemini-2.5-flash",
+      model: "gemini-2.5-flash",
       messages: [
         {
           role: "system",
