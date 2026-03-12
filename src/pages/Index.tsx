@@ -32,6 +32,7 @@ import ProcessingOverlay from "@/components/ProcessingOverlay";
 import MasterReportButton from "@/components/MasterReportButton";
 import FeedbackRating from "@/components/FeedbackRating";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import ExamplePDFPreview from "@/components/ExamplePDFPreview";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
