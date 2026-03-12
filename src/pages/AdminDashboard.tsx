@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Menu, X, Star } from "lucide-react";
+import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Menu, X, Star, Crown, Loader2, Download } from "lucide-react";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -24,6 +24,9 @@ const AdminDashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [feedbackStats, setFeedbackStats] = useState({ total: 0, avg: 0, distribution: [0, 0, 0, 0, 0] });
   const [recentFeedback, setRecentFeedback] = useState<any[]>([]);
+  const [adminReelUrl, setAdminReelUrl] = useState("");
+  const [adminGenerating, setAdminGenerating] = useState(false);
+  const [adminReportData, setAdminReportData] = useState<{ analysis: any; premium: any } | null>(null);
 
   useEffect(() => {
     checkAdminAndLoad();
@@ -188,6 +191,88 @@ const AdminDashboard = () => {
       avg: all.length ? Math.round((sum / all.length) * 10) / 10 : 0,
       distribution: dist,
     });
+  };
+
+  const handleAdminGenerateReport = async () => {
+    if (!adminReelUrl.trim()) { toast.error("Enter a reel URL"); return; }
+    setAdminGenerating(true);
+    setAdminReportData(null);
+    try {
+      // Step 1: Analyze the reel
+      const { data: analysisData, error: analysisErr } = await supabase.functions.invoke("analyze-reel", {
+        body: { reelUrl: adminReelUrl.trim() },
+      });
+      if (analysisErr || !analysisData?.success) throw new Error(analysisData?.error || "Analysis failed");
+
+      const analysis = analysisData.analysis;
+
+      // Step 2: Generate master report (no payment needed)
+      const { data: reportData, error: reportErr } = await supabase.functions.invoke("generate-master-report", {
+        body: { reportId: "admin-" + Date.now(), analysisData: analysis, reelUrl: adminReelUrl.trim() },
+      });
+      if (reportErr || !reportData?.success) throw new Error(reportData?.error || "Report generation failed");
+
+      setAdminReportData({ analysis, premium: reportData.premiumAnalysis });
+      toast.success("Master Report generated! 🎉");
+    } catch (err: any) {
+      console.error("Admin report error:", err);
+      toast.error(err.message || "Failed to generate report");
+    } finally {
+      setAdminGenerating(false);
+    }
+  };
+
+  const handleAdminDownloadTxt = () => {
+    if (!adminReportData) return;
+    const { analysis, premium } = adminReportData;
+    const lines: string[] = [];
+    lines.push("═══════════════════════════════════════════");
+    lines.push("       MASTER VIRAL ANALYSIS REPORT");
+    lines.push("       Admin Generated — No Payment");
+    lines.push("═══════════════════════════════════════════");
+    lines.push("");
+    lines.push(`Reel URL: ${adminReelUrl}`);
+    lines.push(`Generated: ${new Date().toLocaleString("en-IN")}`);
+    lines.push(`Viral Score: ${analysis.viralClassification?.score || analysis.viralScore || 0}/80`);
+    lines.push(`Status: ${analysis.viralClassification?.status || "N/A"}`);
+    lines.push("");
+
+    if (premium.scoreBreakdown) {
+      lines.push("── SCORE BREAKDOWN ──");
+      Object.entries(premium.scoreBreakdown).forEach(([k, v]) => lines.push(`  ${k}: ${v}/8`));
+      lines.push("");
+    }
+    if (premium.viralityInsights) {
+      lines.push("── VIRALITY INSIGHTS ──");
+      Object.entries(premium.viralityInsights).forEach(([k, v]: [string, any]) => {
+        lines.push(`  ${k}:`);
+        if (v?.impact) lines.push(`    Impact: ${v.impact}`);
+        if (v?.reason) lines.push(`    Reason: ${v.reason}`);
+        if (v?.solution) lines.push(`    Solution: ${v.solution}`);
+      });
+      lines.push("");
+    }
+    if (premium.improvementRoadmap) {
+      lines.push("── 5-STEP IMPROVEMENT ROADMAP ──");
+      premium.improvementRoadmap.forEach((step: any, i: number) => {
+        lines.push(`  Step ${i + 1}: ${step.title || step.step || ""}`);
+        if (step.description) lines.push(`    ${step.description}`);
+      });
+      lines.push("");
+    }
+    if (premium.quickTips) {
+      lines.push("── QUICK TIPS ──");
+      premium.quickTips.forEach((t: string, i: number) => lines.push(`  ${i + 1}. ${t}`));
+      lines.push("");
+    }
+
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `master-report-admin-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -547,6 +632,53 @@ const AdminDashboard = () => {
                       </span>
                     </div>
                   ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Admin Master Report Generator */}
+        <div>
+          <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">👑 Generate Master Report (Free)</h2>
+          <Card className="border-border bg-card">
+            <CardContent className="p-4 sm:p-6 space-y-4">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Enter any Instagram Reel URL to generate a Master Report without payment.</p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={adminReelUrl}
+                  onChange={(e) => setAdminReelUrl(e.target.value)}
+                  placeholder="https://www.instagram.com/reel/..."
+                  className="bg-muted/50 border-border h-9 sm:h-10 text-xs sm:text-sm flex-1"
+                />
+                <Button
+                  onClick={handleAdminGenerateReport}
+                  disabled={adminGenerating}
+                  className="gradient-primary-bg text-primary-foreground h-9 sm:h-10 text-xs sm:text-sm px-4 sm:px-6 flex-shrink-0"
+                >
+                  {adminGenerating ? (
+                    <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Generating...</>
+                  ) : (
+                    <><Crown className="w-3.5 h-3.5 mr-1.5" /> Generate Report</>
+                  )}
+                </Button>
+              </div>
+
+              {adminReportData && (
+                <div className="rounded-lg bg-[hsl(var(--viral-high))]/10 border border-[hsl(var(--viral-high))]/30 p-3 sm:p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold text-foreground">Report Ready!</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[hsl(var(--viral-high))]/20 text-[hsl(var(--viral-high))] font-medium">
+                      Score: {adminReportData.analysis.viralClassification?.score || adminReportData.analysis.viralScore || 0}/80
+                    </span>
+                  </div>
+                  <Button
+                    onClick={handleAdminDownloadTxt}
+                    className="w-full sm:w-auto gradient-primary-bg text-primary-foreground h-9 text-xs sm:text-sm"
+                  >
+                    <Download className="w-3.5 h-3.5 mr-1.5" /> Download Master Report (TXT)
+                  </Button>
                 </div>
               )}
             </CardContent>
