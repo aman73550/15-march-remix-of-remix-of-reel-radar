@@ -66,6 +66,7 @@ const CategoryPieChart = ({ hookScore, captionScore, hashtagScore, engagementSco
           />
         </PieChart>
       </ResponsiveContainer>
+      </div>
       <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-3">
         {data.map((item, i) => (
           <div key={i} className="flex items-center gap-1.5 text-xs sm:text-sm">
