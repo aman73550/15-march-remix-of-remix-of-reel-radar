@@ -667,10 +667,35 @@ ${visionAnalysis ? `IMPORTANT: You have VISUAL ANALYSIS DATA from the reel's ${s
 
 ${screenshotUsed ? `CRITICAL: The screenshot shows the actual Instagram page. If you can see engagement metrics (likes, comments, views) in the screenshot that differ from the extracted data, use the SCREENSHOT values as they are more reliable.` : ""}
 
+IMPORTANT SCORING RULES:
+- ALL individual scores (hook, caption, hashtag, engagement, trend, video quality, audio quality) must be between 1-8. NEVER give any score above 8 out of 10. Nothing is 100% perfect.
+- The overall viralScore must be between 5-80. NEVER give viralScore above 80.
+- Be realistic and critical in scoring. A score of 7-8 means EXCEPTIONALLY good.
+- A score of 5-6 is GOOD. A score of 3-4 is AVERAGE. A score of 1-2 is POOR.
+
+CONTENT VIRALITY FACTORS TO CONSIDER:
+- Entertainment, music, GRWM, cars, bikes, fashion, dance categories have HIGHER viral potential — reflect this in scoring.
+- Educational, learning, tutorial content has LOWER viral potential on Instagram — score conservatively for virality.
+- If a FAMOUS PERSON (celebrity, influencer, politician, sports star) is detected, increase viral potential significantly.
+- If a FAMOUS PLACE (landmark, tourist spot, iconic location) is shown, increase viral potential.
+- If a FAMOUS OBJECT (luxury car, designer item, iconic product) is shown, increase viral potential.
+- If content relates to a FAMOUS INCIDENT or TRENDING NEWS EVENT, increase viral potential.
+- If a visually ATTRACTIVE person (beautiful woman, handsome man, bodybuilder/fitness model) is prominently featured, increase viral potential.
+- If DEEP/BASS VOICE narration is detected or likely, increase viral potential.
+- If content matches a CURRENT TRENDING TOPIC or format, increase viral potential significantly.
+
+ADDITIONAL DETECTION (add to your analysis):
+- "celebrityOrFamousPerson": true/false — is a recognizable celebrity or famous person in the reel?
+- "famousPlaceOrObject": true/false — is a famous/iconic place or object shown?
+- "attractivePresenter": true/false — is a visually attractive person prominently featured?
+- "deepVoiceLikely": true/false — does the content likely feature a deep/bass voice?
+- "trendingTopicRelevance": "high/medium/low/none" — how closely does this relate to current trending topics?
+- "famousIncident": true/false — does this relate to a famous or newsworthy incident?
+
 Perform ALL of these analyses:
 
 1. CONTENT CLASSIFICATION (CRITICAL - analyze what the reel is actually about):
-   - Primary category (education, motivation, comedy, marketing, fitness, lifestyle, cooking, beauty, tech, gaming, storytelling, news, other)
+   - Primary category (education, motivation, comedy, marketing, fitness, lifestyle, cooking, beauty, tech, gaming, storytelling, news, entertainment, music, grwm, cars, bikes, dance, fashion, other)
    - Sub-category (more specific niche)
    - Content type (tutorial, entertainment, review, vlog, transformation, skit, etc.)
    - Detected elements: objects, people, actions, scene setting
@@ -680,7 +705,7 @@ Perform ALL of these analyses:
 
 2. HOOK ANALYSIS (first 3 seconds):
    - What type of opening does the content suggest? (question, shock, story, visual)
-   - Rate the attention-grabbing potential
+   - Rate the attention-grabbing potential (MAX 8)
    - Estimate hook effectiveness
 
 3. CAPTION ANALYSIS (NLP):
@@ -736,11 +761,11 @@ ${langInstruction}
 === REQUIRED JSON OUTPUT ===
 Return ONLY valid JSON (no markdown, no code fences):
 {
-  "viralScore": <0-100>,
+  "viralScore": <5-80>,
   "overallSummary": "<3-4 sentence comprehensive summary>",
 
   "contentClassification": {
-    "primaryCategory": "<education/motivation/comedy/marketing/fitness/lifestyle/cooking/beauty/tech/gaming/storytelling/news/other>",
+    "primaryCategory": "<education/motivation/comedy/marketing/fitness/lifestyle/cooking/beauty/tech/gaming/storytelling/news/entertainment/music/grwm/cars/bikes/dance/fashion/other>",
     "subCategory": "<specific niche>",
     "contentType": "<tutorial/entertainment/review/vlog/transformation/skit/montage/other>",
     "detectedElements": {
@@ -756,8 +781,17 @@ Return ONLY valid JSON (no markdown, no code fences):
     "hashtagAlignment": "<do hashtags match the actual content? yes/partially/no + explanation>"
   },
 
+  "viralityFactors": {
+    "celebrityOrFamousPerson": false,
+    "famousPlaceOrObject": false,
+    "attractivePresenter": false,
+    "deepVoiceLikely": false,
+    "trendingTopicRelevance": "none",
+    "famousIncident": false
+  },
+
   "hookAnalysis": {
-    "score": <1-10>,
+    "score": <1-8>,
     "firstThreeSeconds": "<what likely happens in first 3 seconds based on content>",
     "openingType": "<question/shock/story/visual/tutorial/other>",
     "attentionGrabber": "<main attention element>",
@@ -765,7 +799,7 @@ Return ONLY valid JSON (no markdown, no code fences):
   },
 
   "captionAnalysis": {
-    "score": <1-10>,
+    "score": <1-8>,
     "curiosityLevel": <1-10>,
     "emotionalTriggers": ["<trigger1>", "<trigger2>"],
     "callToAction": "<description of CTA or 'None detected'>",
@@ -775,7 +809,7 @@ Return ONLY valid JSON (no markdown, no code fences):
   },
 
   "hashtagAnalysis": {
-    "score": <1-10>,
+    "score": <1-8>,
     "hashtags": [
       { "tag": "#example", "competition": "high/medium/low", "relevance": "high/medium/low", "trendStrength": "strong/moderate/weak" }
     ],
@@ -796,7 +830,7 @@ Return ONLY valid JSON (no markdown, no code fences):
     "lighting": "<good/average/poor>",
     "cameraStability": "<stable/moderate/shaky>",
     "visualClarity": "<sharp/average/blurry>",
-    "qualityScore": <1-10>
+    "qualityScore": <1-8>
   },
 
   "audioQuality": {
@@ -804,11 +838,11 @@ Return ONLY valid JSON (no markdown, no code fences):
     "backgroundAudio": "<clean/moderate/noisy>",
     "soundBalance": "<balanced/unbalanced/distorted>",
     "musicUsage": "<trending/original/none>",
-    "qualityScore": <1-10>
+    "qualityScore": <1-8>
   },
 
   "trendMatching": {
-    "score": <1-10>,
+    "score": <1-8>,
     "formatSimilarity": "<description>",
     "hookPattern": "<matched pattern name>",
     "trendingStructure": "<structure type>",
@@ -816,7 +850,7 @@ Return ONLY valid JSON (no markdown, no code fences):
     "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
   },
 
-  "engagementScore": <1-10>,
+  "engagementScore": <1-8>,
   "engagementDetails": ["<insight 1>", "<insight 2>", "<insight 3>"],
   "engagementRate": "<estimated rate if metrics provided>"${hasMetrics ? `,
 
