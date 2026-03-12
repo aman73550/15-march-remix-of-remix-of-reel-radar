@@ -667,10 +667,35 @@ ${visionAnalysis ? `IMPORTANT: You have VISUAL ANALYSIS DATA from the reel's ${s
 
 ${screenshotUsed ? `CRITICAL: The screenshot shows the actual Instagram page. If you can see engagement metrics (likes, comments, views) in the screenshot that differ from the extracted data, use the SCREENSHOT values as they are more reliable.` : ""}
 
+IMPORTANT SCORING RULES:
+- ALL individual scores (hook, caption, hashtag, engagement, trend, video quality, audio quality) must be between 1-8. NEVER give any score above 8 out of 10. Nothing is 100% perfect.
+- The overall viralScore must be between 5-80. NEVER give viralScore above 80.
+- Be realistic and critical in scoring. A score of 7-8 means EXCEPTIONALLY good.
+- A score of 5-6 is GOOD. A score of 3-4 is AVERAGE. A score of 1-2 is POOR.
+
+CONTENT VIRALITY FACTORS TO CONSIDER:
+- Entertainment, music, GRWM, cars, bikes, fashion, dance categories have HIGHER viral potential — reflect this in scoring.
+- Educational, learning, tutorial content has LOWER viral potential on Instagram — score conservatively for virality.
+- If a FAMOUS PERSON (celebrity, influencer, politician, sports star) is detected, increase viral potential significantly.
+- If a FAMOUS PLACE (landmark, tourist spot, iconic location) is shown, increase viral potential.
+- If a FAMOUS OBJECT (luxury car, designer item, iconic product) is shown, increase viral potential.
+- If content relates to a FAMOUS INCIDENT or TRENDING NEWS EVENT, increase viral potential.
+- If a visually ATTRACTIVE person (beautiful woman, handsome man, bodybuilder/fitness model) is prominently featured, increase viral potential.
+- If DEEP/BASS VOICE narration is detected or likely, increase viral potential.
+- If content matches a CURRENT TRENDING TOPIC or format, increase viral potential significantly.
+
+ADDITIONAL DETECTION (add to your analysis):
+- "celebrityOrFamousPerson": true/false — is a recognizable celebrity or famous person in the reel?
+- "famousPlaceOrObject": true/false — is a famous/iconic place or object shown?
+- "attractivePresenter": true/false — is a visually attractive person prominently featured?
+- "deepVoiceLikely": true/false — does the content likely feature a deep/bass voice?
+- "trendingTopicRelevance": "high/medium/low/none" — how closely does this relate to current trending topics?
+- "famousIncident": true/false — does this relate to a famous or newsworthy incident?
+
 Perform ALL of these analyses:
 
 1. CONTENT CLASSIFICATION (CRITICAL - analyze what the reel is actually about):
-   - Primary category (education, motivation, comedy, marketing, fitness, lifestyle, cooking, beauty, tech, gaming, storytelling, news, other)
+   - Primary category (education, motivation, comedy, marketing, fitness, lifestyle, cooking, beauty, tech, gaming, storytelling, news, entertainment, music, grwm, cars, bikes, dance, fashion, other)
    - Sub-category (more specific niche)
    - Content type (tutorial, entertainment, review, vlog, transformation, skit, etc.)
    - Detected elements: objects, people, actions, scene setting
@@ -680,7 +705,7 @@ Perform ALL of these analyses:
 
 2. HOOK ANALYSIS (first 3 seconds):
    - What type of opening does the content suggest? (question, shock, story, visual)
-   - Rate the attention-grabbing potential
+   - Rate the attention-grabbing potential (MAX 8)
    - Estimate hook effectiveness
 
 3. CAPTION ANALYSIS (NLP):
@@ -736,11 +761,11 @@ ${langInstruction}
 === REQUIRED JSON OUTPUT ===
 Return ONLY valid JSON (no markdown, no code fences):
 {
-  "viralScore": <0-100>,
+  "viralScore": <5-80>,
   "overallSummary": "<3-4 sentence comprehensive summary>",
 
   "contentClassification": {
-    "primaryCategory": "<education/motivation/comedy/marketing/fitness/lifestyle/cooking/beauty/tech/gaming/storytelling/news/other>",
+    "primaryCategory": "<education/motivation/comedy/marketing/fitness/lifestyle/cooking/beauty/tech/gaming/storytelling/news/entertainment/music/grwm/cars/bikes/dance/fashion/other>",
     "subCategory": "<specific niche>",
     "contentType": "<tutorial/entertainment/review/vlog/transformation/skit/montage/other>",
     "detectedElements": {
@@ -756,8 +781,17 @@ Return ONLY valid JSON (no markdown, no code fences):
     "hashtagAlignment": "<do hashtags match the actual content? yes/partially/no + explanation>"
   },
 
+  "viralityFactors": {
+    "celebrityOrFamousPerson": false,
+    "famousPlaceOrObject": false,
+    "attractivePresenter": false,
+    "deepVoiceLikely": false,
+    "trendingTopicRelevance": "none",
+    "famousIncident": false
+  },
+
   "hookAnalysis": {
-    "score": <1-10>,
+    "score": <1-8>,
     "firstThreeSeconds": "<what likely happens in first 3 seconds based on content>",
     "openingType": "<question/shock/story/visual/tutorial/other>",
     "attentionGrabber": "<main attention element>",
@@ -765,7 +799,7 @@ Return ONLY valid JSON (no markdown, no code fences):
   },
 
   "captionAnalysis": {
-    "score": <1-10>,
+    "score": <1-8>,
     "curiosityLevel": <1-10>,
     "emotionalTriggers": ["<trigger1>", "<trigger2>"],
     "callToAction": "<description of CTA or 'None detected'>",
@@ -775,7 +809,7 @@ Return ONLY valid JSON (no markdown, no code fences):
   },
 
   "hashtagAnalysis": {
-    "score": <1-10>,
+    "score": <1-8>,
     "hashtags": [
       { "tag": "#example", "competition": "high/medium/low", "relevance": "high/medium/low", "trendStrength": "strong/moderate/weak" }
     ],
@@ -796,7 +830,7 @@ Return ONLY valid JSON (no markdown, no code fences):
     "lighting": "<good/average/poor>",
     "cameraStability": "<stable/moderate/shaky>",
     "visualClarity": "<sharp/average/blurry>",
-    "qualityScore": <1-10>
+    "qualityScore": <1-8>
   },
 
   "audioQuality": {
@@ -804,11 +838,11 @@ Return ONLY valid JSON (no markdown, no code fences):
     "backgroundAudio": "<clean/moderate/noisy>",
     "soundBalance": "<balanced/unbalanced/distorted>",
     "musicUsage": "<trending/original/none>",
-    "qualityScore": <1-10>
+    "qualityScore": <1-8>
   },
 
   "trendMatching": {
-    "score": <1-10>,
+    "score": <1-8>,
     "formatSimilarity": "<description>",
     "hookPattern": "<matched pattern name>",
     "trendingStructure": "<structure type>",
@@ -816,7 +850,7 @@ Return ONLY valid JSON (no markdown, no code fences):
     "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
   },
 
-  "engagementScore": <1-10>,
+  "engagementScore": <1-8>,
   "engagementDetails": ["<insight 1>", "<insight 2>", "<insight 3>"],
   "engagementRate": "<estimated rate if metrics provided>"${hasMetrics ? `,
 
@@ -866,6 +900,16 @@ Return ONLY valid JSON (no markdown, no code fences):
 
     const analysis = JSON.parse(cleanContent);
 
+    // === HARD CAP: Clamp all AI sub-scores to max 8 ===
+    if (analysis.hookAnalysis) analysis.hookAnalysis.score = Math.min(8, analysis.hookAnalysis.score ?? 5);
+    if (analysis.captionAnalysis) analysis.captionAnalysis.score = Math.min(8, analysis.captionAnalysis.score ?? 5);
+    if (analysis.hashtagAnalysis) analysis.hashtagAnalysis.score = Math.min(8, analysis.hashtagAnalysis.score ?? 5);
+    if (analysis.trendMatching) analysis.trendMatching.score = Math.min(8, analysis.trendMatching.score ?? 5);
+    if (analysis.videoQuality) analysis.videoQuality.qualityScore = Math.min(8, analysis.videoQuality.qualityScore ?? 5);
+    if (analysis.audioQuality) analysis.audioQuality.qualityScore = Math.min(8, analysis.audioQuality.qualityScore ?? 5);
+    if (analysis.engagementScore) analysis.engagementScore = Math.min(8, analysis.engagementScore);
+    if (analysis.viralScore) analysis.viralScore = Math.min(80, analysis.viralScore);
+
     // === VIRAL CLASSIFICATION ENGINE ===
     const m = metrics || {};
     const likesVal = m.likes ?? 0;
@@ -905,32 +949,117 @@ Return ONLY valid JSON (no markdown, no code fences):
     const vq = analysis.videoQuality;
     if (vq) {
       const vqScore = vq.qualityScore ?? 5;
-      if (vqScore >= 8) { qualityBonus += 8; reasons.push("High video quality boosts viewer retention"); }
-      else if (vqScore >= 6) { qualityBonus += 3; }
+      if (vqScore >= 7) { qualityBonus += 5; reasons.push("High video quality boosts viewer retention"); }
+      else if (vqScore >= 5) { qualityBonus += 2; }
       else if (vqScore <= 3) { qualityBonus -= 5; reasons.push("Low video quality may reduce viewer retention"); }
     }
     const aq = analysis.audioQuality;
     if (aq) {
       const aqScore = aq.qualityScore ?? 5;
-      if (aqScore >= 8) { qualityBonus += 5; reasons.push("Clean audio quality enhances engagement"); }
-      else if (aqScore >= 6) { qualityBonus += 3; }
+      if (aqScore >= 7) { qualityBonus += 4; reasons.push("Clean audio quality enhances engagement"); }
+      else if (aqScore >= 5) { qualityBonus += 2; }
       else if (aqScore <= 3) { qualityBonus -= 5; reasons.push("Poor audio quality may cause viewers to skip"); }
     }
-    qualityBonus = Math.max(-15, Math.min(15, qualityBonus));
+    qualityBonus = Math.max(-10, Math.min(10, qualityBonus));
 
-    // === CONTENT CATEGORY BONUS ===
+    // === CONTENT CATEGORY BONUS (expanded) ===
     let categoryBonus = 0;
     const cc = analysis.contentClassification;
     if (cc) {
-      const highViralCategories = ["comedy", "motivation", "fitness", "storytelling"];
-      if (highViralCategories.includes(cc.primaryCategory?.toLowerCase())) categoryBonus += 3;
+      const highViralCategories = ["comedy", "entertainment", "music", "grwm", "cars", "bikes", "dance", "fashion", "motivation", "fitness", "storytelling"];
+      const lowViralCategories = ["education", "learning", "tutorial", "educational"];
+      const catLower = cc.primaryCategory?.toLowerCase() || "";
+      const subCatLower = cc.subCategory?.toLowerCase() || "";
+      const contentTypeLower = cc.contentType?.toLowerCase() || "";
+
+      if (highViralCategories.includes(catLower)) {
+        categoryBonus += 5;
+        reasons.push(`${cc.primaryCategory} content has higher viral potential on Instagram`);
+      }
+      if (lowViralCategories.includes(catLower) || lowViralCategories.includes(contentTypeLower)) {
+        categoryBonus -= 4;
+        reasons.push("Educational/learning content has lower viral potential on Instagram");
+      }
       if (cc.hashtagAlignment?.toLowerCase().startsWith("yes")) categoryBonus += 2;
       else if (cc.hashtagAlignment?.toLowerCase().startsWith("no")) {
         categoryBonus -= 3;
         reasons.push("Hashtags don't match actual content — reduces discoverability");
       }
     }
-    categoryBonus = Math.max(-5, Math.min(5, categoryBonus));
+    categoryBonus = Math.max(-7, Math.min(7, categoryBonus));
+
+    // === VIRALITY FACTORS BONUS (celebrity, attractiveness, voice, trending, famous) ===
+    let viralityFactorsBonus = 0;
+    const vf = analysis.viralityFactors;
+    if (vf) {
+      if (vf.celebrityOrFamousPerson) {
+        viralityFactorsBonus += 8;
+        reasons.push("Famous person detected — significantly increases viral potential");
+      }
+      if (vf.famousPlaceOrObject) {
+        viralityFactorsBonus += 5;
+        reasons.push("Famous place/object detected — increases viewer interest");
+      }
+      if (vf.attractivePresenter) {
+        viralityFactorsBonus += 4;
+        reasons.push("Attractive presenter increases viewer retention and shares");
+      }
+      if (vf.deepVoiceLikely) {
+        viralityFactorsBonus += 3;
+        reasons.push("Deep/bass voice narration enhances content authority and engagement");
+      }
+      if (vf.famousIncident) {
+        viralityFactorsBonus += 6;
+        reasons.push("Content relates to a famous/trending incident — high share potential");
+      }
+      const trendRelevance = vf.trendingTopicRelevance?.toLowerCase();
+      if (trendRelevance === "high") {
+        viralityFactorsBonus += 7;
+        reasons.push("Highly relevant to current trending topics — strong viral potential");
+      } else if (trendRelevance === "medium") {
+        viralityFactorsBonus += 4;
+        reasons.push("Moderately relevant to trending topics");
+      } else if (trendRelevance === "low") {
+        viralityFactorsBonus += 1;
+      }
+    }
+    viralityFactorsBonus = Math.max(0, Math.min(15, viralityFactorsBonus));
+
+    // === AGE PENALTY: Older reels have lower viral probability ===
+    let agePenalty = 0;
+    // Try to detect post date from scraped data
+    let postDate: Date | null = null;
+    // Check if extracted data had a date
+    if (analysis._postDate) {
+      const pd = new Date(analysis._postDate);
+      if (!isNaN(pd.getTime())) postDate = pd;
+    }
+    // Also try check-reel-date style extraction from meta
+    if (!postDate && metaResult?.ogDescription) {
+      // Some og:descriptions contain date hints
+    }
+
+    if (postDate) {
+      const now = new Date();
+      const daysSincePost = (now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24);
+      
+      if (daysSincePost > 90) {
+        agePenalty = -20;
+        reasons.push("Reel is 90+ days old — viral window has passed significantly");
+      } else if (daysSincePost > 60) {
+        agePenalty = -15;
+        reasons.push("Reel is 60+ days old — viral probability is very low");
+      } else if (daysSincePost > 30) {
+        agePenalty = -12;
+        reasons.push("Reel is 30+ days old — viral window is closing");
+      } else if (daysSincePost > 15) {
+        agePenalty = -8;
+        reasons.push("Reel is 15+ days old — if it hasn't gone viral yet, chances are reduced");
+      } else if (daysSincePost > 7) {
+        agePenalty = -3;
+        reasons.push("Reel is 7+ days old — most viral reels peak within first few days");
+      }
+    }
 
     // === PATTERN MATCHING BONUS ===
     let patternBonus = 0;
@@ -943,42 +1072,44 @@ Return ONLY valid JSON (no markdown, no code fences):
 
       if (patternComparison.similarityScore !== null) {
         if (patternComparison.similarityScore >= 70) {
-          patternBonus = 10;
+          patternBonus = 8;
           reasons.push(`High match (${patternComparison.similarityScore}%) with proven viral patterns`);
         } else if (patternComparison.similarityScore >= 40) {
-          patternBonus = 5;
+          patternBonus = 4;
           reasons.push(`Moderate match (${patternComparison.similarityScore}%) with viral patterns`);
         } else {
           patternBonus = -3;
         }
       }
     }
-    patternBonus = Math.max(-10, Math.min(10, patternBonus));
+    patternBonus = Math.max(-8, Math.min(8, patternBonus));
 
     let viralStatus, viralScore, viralLabel;
-    const totalBonus = qualityBonus + categoryBonus + patternBonus;
+    const totalBonus = qualityBonus + categoryBonus + patternBonus + viralityFactorsBonus + agePenalty;
 
     if (hasMetrics && isAlreadyViral) {
       viralStatus = "Already Viral";
-      viralScore = Math.min(98, Math.max(80, Math.round(80 + (engRate * 100) + totalBonus)));
+      // Even "Already Viral" capped at 80
+      viralScore = Math.min(80, Math.max(60, Math.round(65 + (engRate * 100) + totalBonus)));
       viralLabel = "Viral Strength";
     } else if (hasMetrics && isGrowing) {
       viralStatus = "Growing";
-      const hookS = (analysis.hookAnalysis?.score ?? 5) / 10;
-      const capS = (analysis.captionAnalysis?.score ?? 5) / 10;
-      const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 10;
+      const hookS = (analysis.hookAnalysis?.score ?? 5) / 8; // Normalized to 8 max
+      const capS = (analysis.captionAnalysis?.score ?? 5) / 8;
+      const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 8;
       const engS = Math.min(1, engRate / 0.07);
       const comS = Math.min(1, commentsVal / 500);
-      viralScore = Math.min(95, Math.max(5, Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10) + totalBonus)));
+      // Base max from components: ~80 * 0.8 = 64, plus bonus can reach ~80
+      viralScore = Math.min(80, Math.max(5, Math.round((hookS * 25 + capS * 15 + hashS * 10 + engS * 20 + comS * 10) + totalBonus)));
       viralLabel = "Viral Potential";
     } else {
-      viralStatus = hasMetrics ? "Low Viral Potential" : (analysis.viralScore >= 60 ? "Growing" : "Low Viral Potential");
-      const hookS = (analysis.hookAnalysis?.score ?? 5) / 10;
-      const capS = (analysis.captionAnalysis?.score ?? 5) / 10;
-      const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 10;
-      const engS = hasMetrics ? Math.min(1, engRate / 0.07) : (analysis.engagementScore ?? 5) / 10;
-      const comS = hasMetrics ? Math.min(1, commentsVal / 500) : 0.5;
-      viralScore = Math.min(95, Math.max(5, Math.round((hookS * 30 + capS * 20 + hashS * 15 + engS * 25 + comS * 10) + totalBonus)));
+      viralStatus = hasMetrics ? "Low Viral Potential" : (analysis.viralScore >= 50 ? "Growing" : "Low Viral Potential");
+      const hookS = (analysis.hookAnalysis?.score ?? 5) / 8;
+      const capS = (analysis.captionAnalysis?.score ?? 5) / 8;
+      const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 8;
+      const engS = hasMetrics ? Math.min(1, engRate / 0.07) : (analysis.engagementScore ?? 5) / 8;
+      const comS = hasMetrics ? Math.min(1, commentsVal / 500) : 0.4;
+      viralScore = Math.min(80, Math.max(5, Math.round((hookS * 25 + capS * 15 + hashS * 10 + engS * 20 + comS * 10) + totalBonus)));
       viralLabel = "Viral Potential";
       if (!hasMetrics && reasons.length === 0) {
         if (analysis.hookAnalysis?.score >= 5) reasons.push("Decent hook potential");
@@ -987,11 +1118,14 @@ Return ONLY valid JSON (no markdown, no code fences):
       }
     }
 
+    // Final hard cap at 80
+    viralScore = Math.min(80, viralScore);
+
     analysis.viralClassification = {
       status: viralStatus,
       score: viralScore,
       label: viralLabel,
-      reasons: reasons.slice(0, 8),
+      reasons: reasons.slice(0, 10),
       engagementRate: hasMetrics && viewsVal > 0 ? engRate : undefined,
     };
 

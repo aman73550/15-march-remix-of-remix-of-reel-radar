@@ -8,18 +8,20 @@ interface ViralScoreCircleProps {
 const ViralScoreCircle = ({ score }: ViralScoreCircleProps) => {
   const { t } = useLang();
   const circumference = 283;
-  const offset = circumference - (score / 100) * circumference;
+  // Score is out of 80 max now
+  const displayScore = Math.min(80, score);
+  const offset = circumference - (displayScore / 80) * circumference;
 
   const getColor = () => {
-    if (score >= 70) return "hsl(var(--viral-high))";
-    if (score >= 40) return "hsl(var(--viral-mid))";
+    if (displayScore >= 60) return "hsl(var(--viral-high))";
+    if (displayScore >= 35) return "hsl(var(--viral-mid))";
     return "hsl(var(--viral-low))";
   };
 
   const getLabel = () => {
-    if (score >= 80) return t.viralPotential;
-    if (score >= 60) return t.goodPotential;
-    if (score >= 40) return t.moderate;
+    if (displayScore >= 65) return t.viralPotential;
+    if (displayScore >= 50) return t.goodPotential;
+    if (displayScore >= 30) return t.moderate;
     return t.needsWork;
   };
 
@@ -58,8 +60,8 @@ const ViralScoreCircle = ({ score }: ViralScoreCircleProps) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          <span className="text-3xl sm:text-5xl font-bold text-foreground">{score}</span>
-          <span className="text-[10px] sm:text-xs text-muted-foreground">/100</span>
+          <span className="text-3xl sm:text-5xl font-bold text-foreground">{displayScore}</span>
+          <span className="text-[10px] sm:text-xs text-muted-foreground">/80</span>
         </motion.div>
       </div>
       <motion.span
