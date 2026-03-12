@@ -30,7 +30,7 @@ const ViralScoreCircle = ({ score }: ViralScoreCircleProps) => {
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
     >
-      <div className="relative w-44 h-44">
+      <div className="relative w-32 h-32 sm:w-44 sm:h-44">
         {/* Glow effect */}
         <motion.div
           className="absolute inset-0 rounded-full blur-xl"
