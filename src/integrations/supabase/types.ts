@@ -41,6 +41,30 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          reel_url: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          reel_url: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          reel_url?: string
+        }
+        Relationships: []
+      }
       paid_reports: {
         Row: {
           amount: number
