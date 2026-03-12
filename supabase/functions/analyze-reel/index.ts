@@ -188,7 +188,7 @@ async function extractDataFromScrapedContent(markdown: string, _apiKey?: string)
 
   try {
     const response = await callGemini({
-      model: "google/gemini-2.5-flash",
+      model: "gemini-2.5-flash",
       messages: [
         {
           role: "system",
@@ -241,7 +241,7 @@ async function analyzeVisual(imageUrl: string, _apiKey?: string, isScreenshot?: 
     const imageContent = { type: "image_url" as const, image_url: { url: imageUrl } };
 
     const response = await callGemini({
-      model: "google/gemini-2.5-flash",
+      model: "gemini-2.5-flash",
       messages: [
         {
           role: "user",
@@ -843,7 +843,7 @@ Return ONLY valid JSON (no markdown, no code fences):
 }`;
 
     const response = await callGemini({
-      model: "google/gemini-2.5-flash",
+      model: "gemini-2.5-flash",
       messages: [
         { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from screenshots and thumbnails to understand what a reel is actually about. Return only valid JSON. Be specific and actionable in your analysis." },
         { role: "user", content: prompt },
