@@ -143,10 +143,21 @@ const AdminDashboard = () => {
     setSavingConfig(true);
     try {
       for (const [key, value] of Object.entries(config)) {
-        await supabase
+        const { data: existing } = await supabase
           .from("site_config" as any)
-          .update({ config_value: value, updated_at: new Date().toISOString() })
-          .eq("config_key", key);
+          .select("id")
+          .eq("config_key", key)
+          .single();
+        if (existing) {
+          await supabase
+            .from("site_config" as any)
+            .update({ config_value: value, updated_at: new Date().toISOString() })
+            .eq("config_key", key);
+        } else {
+          await supabase
+            .from("site_config" as any)
+            .insert({ config_key: key, config_value: value } as any);
+        }
       }
       toast.success("Configuration saved!");
     } catch {
