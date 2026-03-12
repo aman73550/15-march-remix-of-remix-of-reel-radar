@@ -15,6 +15,125 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
   const reportRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
 
+  const handleTextDownload = () => {
+    const lines: string[] = [];
+    lines.push("═══════════════════════════════════════════");
+    lines.push("       MASTER VIRAL ANALYSIS REPORT");
+    lines.push("       Viral Reel Analyzer — Premium");
+    lines.push("═══════════════════════════════════════════");
+    lines.push("");
+    lines.push(`Reel URL: ${reelUrl}`);
+    lines.push(`Generated: ${new Date().toLocaleString("en-IN")}`);
+    lines.push(`Viral Score: ${analysis.viralClassification?.score || analysis.viralScore || 0}/80`);
+    lines.push(`Status: ${analysis.viralClassification?.status || "N/A"}`);
+    lines.push("");
+
+    if (premiumData.reportIntro) {
+      lines.push("── INTRODUCTION ──");
+      lines.push(premiumData.reportIntro.purpose || "");
+      lines.push(premiumData.reportIntro.disclaimer || "");
+      lines.push("");
+    }
+
+    if (premiumData.scoreBreakdown) {
+      lines.push("── SCORE BREAKDOWN ──");
+      const sb = premiumData.scoreBreakdown;
+      Object.entries(sb).forEach(([key, val]) => {
+        lines.push(`  ${key}: ${val}/8`);
+      });
+      lines.push("");
+    }
+
+    if (premiumData.viralityInsights) {
+      lines.push("── VIRALITY FACTOR ANALYSIS ──");
+      const vi = premiumData.viralityInsights;
+      Object.entries(vi).forEach(([key, val]: [string, any]) => {
+        lines.push(`\n▸ ${key.toUpperCase()}`);
+        lines.push(`  Impact: ${val.impact || "N/A"}`);
+        lines.push(`  Reason: ${val.reason || "N/A"}`);
+        lines.push(`  Solution: ${val.solution || "N/A"}`);
+      });
+      lines.push("");
+    }
+
+    if (premiumData.categoryInfluence) {
+      lines.push("── CATEGORY INFLUENCE ──");
+      lines.push(`  Detected: ${premiumData.categoryInfluence.detected || "N/A"}`);
+      lines.push(`  Impact: ${premiumData.categoryInfluence.impact || "N/A"}`);
+      lines.push(`  Explanation: ${premiumData.categoryInfluence.explanation || "N/A"}`);
+      lines.push("");
+    }
+
+    if (premiumData.reelAgeFactor) {
+      lines.push("── REEL AGE FACTOR ──");
+      lines.push(`  Age: ${premiumData.reelAgeFactor.age || "N/A"}`);
+      lines.push(`  Impact: ${premiumData.reelAgeFactor.impact || "N/A"}`);
+      lines.push(`  Explanation: ${premiumData.reelAgeFactor.explanation || "N/A"}`);
+      lines.push("");
+    }
+
+    if (premiumData.famousElementsAnalysis) {
+      lines.push("── FAMOUS ELEMENTS ──");
+      const fe = premiumData.famousElementsAnalysis;
+      if (fe.detected?.length) lines.push(`  Detected: ${fe.detected.join(", ")}`);
+      lines.push(`  Impact: ${fe.impact || "N/A"}`);
+      lines.push("");
+    }
+
+    if (premiumData.nicheViralityTable?.length) {
+      lines.push("── NICHE VIRALITY TABLE ──");
+      premiumData.nicheViralityTable.forEach((n: any) => {
+        lines.push(`  ${n.niche}: ${"★".repeat(n.viralPotential || 0)}${"☆".repeat(5 - (n.viralPotential || 0))}`);
+      });
+      lines.push("");
+    }
+
+    if (premiumData.creatorChecklist?.length) {
+      lines.push("── CREATOR PRE-POST CHECKLIST ──");
+      premiumData.creatorChecklist.forEach((item: string, i: number) => {
+        lines.push(`  ${i + 1}. ${item}`);
+      });
+      lines.push("");
+    }
+
+    if (premiumData.commonMistakes?.length) {
+      lines.push("── COMMON MISTAKES TO AVOID ──");
+      premiumData.commonMistakes.forEach((m: string, i: number) => {
+        lines.push(`  ${i + 1}. ${m}`);
+      });
+      lines.push("");
+    }
+
+    if (premiumData.quickTips?.length) {
+      lines.push("── QUICK TIPS ──");
+      premiumData.quickTips.forEach((t: string, i: number) => {
+        lines.push(`  ${i + 1}. ${t}`);
+      });
+      lines.push("");
+    }
+
+    if (premiumData.improvementRoadmap?.length) {
+      lines.push("── 5-STEP IMPROVEMENT ROADMAP ──");
+      premiumData.improvementRoadmap.forEach((step: any, i: number) => {
+        lines.push(`  Step ${i + 1}: ${step.title || step}`);
+        if (step.description) lines.push(`    → ${step.description}`);
+      });
+      lines.push("");
+    }
+
+    lines.push("═══════════════════════════════════════════");
+    lines.push("  © Viral Reel Analyzer — Premium Report");
+    lines.push("  100% guarantee nahi, realistic estimate hai.");
+    lines.push("═══════════════════════════════════════════");
+
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const link = document.createElement("a");
+    link.download = `master-report-${Date.now()}.txt`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
   const handleDownload = async () => {
     setDownloading(true);
     try {
@@ -76,9 +195,14 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
             <p className="text-xs text-muted-foreground">Premium 10+ page comprehensive viral analysis PDF</p>
           </div>
         </div>
-        <Button onClick={handleDownload} disabled={downloading} className="gradient-primary-bg text-primary-foreground font-semibold shadow-glow">
-          {downloading ? "Generating PDF..." : <><Download className="w-4 h-4 mr-2" /> Download PDF</>}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleTextDownload} variant="outline" className="border-border/50 text-foreground">
+            <FileText className="w-4 h-4 mr-2" /> Download TXT
+          </Button>
+          <Button onClick={handleDownload} disabled={downloading} className="gradient-primary-bg text-primary-foreground font-semibold shadow-glow">
+            {downloading ? "Generating PDF..." : <><Download className="w-4 h-4 mr-2" /> Download PDF</>}
+          </Button>
+        </div>
       </Card>
 
       {/* ===== ON-SCREEN PREVIEW SECTIONS ===== */}
