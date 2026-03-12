@@ -510,7 +510,7 @@ serve(async (req) => {
     // Layer 2: Firecrawl data (richer, fills remaining gaps)
     if (scrapeResult) {
       console.log("Extracting data from Firecrawl content...");
-      const extracted = await extractDataFromScrapedContent(scrapeResult.markdown, LOVABLE_API_KEY);
+      const extracted = await extractDataFromScrapedContent(scrapeResult.markdown, GEMINI_API_KEY);
 
       if (extracted) {
         if (!caption) caption = extracted.caption || "";
