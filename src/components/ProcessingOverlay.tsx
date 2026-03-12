@@ -194,10 +194,19 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
             </div>
 
             {/* Disclaimer */}
-            <p className="text-center text-[11px] text-muted-foreground/60 leading-relaxed">
-              Please wait while our AI analyzes your reel.<br />
-              Do not close this page until the progress bar completes.
-            </p>
+            <motion.div
+              className="relative rounded-xl border border-primary/30 bg-primary/5 px-5 py-4 text-center overflow-hidden"
+              animate={{ boxShadow: ["0 0 15px hsl(340 82% 55% / 0.1)", "0 0 25px hsl(340 82% 55% / 0.25)", "0 0 15px hsl(340 82% 55% / 0.1)"] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="absolute inset-0 gradient-primary-bg opacity-[0.04]" />
+              <p className="relative text-sm font-semibold text-primary leading-relaxed">
+                ⏳ Please wait while our AI analyzes your reel.
+              </p>
+              <p className="relative text-xs font-medium text-foreground/70 mt-1">
+                ⚠️ Do not close this page until the progress bar completes.
+              </p>
+            </motion.div>
           </motion.div>
         </motion.div>
       )}
