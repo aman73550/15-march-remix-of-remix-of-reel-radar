@@ -57,6 +57,11 @@ const Index = () => {
   const { toast } = useToast();
   const { lang, t } = useLang();
   const inputRef = useRef<HTMLDivElement>(null);
+  const masterReportRef = useRef<HTMLDivElement>(null);
+
+  const scrollToMasterReport = () => {
+    masterReportRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   const scrollToInput = () => {
     inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
