@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
 import ViralScoreCircle from "@/components/ViralScoreCircle";
 import AnalysisCard from "@/components/AnalysisCard";
 import CategoryPieChart from "@/components/CategoryPieChart";
