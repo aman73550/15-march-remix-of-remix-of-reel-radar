@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import ViralScoreCircle from "@/components/ViralScoreCircle";
 import AnalysisCard from "@/components/AnalysisCard";
@@ -33,27 +32,13 @@ import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import type { ReelAnalysis } from "@/lib/types";
-import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, Calendar, ShieldCheck, Clock } from "lucide-react";
-import { differenceInHours } from "date-fns";
+import { Loader2, Link, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
 
 const Index = () => {
   const [url, setUrl] = useState("");
-  const [caption, setCaption] = useState("");
-  const [hashtags, setHashtags] = useState("");
-  const [likes, setLikes] = useState("");
-  const [comments, setComments] = useState("");
-  const [views, setViews] = useState("");
-  const [shares, setShares] = useState("");
-  const [saves, setSaves] = useState("");
-  const [sampleComments, setSampleComments] = useState("");
-  const [postDate, setPostDate] = useState("");
-  const [showDetails, setShowDetails] = useState(false);
-  const [showMetrics, setShowMetrics] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
   const [showInterstitial, setShowInterstitial] = useState(false);
-  const [tooNewWarning, setTooNewWarning] = useState(false);
-  const [lowViewsWarning, setLowViewsWarning] = useState(false);
   const [showShareGate, setShowShareGate] = useState(false);
   const [remaining, setRemaining] = useState(getRemainingAnalyses());
   const { toast } = useToast();
@@ -63,6 +48,7 @@ const Index = () => {
   const scrollToInput = () => {
     inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
+
   const runAnalysis = useCallback(async () => {
     setLoading(true);
     setAnalysis(null);
@@ -70,17 +56,7 @@ const Index = () => {
       const { data, error } = await supabase.functions.invoke("analyze-reel", {
         body: {
           url: url.trim(),
-          caption: caption.trim(),
-          hashtags: hashtags.trim(),
           lang,
-          metrics: {
-            likes: likes ? parseInt(likes) : undefined,
-            comments: comments ? parseInt(comments) : undefined,
-            views: views ? parseInt(views) : undefined,
-            shares: shares ? parseInt(shares) : undefined,
-            saves: saves ? parseInt(saves) : undefined,
-          },
-          sampleComments: sampleComments.trim() || undefined,
         },
       });
       if (error) throw error;
@@ -94,16 +70,7 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
-  }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast]);
-
-  const isReelTooNew = useCallback(() => {
-    if (!postDate) return false;
-    const posted = new Date(postDate);
-    if (isNaN(posted.getTime())) return false;
-    return differenceInHours(new Date(), posted) < 48;
-  }, [postDate]);
-
-  const [checkingDate, setCheckingDate] = useState(false);
+  }, [url, lang, t, toast]);
 
   const handleAnalyze = async () => {
     if (!url.trim()) {
@@ -111,79 +78,12 @@ const Index = () => {
       return;
     }
 
-    // Gate 0: If no date entered, try to auto-fetch from Instagram
-    if (!postDate) {
-      setCheckingDate(true);
-      try {
-        const { data, error } = await supabase.functions.invoke("check-reel-date", {
-          body: { url: url.trim() },
-        });
-
-        if (!error && data?.success && data?.dateFound) {
-          // Date found from Instagram
-          if (data.isTooNew) {
-            setTooNewWarning(true);
-            setLowViewsWarning(false);
-            setAnalysis(null);
-            setCheckingDate(false);
-            toast({
-              title: "Reel is too new",
-              description: `This reel was posted ${data.hoursSincePost} hours ago. Please wait at least 48 hours for reliable analysis.`,
-              variant: "destructive",
-            });
-            return;
-          }
-          // Date is fine, set it and continue
-          const d = new Date(data.publishDate);
-          setPostDate(d.toISOString().slice(0, 16));
-        } else {
-          // Could not extract date — ask user to enter manually
-          setCheckingDate(false);
-          toast({
-            title: "Post date required",
-            description: "We couldn't detect the publish date automatically. Please enter it manually so we can verify the reel is 48+ hours old.",
-            variant: "destructive",
-          });
-          setShowDetails(true);
-          return;
-        }
-      } catch {
-        setCheckingDate(false);
-        toast({
-          title: "Post date required",
-          description: "Please enter the reel's publish date manually.",
-          variant: "destructive",
-        });
-        setShowDetails(true);
-        return;
-      }
-      setCheckingDate(false);
-    }
-
-    // Gate 1: Reel must be 48+ hours old (manual date check)
-    if (postDate && isReelTooNew()) {
-      setTooNewWarning(true);
-      setLowViewsWarning(false);
-      setAnalysis(null);
-      return;
-    }
-    // Gate 2: If views provided and < 1000, block analysis
-    const viewsNum = views ? parseInt(views) : 0;
-    if (views && viewsNum < 1000) {
-      setLowViewsWarning(true);
-      setTooNewWarning(false);
-      setAnalysis(null);
-      return;
-    }
-    // Gate 3: Usage limit check
+    // Usage limit check
     if (!canAnalyze()) {
       setShowShareGate(true);
-      setTooNewWarning(false);
-      setLowViewsWarning(false);
       return;
     }
-    setTooNewWarning(false);
-    setLowViewsWarning(false);
+
     setShowShareGate(false);
     setShowInterstitial(true);
     runAnalysis();
@@ -240,121 +140,27 @@ const Index = () => {
         </motion.div>
       </div>
 
-      {/* Input */}
+      {/* Input — URL only */}
       <motion.div ref={inputRef} className="relative z-10 max-w-xl lg:max-w-2xl mx-auto px-3 sm:px-4 pb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
         <Card className="glass p-4 sm:p-5 space-y-3">
-          {/* URL input - always visible */}
           <div className="relative">
             <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/70" />
             <Input placeholder={t.urlPlaceholder} value={url} onChange={(e) => setUrl(e.target.value)} className="pl-9 bg-muted/50 border-border h-11" />
           </div>
 
-          {/* Add More Details toggle */}
-          <button type="button" onClick={() => setShowDetails(!showDetails)} className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-muted/30 border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">
-            <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3" />
-              Add More Details (optional)
-            </span>
-            {showDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </button>
-
-          {/* Collapsible details section */}
-          <AnimatePresence>
-            {showDetails && (
-              <motion.div className="space-y-3" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
-                <Input placeholder={t.captionPlaceholder} value={caption} onChange={(e) => setCaption(e.target.value)} className="bg-muted/50 border-border h-10 text-sm" />
-                <Input placeholder={t.hashtagPlaceholder} value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-muted/50 border-border h-10 text-sm" />
-
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input type="datetime-local" value={postDate} onChange={(e) => { setPostDate(e.target.value); setTooNewWarning(false); }} className="pl-9 bg-muted/50 border-border h-10 text-sm" placeholder="Post date & time" />
-                </div>
-
-                {/* Engagement Metrics sub-section */}
-                <button type="button" onClick={() => setShowMetrics(!showMetrics)} className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-muted/20 border border-border/50 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  <span>{t.metricsLabel}</span>
-                  {showMetrics ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                </button>
-
-                <AnimatePresence>
-                  {showMetrics && (
-                    <motion.div className="space-y-2" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input type="number" placeholder={t.likesPlaceholder} value={likes} onChange={(e) => setLikes(e.target.value)} className="bg-muted/50 border-border h-9 text-xs" />
-                        <Input type="number" placeholder={t.commentsPlaceholder} value={comments} onChange={(e) => setComments(e.target.value)} className="bg-muted/50 border-border h-9 text-xs" />
-                        <Input type="number" placeholder={t.viewsPlaceholder} value={views} onChange={(e) => setViews(e.target.value)} className="bg-muted/50 border-border h-9 text-xs" />
-                        <Input type="number" placeholder={t.sharesPlaceholder} value={shares} onChange={(e) => setShares(e.target.value)} className="bg-muted/50 border-border h-9 text-xs" />
-                        <Input type="number" placeholder={t.savesPlaceholder} value={saves} onChange={(e) => setSaves(e.target.value)} className="bg-muted/50 border-border h-9 text-xs col-span-2 sm:col-span-1" />
-                      </div>
-                      <Textarea placeholder={t.sampleCommentsPlaceholder} value={sampleComments} onChange={(e) => setSampleComments(e.target.value)} className="bg-muted/50 border-border text-xs min-h-[70px] resize-none" rows={3} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-            <Button onClick={handleAnalyze} disabled={loading || checkingDate || tooNewWarning || lowViewsWarning} className="w-full h-12 sm:h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity text-sm sm:text-base">
-              {checkingDate ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />Checking post date...</>) : loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
+            <Button onClick={handleAnalyze} disabled={loading} className="w-full h-12 sm:h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity text-sm sm:text-base">
+              {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
             </Button>
           </motion.div>
-          {/* Remaining analyses counter */}
+
           <p className="text-center text-[10px] text-muted-foreground">
             {remaining > 0 ? `${remaining} free analysis${remaining !== 1 ? "es" : ""} remaining` : "No free analyses remaining — share to unlock more"}
           </p>
           <p className="text-center text-[10px] text-muted-foreground/60">
-            No login required • Instant analysis
+            No login required • Paste link & get full analysis automatically
           </p>
         </Card>
-
-        {/* Too New Warning */}
-        <AnimatePresence>
-          {tooNewWarning && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <Card className="glass p-5 border-[hsl(var(--viral-mid))]/30 bg-[hsl(var(--viral-mid))]/5">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-xl bg-[hsl(var(--viral-mid))]/10 border border-[hsl(var(--viral-mid))]/20 text-[hsl(var(--viral-mid))]">
-                    <Clock className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <p className="text-sm font-semibold text-foreground">Full analysis is not available yet.</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      This reel was posted recently. Viral patterns and engagement data need time to develop.
-                    </p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Please wait at least <span className="font-bold text-foreground">48 hours</span> after posting for a reliable analysis.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Low Views Warning */}
-        <AnimatePresence>
-          {lowViewsWarning && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <Card className="glass p-5 border-[hsl(var(--viral-low))]/30 bg-[hsl(var(--viral-low))]/5">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-xl bg-[hsl(var(--viral-low))]/10 border border-[hsl(var(--viral-low))]/20 text-[hsl(var(--viral-low))]">
-                    <TrendingUp className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <p className="text-sm font-semibold text-foreground">Not enough engagement data for reliable analysis.</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      This reel has fewer than <span className="font-bold text-foreground">1,000 views</span>. The system needs sufficient engagement data to generate accurate viral predictions.
-                    </p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Wait for the reel to gain more traction, then try again.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.div>
 
       {/* Share Unlock Gate */}
@@ -371,11 +177,12 @@ const Index = () => {
       <AnimatePresence>
         {analysis && scores && (
           <motion.div className="relative z-10 max-w-2xl mx-auto px-3 sm:px-4 pb-16 space-y-4 sm:space-y-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            {/* Age Verified Label */}
+            {/* Auto-extracted badge */}
             <motion.div className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full bg-[hsl(var(--viral-high))]/10 border border-[hsl(var(--viral-high))]/20 mx-auto w-fit" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
               <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[hsl(var(--viral-high))] flex-shrink-0" />
-              <span className="text-[10px] sm:text-xs font-medium text-[hsl(var(--viral-high))] text-center">Reel Age Verified – 48+ Hours Performance Data</span>
+              <span className="text-[10px] sm:text-xs font-medium text-[hsl(var(--viral-high))] text-center">AI Auto-Analyzed • Data Extracted Automatically</span>
             </motion.div>
+
             {/* Viral Status Badge */}
             {analysis.viralClassification && (
               <ViralStatusBadge classification={analysis.viralClassification} />
@@ -419,8 +226,6 @@ const Index = () => {
               </motion.div>
             </div>
 
-            {/* Content Classification */}
-            {/* Viral Pattern Comparison */}
             {analysis.patternComparison && (
               <ViralPatternCard data={analysis.patternComparison} />
             )}
@@ -429,7 +234,6 @@ const Index = () => {
               <ContentClassificationCard data={analysis.contentClassification} thumbnailAnalyzed={analysis.thumbnailAnalyzed} />
             )}
 
-            {/* Detailed Analysis Cards */}
             {analysis.hookAnalysis && <HookAnalysisCard data={analysis.hookAnalysis} title={t.hookTitle} />}
             {analysis.captionAnalysis && <CaptionAnalysisCard data={analysis.captionAnalysis} title={t.captionTitle} />}
             {analysis.hashtagAnalysis && <HashtagAnalysisCard data={analysis.hashtagAnalysis} title={t.hashtagTitle} />}
@@ -442,15 +246,12 @@ const Index = () => {
             )}
             {analysis.trendMatching && <TrendMatchingCard data={analysis.trendMatching} title={t.trendTitle} />}
 
-            {/* Engagement */}
             <AnalysisCard icon="📊" title={t.engagementTitle} score={scores.engagement} details={analysis.engagementDetails || []} index={0} />
 
-            {/* Comment Sentiment */}
             {analysis.commentSentiment && <CommentSentiment sentiment={analysis.commentSentiment} />}
 
             <InlineAd slot="mid-3" />
 
-            {/* Recommendations */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
               <Card className="glass p-5">
                 <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2"><span>💡</span> {t.recommendations}</h3>
@@ -465,7 +266,6 @@ const Index = () => {
               </Card>
             </motion.div>
 
-            {/* Growth hack CTA + Share */}
             <motion.div className="flex flex-col items-center gap-3 text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
               <p className="text-sm text-muted-foreground">
                 Want to check another reel?{" "}
@@ -490,7 +290,6 @@ const Index = () => {
         </div>
       )}
 
-      {/* Footer Disclaimer */}
       <footer className="relative z-10 mt-12 sm:mt-16">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="border-t border-border/40" />

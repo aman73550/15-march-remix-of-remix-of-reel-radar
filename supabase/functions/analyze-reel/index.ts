@@ -6,9 +6,125 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Step 1: Analyze thumbnail with Gemini vision
-async function analyzeThumbnail(thumbnailUrl: string, apiKey: string): Promise<string> {
+// Step 0: Scrape reel page with Firecrawl to get screenshot + page content
+async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshot: string; markdown: string; html: string } | null> {
+  const apiKey = Deno.env.get("FIRECRAWL_API_KEY");
+  if (!apiKey) {
+    console.log("FIRECRAWL_API_KEY not configured, skipping scrape");
+    return null;
+  }
+
   try {
+    console.log("Scraping reel with Firecrawl:", url);
+    const response = await fetch("https://api.firecrawl.dev/v1/scrape", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url,
+        formats: ["screenshot", "markdown"],
+        waitFor: 5000,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Firecrawl scrape failed:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    const screenshot = data.data?.screenshot || data.screenshot || "";
+    const markdown = data.data?.markdown || data.markdown || "";
+    const html = data.data?.html || data.html || "";
+
+    console.log("Firecrawl scrape success, screenshot:", screenshot ? "yes" : "no", "markdown length:", markdown.length);
+    return { screenshot, markdown, html };
+  } catch (e) {
+    console.error("Firecrawl scrape error:", e);
+    return null;
+  }
+}
+
+// Step 0b: Use AI to extract structured data from scraped content
+async function extractDataFromScrapedContent(markdown: string, apiKey: string): Promise<{
+  caption: string;
+  hashtags: string;
+  likes: number | null;
+  comments: number | null;
+  views: number | null;
+  shares: number | null;
+  saves: number | null;
+  authorName: string;
+  postDate: string | null;
+  sampleComments: string;
+} | null> {
+  if (!markdown || markdown.length < 50) return null;
+
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: "You extract structured data from scraped Instagram reel pages. Return ONLY valid JSON, no markdown fences.",
+          },
+          {
+            role: "user",
+            content: `Extract the following data from this scraped Instagram reel page content. If a field is not found, use null for numbers and empty string for text.
+
+Page content:
+${markdown.substring(0, 8000)}
+
+Return JSON:
+{
+  "caption": "<full caption text without hashtags>",
+  "hashtags": "<all hashtags space-separated>",
+  "likes": <number or null>,
+  "comments": <number or null>,
+  "views": <number or null>,
+  "shares": <number or null>,
+  "saves": <number or null>,
+  "authorName": "<username or author name>",
+  "postDate": "<ISO date string or null>",
+  "sampleComments": "<up to 5 sample comments, one per line>"
+}`,
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Data extraction AI failed:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    let content = data.choices?.[0]?.message?.content?.trim() || "";
+    if (content.startsWith("```")) {
+      content = content.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+    }
+    return JSON.parse(content);
+  } catch (e) {
+    console.error("Data extraction error:", e);
+    return null;
+  }
+}
+
+// Step 1: Analyze screenshot/thumbnail with Gemini vision
+async function analyzeVisual(imageUrl: string, apiKey: string, isScreenshot: boolean): Promise<string> {
+  try {
+    const imageContent = isScreenshot && imageUrl.startsWith("data:")
+      ? { type: "image_url" as const, image_url: { url: imageUrl } }
+      : { type: "image_url" as const, image_url: { url: imageUrl } };
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -23,24 +139,32 @@ async function analyzeThumbnail(thumbnailUrl: string, apiKey: string): Promise<s
             content: [
               {
                 type: "text",
-                text: `Analyze this Instagram Reel thumbnail image in detail. Describe:
-1. OBJECTS: What objects, items, or props are visible?
-2. PEOPLE: Are there people? How many? What are they doing? Facial expressions?
-3. SCENE: What is the setting/environment? (gym, kitchen, office, outdoors, studio, street, etc.)
-4. ACTIONS: What activity or action seems to be happening?
-5. TEXT ON SCREEN: Is there any visible text, captions, or overlay text? What does it say?
-6. VISUAL STYLE: Is it professional, casual, cinematic, raw/unfiltered?
-7. COLORS & MOOD: Dominant colors, lighting mood (bright, dark, warm, cool)
-8. ESTIMATED CATEGORY: Based on visuals, what content niche does this likely belong to? (education, motivation, comedy, fitness, cooking, marketing, lifestyle, beauty, tech, gaming, storytelling, news, etc.)
+                text: isScreenshot
+                  ? `This is a screenshot of an Instagram Reel page. Analyze EVERYTHING visible:
+1. INSTAGRAM UI DATA: Extract any visible likes count, comments count, views count, username, caption text, hashtags, date posted
+2. VIDEO CONTENT: What is shown in the video player? Describe the scene, objects, people, actions
+3. TEXT ON SCREEN: Any overlay text, captions, subtitles visible
+4. VISUAL STYLE: Professional, casual, cinematic, raw?
+5. COLORS & MOOD: Dominant colors, lighting
+6. ESTIMATED CATEGORY: Content niche (education, motivation, comedy, fitness, cooking, marketing, lifestyle, beauty, tech, gaming, storytelling, news, etc.)
+7. ENGAGEMENT SIGNALS: Any visible engagement indicators (comment previews, like counts, share counts)
 
-Be specific and factual about what you see. Do not guess beyond what's visible.`
+Be extremely specific about numbers and text you can read. This is a full page screenshot so extract ALL visible Instagram data.`
+                  : `Analyze this Instagram Reel thumbnail image in detail. Describe:
+1. OBJECTS: What objects, items, or props are visible?
+2. PEOPLE: Are there people? How many? What are they doing?
+3. SCENE: What is the setting/environment?
+4. ACTIONS: What activity or action seems to be happening?
+5. TEXT ON SCREEN: Is there any visible text or overlay text?
+6. VISUAL STYLE: Professional, casual, cinematic, raw?
+7. COLORS & MOOD: Dominant colors, lighting mood
+8. ESTIMATED CATEGORY: Content niche
+
+Be specific and factual about what you see.`,
               },
-              {
-                type: "image_url",
-                image_url: { url: thumbnailUrl }
-              }
-            ]
-          }
+              imageContent,
+            ],
+          },
         ],
       }),
     });
@@ -53,7 +177,7 @@ Be specific and factual about what you see. Do not guess beyond what's visible.`
     const data = await response.json();
     return data.choices?.[0]?.message?.content || "";
   } catch (e) {
-    console.error("Thumbnail analysis error:", e);
+    console.error("Visual analysis error:", e);
     return "";
   }
 }
@@ -62,8 +186,6 @@ Be specific and factual about what you see. Do not guess beyond what's visible.`
 async function fetchViralPatterns(category: string, supabaseUrl: string, serviceKey: string): Promise<any[]> {
   try {
     const supabase = createClient(supabaseUrl, serviceKey);
-    
-    // Fetch patterns in same category with high viral scores
     const { data, error } = await supabase
       .from("viral_patterns")
       .select("*")
@@ -87,7 +209,6 @@ async function fetchViralPatterns(category: string, supabaseUrl: string, service
 async function storePattern(analysis: any, url: string, metrics: any, caption: string, hashtags: string, supabaseUrl: string, serviceKey: string) {
   try {
     const supabase = createClient(supabaseUrl, serviceKey);
-    
     const cc = analysis.contentClassification;
     const hashtagCount = hashtags ? hashtags.split(/[#\s,]+/).filter((h: string) => h.length > 0).length : 0;
 
@@ -148,8 +269,7 @@ function compareWithPatterns(analysis: any, patterns: any[]): any {
 
   const scores = patterns.map(p => p.viral_score).filter(Boolean);
   const categoryAvg = scores.length > 0 ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length) : 0;
-  
-  // Calculate feature similarity
+
   let matchCount = 0;
   let totalChecks = 0;
   const currentHookType = analysis.hookAnalysis?.openingType?.toLowerCase();
@@ -158,9 +278,8 @@ function compareWithPatterns(analysis: any, patterns: any[]): any {
   const currentMotion = analysis.videoSignals?.motionIntensity?.toLowerCase();
   const currentSceneCuts = analysis.videoSignals?.estimatedSceneCuts?.toLowerCase();
 
-  // Count how many top viral patterns share features
   const viralPatterns = patterns.filter(p => (p.viral_score || 0) >= 70);
-  
+
   for (const p of viralPatterns) {
     if (p.hook_type) {
       totalChecks++;
@@ -182,11 +301,10 @@ function compareWithPatterns(analysis: any, patterns: any[]): any {
 
   const similarityScore = totalChecks > 0 ? Math.round((matchCount / totalChecks) * 100) : 50;
 
-  // Find most common features among viral patterns
   const hookTypes: Record<string, number> = {};
   const facePresence: Record<string, number> = {};
   const motionLevels: Record<string, number> = {};
-  
+
   for (const p of viralPatterns) {
     if (p.hook_type) hookTypes[p.hook_type] = (hookTypes[p.hook_type] || 0) + 1;
     if (p.face_presence) facePresence[p.face_presence] = (facePresence[p.face_presence] || 0) + 1;
@@ -199,7 +317,7 @@ function compareWithPatterns(analysis: any, patterns: any[]): any {
 
   const insights: string[] = [];
   const currentScore = analysis.viralClassification?.score || analysis.viralScore || 0;
-  
+
   if (currentScore > categoryAvg) {
     insights.push(`Your reel scores ${currentScore - categoryAvg} points above the category average (${categoryAvg})`);
   } else if (currentScore < categoryAvg) {
@@ -222,7 +340,7 @@ function compareWithPatterns(analysis: any, patterns: any[]): any {
 
   const avgHookScore = Math.round(viralPatterns.reduce((s, p) => s + (p.hook_score || 0), 0) / Math.max(viralPatterns.length, 1));
   const avgCaptionScore = Math.round(viralPatterns.reduce((s, p) => s + (p.caption_score || 0), 0) / Math.max(viralPatterns.length, 1));
-  
+
   return {
     patternsCompared: patterns.length,
     viralPatternsCount: viralPatterns.length,
@@ -243,7 +361,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { url, caption, hashtags, lang = "en", metrics, sampleComments } = await req.json();
+    const { url, lang = "en" } = await req.json();
     const respondInHindi = lang === "hi";
 
     if (!url) {
@@ -259,48 +377,99 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    // oEmbed metadata + thumbnail
-    let metadata = "";
-    let thumbnailUrl = "";
-    try {
-      const oembedUrl = `https://api.instagram.com/oembed?url=${encodeURIComponent(url)}`;
-      const oembedResp = await fetch(oembedUrl);
-      if (oembedResp.ok) {
-        const oembed = await oembedResp.json();
-        metadata = `Title: ${oembed.title || "N/A"}\nAuthor: ${oembed.author_name || "N/A"}`;
-        thumbnailUrl = oembed.thumbnail_url || "";
-      }
-    } catch {
-      console.log("oEmbed fetch failed");
-    }
+    // === STEP 1: Scrape reel page with Firecrawl ===
+    console.log("Step 1: Scraping reel page...");
+    const scrapeResult = await scrapeReelWithFirecrawl(url);
 
-    // Run vision analysis on thumbnail (if available)
+    // === STEP 2: Extract data from scraped content ===
+    let caption = "";
+    let hashtags = "";
+    let metrics: any = {};
+    let sampleComments = "";
+    let authorName = "";
     let visionAnalysis = "";
-    if (thumbnailUrl) {
-      console.log("Running vision analysis on thumbnail...");
-      visionAnalysis = await analyzeThumbnail(thumbnailUrl, LOVABLE_API_KEY);
-      console.log("Vision analysis complete:", visionAnalysis.substring(0, 200));
+    let thumbnailUrl = "";
+    let screenshotUsed = false;
+
+    if (scrapeResult) {
+      // Use AI to extract structured data from markdown
+      console.log("Step 2: Extracting data from scraped content...");
+      const extracted = await extractDataFromScrapedContent(scrapeResult.markdown, LOVABLE_API_KEY);
+
+      if (extracted) {
+        caption = extracted.caption || "";
+        hashtags = extracted.hashtags || "";
+        authorName = extracted.authorName || "";
+        sampleComments = extracted.sampleComments || "";
+        metrics = {
+          likes: extracted.likes,
+          comments: extracted.comments,
+          views: extracted.views,
+          shares: extracted.shares,
+          saves: extracted.saves,
+        };
+        console.log("Extracted data:", JSON.stringify({ caption: caption.substring(0, 100), hashtags, authorName, metrics }));
+      }
+
+      // Use screenshot for vision analysis (much richer than thumbnail)
+      if (scrapeResult.screenshot) {
+        console.log("Step 3: Running vision analysis on full screenshot...");
+        const screenshotUrl = scrapeResult.screenshot.startsWith("data:")
+          ? scrapeResult.screenshot
+          : `data:image/png;base64,${scrapeResult.screenshot}`;
+        visionAnalysis = await analyzeVisual(screenshotUrl, LOVABLE_API_KEY, true);
+        screenshotUsed = true;
+        console.log("Screenshot vision analysis complete");
+      }
     }
 
-    const hasMetrics = metrics && Object.values(metrics).some((v: any) => v !== undefined && v !== null);
+    // === FALLBACK: oEmbed if Firecrawl failed ===
+    let metadata = "";
+    if (!scrapeResult || !visionAnalysis) {
+      console.log("Fallback: Using oEmbed...");
+      try {
+        const oembedUrl = `https://api.instagram.com/oembed?url=${encodeURIComponent(url)}`;
+        const oembedResp = await fetch(oembedUrl);
+        if (oembedResp.ok) {
+          const oembed = await oembedResp.json();
+          metadata = `Title: ${oembed.title || "N/A"}\nAuthor: ${oembed.author_name || "N/A"}`;
+          thumbnailUrl = oembed.thumbnail_url || "";
+          if (!authorName) authorName = oembed.author_name || "";
+        }
+      } catch {
+        console.log("oEmbed fetch failed");
+      }
+
+      // Fallback vision on thumbnail
+      if (thumbnailUrl && !visionAnalysis) {
+        console.log("Running vision analysis on thumbnail (fallback)...");
+        visionAnalysis = await analyzeVisual(thumbnailUrl, LOVABLE_API_KEY, false);
+      }
+    }
+
+    if (!metadata && authorName) {
+      metadata = `Author: ${authorName}`;
+    }
+
+    const hasMetrics = metrics && Object.values(metrics).some((v: any) => v !== undefined && v !== null && v !== 0);
     let metricsSection = "";
     if (hasMetrics) {
       const parts = [];
-      if (metrics.likes !== undefined) parts.push(`Likes: ${metrics.likes}`);
-      if (metrics.comments !== undefined) parts.push(`Comments: ${metrics.comments}`);
-      if (metrics.views !== undefined) parts.push(`Views: ${metrics.views}`);
-      if (metrics.shares !== undefined) parts.push(`Shares: ${metrics.shares}`);
-      if (metrics.saves !== undefined) parts.push(`Saves: ${metrics.saves}`);
-      metricsSection = `\nEngagement Metrics:\n${parts.join("\n")}`;
+      if (metrics.likes) parts.push(`Likes: ${metrics.likes}`);
+      if (metrics.comments) parts.push(`Comments: ${metrics.comments}`);
+      if (metrics.views) parts.push(`Views: ${metrics.views}`);
+      if (metrics.shares) parts.push(`Shares: ${metrics.shares}`);
+      if (metrics.saves) parts.push(`Saves: ${metrics.saves}`);
+      metricsSection = `\nEngagement Metrics (auto-extracted):\n${parts.join("\n")}`;
     }
 
     let commentsSection = "";
     if (sampleComments) {
-      commentsSection = `\nSample Comments:\n${sampleComments}`;
+      commentsSection = `\nSample Comments (auto-extracted):\n${sampleComments}`;
     }
 
     const visionSection = visionAnalysis
-      ? `\n=== VISUAL CONTENT ANALYSIS (from thumbnail) ===\n${visionAnalysis}\n`
+      ? `\n=== VISUAL CONTENT ANALYSIS (from ${screenshotUsed ? "full page screenshot" : "thumbnail"}) ===\n${visionAnalysis}\n`
       : "";
 
     const langInstruction = respondInHindi
@@ -312,12 +481,14 @@ serve(async (req) => {
 === INPUT DATA ===
 Reel URL: ${url}
 ${metadata ? `Metadata:\n${metadata}` : ""}
-${caption ? `Caption: ${caption}` : "No caption provided"}
-${hashtags ? `Hashtags: ${hashtags}` : "No hashtags provided"}${metricsSection}${commentsSection}
+${caption ? `Caption: ${caption}` : "No caption available"}
+${hashtags ? `Hashtags: ${hashtags}` : "No hashtags detected"}${metricsSection}${commentsSection}
 ${visionSection}
 === ANALYSIS INSTRUCTIONS ===
 
-${visionAnalysis ? `IMPORTANT: You have VISUAL ANALYSIS DATA from the reel's thumbnail. Use this as the PRIMARY signal to understand what the reel is actually about. Cross-reference with caption and hashtags to classify the content accurately. The visual content should take priority over hashtags when determining the reel's true category.` : ""}
+${visionAnalysis ? `IMPORTANT: You have VISUAL ANALYSIS DATA from the reel's ${screenshotUsed ? "full page screenshot (includes Instagram UI with metrics)" : "thumbnail"}. Use this as the PRIMARY signal to understand what the reel is actually about. Cross-reference with caption and hashtags to classify the content accurately. The visual content should take priority over hashtags when determining the reel's true category.` : ""}
+
+${screenshotUsed ? `CRITICAL: The screenshot shows the actual Instagram page. If you can see engagement metrics (likes, comments, views) in the screenshot that differ from the extracted data, use the SCREENSHOT values as they are more reliable.` : ""}
 
 Perform ALL of these analyses:
 
@@ -473,11 +644,11 @@ Return ONLY valid JSON (no markdown, no code fences):
   "engagementRate": "<estimated rate if metrics provided>"${hasMetrics ? `,
 
   "metricsComparison": {
-    ${metrics?.likes !== undefined ? '"likes": { "value": ' + metrics.likes + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
-    ${metrics?.comments !== undefined ? '"comments": { "value": ' + metrics.comments + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
-    ${metrics?.views !== undefined ? '"views": { "value": ' + metrics.views + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
-    ${metrics?.shares !== undefined ? '"shares": { "value": ' + metrics.shares + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
-    ${metrics?.saves !== undefined ? '"saves": { "value": ' + metrics.saves + ', "avgInCategory": <estimated>, "verdict": "<verdict>" }' : ''}
+    ${metrics?.likes ? '"likes": { "value": ' + metrics.likes + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
+    ${metrics?.comments ? '"comments": { "value": ' + metrics.comments + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
+    ${metrics?.views ? '"views": { "value": ' + metrics.views + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
+    ${metrics?.shares ? '"shares": { "value": ' + metrics.shares + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
+    ${metrics?.saves ? '"saves": { "value": ' + metrics.saves + ', "avgInCategory": <estimated>, "verdict": "<verdict>" }' : ''}
   }` : ""}${sampleComments ? `,
 
   "commentSentiment": {
@@ -503,7 +674,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from thumbnails to understand what a reel is actually about. Return only valid JSON. Be specific and actionable in your analysis." },
+          { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from screenshots and thumbnails to understand what a reel is actually about. Return only valid JSON. Be specific and actionable in your analysis." },
           { role: "user", content: prompt },
         ],
       }),
@@ -570,9 +741,8 @@ Return ONLY valid JSON (no markdown, no code fences):
     if (analysis.hashtagAnalysis?.score >= 7) reasons.push("Well-optimized hashtag strategy");
     if (analysis.trendMatching?.score >= 7) reasons.push("Content aligns with current viral trends");
 
-    // === QUALITY BONUS/PENALTY (capped at ±15 total) ===
+    // === QUALITY BONUS/PENALTY ===
     let qualityBonus = 0;
-
     const vq = analysis.videoQuality;
     if (vq) {
       const vqScore = vq.qualityScore ?? 5;
@@ -580,7 +750,6 @@ Return ONLY valid JSON (no markdown, no code fences):
       else if (vqScore >= 6) { qualityBonus += 3; }
       else if (vqScore <= 3) { qualityBonus -= 5; reasons.push("Low video quality may reduce viewer retention"); }
     }
-
     const aq = analysis.audioQuality;
     if (aq) {
       const aqScore = aq.qualityScore ?? 5;
@@ -588,10 +757,9 @@ Return ONLY valid JSON (no markdown, no code fences):
       else if (aqScore >= 6) { qualityBonus += 3; }
       else if (aqScore <= 3) { qualityBonus -= 5; reasons.push("Poor audio quality may cause viewers to skip"); }
     }
-
     qualityBonus = Math.max(-15, Math.min(15, qualityBonus));
 
-    // === CONTENT CATEGORY BONUS (±5) ===
+    // === CONTENT CATEGORY BONUS ===
     let categoryBonus = 0;
     const cc = analysis.contentClassification;
     if (cc) {
@@ -605,7 +773,7 @@ Return ONLY valid JSON (no markdown, no code fences):
     }
     categoryBonus = Math.max(-5, Math.min(5, categoryBonus));
 
-    // === PATTERN MATCHING BONUS (±10) ===
+    // === PATTERN MATCHING BONUS ===
     let patternBonus = 0;
     let patternComparison = null;
 
@@ -656,7 +824,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       if (!hasMetrics && reasons.length === 0) {
         if (analysis.hookAnalysis?.score >= 5) reasons.push("Decent hook potential");
         if (analysis.captionAnalysis?.score >= 5) reasons.push("Caption has engagement potential");
-        reasons.push("Add engagement metrics for more accurate classification");
+        reasons.push("Metrics could not be extracted — score based on content analysis only");
       }
     }
 
@@ -671,7 +839,7 @@ Return ONLY valid JSON (no markdown, no code fences):
     analysis.thumbnailAnalyzed = !!visionAnalysis;
     analysis.patternComparison = patternComparison;
 
-    // Store pattern in background (don't block response)
+    // Store pattern in background
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       storePattern(analysis, url, metrics, caption || "", hashtags || "", SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
         .catch(e => console.error("Background pattern store failed:", e));
