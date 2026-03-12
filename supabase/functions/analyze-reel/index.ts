@@ -129,7 +129,7 @@ async function extractDataFromScrapedContent(markdown: string, apiKey: string): 
   if (!markdown || markdown.length < 50) return null;
 
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
