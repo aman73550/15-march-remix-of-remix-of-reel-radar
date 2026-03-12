@@ -6,7 +6,73 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Step 0: Scrape reel page with Firecrawl to get screenshot + page content
+// Step 0a: Direct HTML fetch with browser headers to extract meta tags (bypasses 403 often)
+async function scrapeMetaTags(url: string): Promise<{
+  ogImage: string;
+  ogDescription: string;
+  ogTitle: string;
+  authorName: string;
+} | null> {
+  try {
+    console.log("Attempting direct meta tag scrape:", url);
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Cache-Control": "no-cache",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+      },
+      redirect: "follow",
+    });
+
+    if (!response.ok) {
+      console.log("Direct fetch failed:", response.status);
+      return null;
+    }
+
+    const html = await response.text();
+    
+    const getMetaContent = (property: string): string => {
+      // Match both property="og:x" and name="og:x" patterns
+      const regex = new RegExp(`<meta[^>]*(?:property|name)=["']${property}["'][^>]*content=["']([^"']*)["']`, "i");
+      const regex2 = new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*(?:property|name)=["']${property}["']`, "i");
+      return regex.exec(html)?.[1] || regex2.exec(html)?.[1] || "";
+    };
+
+    const ogImage = getMetaContent("og:image");
+    const ogDescription = getMetaContent("og:description");
+    const ogTitle = getMetaContent("og:title");
+    
+    // Extract author from og:title pattern "Author on Instagram: ..."
+    let authorName = "";
+    const authorMatch = ogTitle.match(/^(.+?)\s+on\s+Instagram/i);
+    if (authorMatch) authorName = authorMatch[1];
+
+    // Also try to get from description pattern
+    if (!authorName) {
+      const descAuthor = ogDescription.match(/^(\d[\d,.KMBkmb]*)\s+likes?,\s+\d+\s+comments?\s+-\s+(.+?)\s+\(/i);
+      if (descAuthor) authorName = descAuthor[2];
+    }
+
+    console.log("Meta scrape result - ogImage:", ogImage ? "yes" : "no", "ogDesc length:", ogDescription.length, "author:", authorName);
+
+    if (!ogImage && !ogDescription) {
+      console.log("No useful meta tags found");
+      return null;
+    }
+
+    return { ogImage, ogDescription, ogTitle, authorName };
+  } catch (e) {
+    console.error("Direct meta scrape error:", e);
+    return null;
+  }
+}
+
+// Step 0b: Scrape reel page with Firecrawl to get screenshot + page content
 async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshot: string; markdown: string; html: string } | null> {
   const apiKey = Deno.env.get("FIRECRAWL_API_KEY");
   if (!apiKey) {
@@ -377,11 +443,15 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    // === STEP 1: Scrape reel page with Firecrawl ===
-    console.log("Step 1: Scraping reel page...");
+    // === STEP 1: Direct meta tag scrape (fastest, most reliable) ===
+    console.log("Step 1: Direct meta tag scrape...");
+    const metaResult = await scrapeMetaTags(url);
+
+    // === STEP 2: Firecrawl deep scrape (for screenshot + full content) ===
+    console.log("Step 2: Firecrawl deep scrape...");
     const scrapeResult = await scrapeReelWithFirecrawl(url);
 
-    // === STEP 2: Extract data from scraped content ===
+    // === STEP 3: Extract & merge data ===
     let caption = userCaption || "";
     let hashtags = userHashtags || "";
     let metrics: any = userMetrics || {};
@@ -391,21 +461,52 @@ serve(async (req) => {
     let thumbnailUrl = "";
     let screenshotUsed = false;
 
-    // Check if user provided meaningful metrics
     const userProvidedMetrics = userMetrics && Object.values(userMetrics).some((v: any) => v !== undefined && v !== null);
 
+    // Layer 1: Meta tags data (og:description often has caption + metrics)
+    if (metaResult) {
+      if (!caption && metaResult.ogDescription) {
+        // og:description format: "123 likes, 5 comments - Author (@handle) on Instagram: "caption text""
+        const descMatch = metaResult.ogDescription.match(/on Instagram:\s*["""]?(.*)/is);
+        if (descMatch) caption = descMatch[1].replace(/["""]$/, "").trim();
+        else caption = metaResult.ogDescription;
+      }
+      if (!authorName && metaResult.authorName) authorName = metaResult.authorName;
+      if (metaResult.ogImage) thumbnailUrl = metaResult.ogImage;
+      
+      // Try to extract metrics from og:description (e.g. "1,234 likes, 56 comments")
+      if (!userProvidedMetrics && metaResult.ogDescription) {
+        const likesMatch = metaResult.ogDescription.match(/([\d,.\w]+)\s+likes?/i);
+        const commentsMatch = metaResult.ogDescription.match(/([\d,.\w]+)\s+comments?/i);
+        if (likesMatch || commentsMatch) {
+          const parseNum = (s: string) => {
+            if (!s) return null;
+            s = s.replace(/,/g, "");
+            if (/k$/i.test(s)) return Math.round(parseFloat(s) * 1000);
+            if (/m$/i.test(s)) return Math.round(parseFloat(s) * 1000000);
+            return parseInt(s) || null;
+          };
+          metrics = {
+            ...metrics,
+            likes: metrics.likes || (likesMatch ? parseNum(likesMatch[1]) : null),
+            comments: metrics.comments || (commentsMatch ? parseNum(commentsMatch[1]) : null),
+          };
+          console.log("Extracted metrics from meta tags:", JSON.stringify(metrics));
+        }
+      }
+    }
+
+    // Layer 2: Firecrawl data (richer, fills remaining gaps)
     if (scrapeResult) {
-      // Use AI to extract structured data from markdown (fill gaps user didn't provide)
-      console.log("Step 2: Extracting data from scraped content...");
+      console.log("Extracting data from Firecrawl content...");
       const extracted = await extractDataFromScrapedContent(scrapeResult.markdown, LOVABLE_API_KEY);
 
       if (extracted) {
-        // Only use auto-extracted data if user didn't provide it
         if (!caption) caption = extracted.caption || "";
         if (!hashtags) hashtags = extracted.hashtags || "";
         if (!authorName) authorName = extracted.authorName || "";
         if (!sampleComments) sampleComments = extracted.sampleComments || "";
-        if (!userProvidedMetrics) {
+        if (!userProvidedMetrics && (!metrics.likes && !metrics.comments)) {
           metrics = {
             likes: extracted.likes,
             comments: extracted.comments,
@@ -414,12 +515,12 @@ serve(async (req) => {
             saves: extracted.saves,
           };
         }
-        console.log("Extracted data:", JSON.stringify({ caption: caption.substring(0, 100), hashtags, authorName, metrics }));
+        console.log("Firecrawl extracted data:", JSON.stringify({ caption: caption.substring(0, 100), hashtags, authorName }));
       }
 
-      // Use screenshot for vision analysis (much richer than thumbnail)
+      // Use screenshot for vision analysis
       if (scrapeResult.screenshot) {
-        console.log("Step 3: Running vision analysis on full screenshot...");
+        console.log("Running vision analysis on full screenshot...");
         const screenshotUrl = scrapeResult.screenshot.startsWith("data:")
           ? scrapeResult.screenshot
           : `data:image/png;base64,${scrapeResult.screenshot}`;
@@ -429,9 +530,9 @@ serve(async (req) => {
       }
     }
 
-    // === FALLBACK: oEmbed if Firecrawl failed ===
+    // === Layer 3: oEmbed fallback ===
     let metadata = "";
-    if (!scrapeResult || !visionAnalysis) {
+    if (!thumbnailUrl || !authorName) {
       console.log("Fallback: Using oEmbed...");
       try {
         const oembedUrl = `https://api.instagram.com/oembed?url=${encodeURIComponent(url)}`;
@@ -439,18 +540,35 @@ serve(async (req) => {
         if (oembedResp.ok) {
           const oembed = await oembedResp.json();
           metadata = `Title: ${oembed.title || "N/A"}\nAuthor: ${oembed.author_name || "N/A"}`;
-          thumbnailUrl = oembed.thumbnail_url || "";
+          if (!thumbnailUrl) thumbnailUrl = oembed.thumbnail_url || "";
           if (!authorName) authorName = oembed.author_name || "";
+          if (!caption && oembed.title) caption = oembed.title;
         }
       } catch {
         console.log("oEmbed fetch failed");
       }
+    }
 
-      // Fallback vision on thumbnail
-      if (thumbnailUrl && !visionAnalysis) {
-        console.log("Running vision analysis on thumbnail (fallback)...");
-        visionAnalysis = await analyzeVisual(thumbnailUrl, LOVABLE_API_KEY, false);
+    // Layer 4: Alternative oEmbed (noembed.com)
+    if (!thumbnailUrl) {
+      console.log("Fallback: Using noembed...");
+      try {
+        const noembedResp = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+        if (noembedResp.ok) {
+          const noembed = await noembedResp.json();
+          if (!thumbnailUrl && noembed.thumbnail_url) thumbnailUrl = noembed.thumbnail_url;
+          if (!authorName && noembed.author_name) authorName = noembed.author_name;
+          if (!caption && noembed.title) caption = noembed.title;
+        }
+      } catch {
+        console.log("noembed fetch failed");
       }
+    }
+
+    // Vision analysis on thumbnail if screenshot wasn't available
+    if (thumbnailUrl && !visionAnalysis) {
+      console.log("Running vision analysis on thumbnail (fallback)...");
+      visionAnalysis = await analyzeVisual(thumbnailUrl, LOVABLE_API_KEY, false);
     }
 
     if (!metadata && authorName) {
