@@ -1,37 +1,89 @@
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-// === BANNER AD (full-width, responsive, video-preferred) ===
+// Hook to fetch ad config for a slot
+function useAdSlot(slotName: string) {
+  const [ad, setAd] = useState<{ enabled: boolean; ad_code: string | null; ad_type: string } | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("ad_config")
+      .select("enabled, ad_code, ad_type")
+      .eq("slot_name", slotName)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setAd(data as any);
+      });
+  }, [slotName]);
+
+  return ad;
+}
+
+// Renders ad HTML safely (supports script tags for AdSense)
+const AdRenderer = ({ html, className = "" }: { html: string; className?: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current || !html) return;
+    containerRef.current.innerHTML = html;
+
+    // Execute any script tags (needed for AdSense)
+    const scripts = containerRef.current.querySelectorAll("script");
+    scripts.forEach((oldScript) => {
+      const newScript = document.createElement("script");
+      Array.from(oldScript.attributes).forEach((attr) =>
+        newScript.setAttribute(attr.name, attr.value)
+      );
+      newScript.textContent = oldScript.textContent;
+      oldScript.parentNode?.replaceChild(newScript, oldScript);
+    });
+  }, [html]);
+
+  return <div ref={containerRef} className={className} />;
+};
+
+// Placeholder when no ad code is set
+const AdPlaceholder = ({ label = "Ad Space" }: { label?: string }) => (
+  <div className="w-full h-full bg-gradient-to-br from-muted/30 via-card to-muted/30 flex flex-col items-center justify-center gap-2">
+    <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl gradient-primary-bg opacity-20" />
+    <span className="text-xs text-muted-foreground/40">{label}</span>
+  </div>
+);
+
+// === BANNER AD ===
 interface BannerAdProps {
   slot?: string;
   className?: string;
 }
 
-export const BannerAd = ({ slot = "banner", className = "" }: BannerAdProps) => (
-  <div className={`w-full relative z-10 ${className}`}>
-    <div className="w-full px-0 sm:px-4 sm:max-w-2xl sm:mx-auto">
-      <div className="w-full sm:rounded-lg border-y sm:border border-border bg-card overflow-hidden">
-        <div className="text-center text-[10px] text-muted-foreground/60 py-0.5 bg-muted/20 border-b border-border">
-          Sponsored · Ad
-        </div>
-        <div
-          className="w-full aspect-video sm:h-[120px] sm:aspect-auto flex items-center justify-center"
-          data-ad-slot={slot}
-          data-ad-format="video"
-          id={`ad-${slot}`}
-        >
-          {/* Replace with real video ad code (Google AdSense video, etc.) */}
-          <div className="w-full h-full bg-gradient-to-br from-muted/30 via-card to-muted/30 flex flex-col items-center justify-center gap-2">
-            <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl gradient-primary-bg opacity-20" />
-            <span className="text-xs text-muted-foreground/40">Video Ad Space</span>
+export const BannerAd = ({ slot = "banner", className = "" }: BannerAdProps) => {
+  const ad = useAdSlot(slot === "banner" ? "banner-top" : slot.startsWith("banner-") ? slot : `banner-${slot}`);
+
+  if (ad && !ad.enabled) return null;
+
+  return (
+    <div className={`w-full relative z-10 ${className}`}>
+      <div className="w-full px-0 sm:px-4 sm:max-w-2xl sm:mx-auto">
+        <div className="w-full sm:rounded-lg border-y sm:border border-border bg-card overflow-hidden">
+          <div className="text-center text-[10px] text-muted-foreground/60 py-0.5 bg-muted/20 border-b border-border">
+            Sponsored · Ad
+          </div>
+          <div className="w-full aspect-video sm:h-[120px] sm:aspect-auto flex items-center justify-center">
+            {ad?.ad_code ? (
+              <AdRenderer html={ad.ad_code} className="w-full h-full flex items-center justify-center" />
+            ) : (
+              <AdPlaceholder label="Banner Ad" />
+            )}
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-// === INTERSTITIAL AD (fullscreen overlay, closeable, video-focused) ===
+// === INTERSTITIAL AD ===
 interface InterstitialAdProps {
   show: boolean;
   onClose: () => void;
@@ -55,7 +107,6 @@ export const InterstitialAd = ({ show, onClose }: InterstitialAdProps) => {
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", damping: 25 }}
           >
-            {/* Close button */}
             <button
               onClick={onClose}
               className="absolute top-3 right-3 sm:-top-3 sm:-right-3 z-10 w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
@@ -63,23 +114,12 @@ export const InterstitialAd = ({ show, onClose }: InterstitialAdProps) => {
               <X className="w-4 h-4" />
             </button>
 
-            {/* Mobile: full screen video ad */}
             <div className="flex-1 sm:rounded-xl border-0 sm:border border-border bg-card overflow-hidden sm:shadow-2xl flex flex-col">
               <div className="text-center text-xs text-muted-foreground py-1.5 bg-muted/30 border-b border-border">
                 Sponsored · Ad
               </div>
-              <div
-                className="flex-1 sm:h-[400px] w-full flex items-center justify-center"
-                data-ad-slot="interstitial"
-                data-ad-format="video"
-                id="ad-interstitial"
-              >
-                {/* Replace with real video ad */}
-                <div className="w-full h-full bg-gradient-to-br from-muted/30 via-card to-muted/30 flex flex-col items-center justify-center gap-3">
-                  <div className="w-20 h-20 sm:w-16 sm:h-16 rounded-2xl gradient-primary-bg opacity-20" />
-                  <span className="text-sm text-muted-foreground/50">Video Ad</span>
-                  <span className="text-xs text-muted-foreground/30">Full Screen · Video Preferred</span>
-                </div>
+              <div className="flex-1 sm:h-[400px] w-full flex items-center justify-center">
+                <AdPlaceholder label="Interstitial Ad" />
               </div>
             </div>
 
@@ -93,70 +133,73 @@ export const InterstitialAd = ({ show, onClose }: InterstitialAdProps) => {
   );
 };
 
-// === INLINE AD (between content sections, full-width, video-preferred) ===
+// === INLINE AD ===
 interface InlineAdProps {
   slot?: string;
 }
 
-export const InlineAd = ({ slot = "inline" }: InlineAdProps) => (
-  <div className="w-full sm:rounded-lg border-y sm:border border-border bg-card overflow-hidden">
-    <div className="text-center text-[10px] text-muted-foreground/50 py-0.5 bg-muted/20 border-b border-border">
-      Sponsored
-    </div>
-    <div
-      className="w-full aspect-[16/7] sm:h-[80px] sm:aspect-auto flex items-center justify-center"
-      data-ad-slot={slot}
-      data-ad-format="video"
-      id={`ad-${slot}`}
-    >
-      <div className="w-full h-full bg-gradient-to-r from-muted/20 via-card to-muted/20 flex items-center justify-center">
-        <span className="text-[10px] text-muted-foreground/40">Video Ad</span>
+export const InlineAd = ({ slot = "inline" }: InlineAdProps) => {
+  const slotName = slot.startsWith("banner-") ? slot : `banner-${slot}`;
+  const ad = useAdSlot(slotName);
+
+  if (ad && !ad.enabled) return null;
+
+  return (
+    <div className="w-full sm:rounded-lg border-y sm:border border-border bg-card overflow-hidden">
+      <div className="text-center text-[10px] text-muted-foreground/50 py-0.5 bg-muted/20 border-b border-border">
+        Sponsored
+      </div>
+      <div className="w-full aspect-[16/7] sm:h-[80px] sm:aspect-auto flex items-center justify-center">
+        {ad?.ad_code ? (
+          <AdRenderer html={ad.ad_code} className="w-full h-full flex items-center justify-center" />
+        ) : (
+          <AdPlaceholder label="Inline Ad" />
+        )}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-// === SIDEBAR ADS (desktop only, sticky, left & right) ===
-export const SidebarAds = () => (
-  <>
-    {/* Left sidebar */}
-    <div className="hidden xl:block fixed left-0 top-1/2 -translate-y-1/2 z-20 w-[160px] pl-2">
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        <div className="text-center text-[9px] text-muted-foreground/50 py-0.5 bg-muted/20 border-b border-border">
-          Ad
-        </div>
-        <div
-          className="w-full h-[600px] flex items-center justify-center"
-          data-ad-slot="sidebar-left"
-          data-ad-format="vertical"
-          id="ad-sidebar-left"
-        >
-          <div className="w-full h-full bg-gradient-to-b from-muted/20 via-card to-muted/20 flex flex-col items-center justify-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-primary-bg opacity-15" />
-            <span className="text-[9px] text-muted-foreground/30 [writing-mode:vertical-lr]">Ad Space</span>
+// === SIDEBAR ADS ===
+export const SidebarAds = () => {
+  const leftAd = useAdSlot("sidebar-left");
+  const rightAd = useAdSlot("sidebar-right");
+
+  return (
+    <>
+      {(!leftAd || leftAd.enabled) && (
+        <div className="hidden xl:block fixed left-0 top-1/2 -translate-y-1/2 z-20 w-[160px] pl-2">
+          <div className="rounded-lg border border-border bg-card overflow-hidden">
+            <div className="text-center text-[9px] text-muted-foreground/50 py-0.5 bg-muted/20 border-b border-border">
+              Ad
+            </div>
+            <div className="w-full h-[600px] flex items-center justify-center">
+              {leftAd?.ad_code ? (
+                <AdRenderer html={leftAd.ad_code} className="w-full h-full" />
+              ) : (
+                <AdPlaceholder label="Sidebar Ad" />
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      )}
 
-    {/* Right sidebar */}
-    <div className="hidden xl:block fixed right-0 top-1/2 -translate-y-1/2 z-20 w-[160px] pr-2">
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        <div className="text-center text-[9px] text-muted-foreground/50 py-0.5 bg-muted/20 border-b border-border">
-          Ad
-        </div>
-        <div
-          className="w-full h-[600px] flex items-center justify-center"
-          data-ad-slot="sidebar-right"
-          data-ad-format="vertical"
-          id="ad-sidebar-right"
-        >
-          <div className="w-full h-full bg-gradient-to-b from-muted/20 via-card to-muted/20 flex flex-col items-center justify-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-primary-bg opacity-15" />
-            <span className="text-[9px] text-muted-foreground/30 [writing-mode:vertical-lr]">Ad Space</span>
+      {(!rightAd || rightAd.enabled) && (
+        <div className="hidden xl:block fixed right-0 top-1/2 -translate-y-1/2 z-20 w-[160px] pr-2">
+          <div className="rounded-lg border border-border bg-card overflow-hidden">
+            <div className="text-center text-[9px] text-muted-foreground/50 py-0.5 bg-muted/20 border-b border-border">
+              Ad
+            </div>
+            <div className="w-full h-[600px] flex items-center justify-center">
+              {rightAd?.ad_code ? (
+                <AdRenderer html={rightAd.ad_code} className="w-full h-full" />
+              ) : (
+                <AdPlaceholder label="Sidebar Ad" />
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </>
-);
+      )}
+    </>
+  );
+};
