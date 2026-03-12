@@ -14,7 +14,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, today: 0, week: 0, month: 0 });
   const [paidStats, setPaidStats] = useState({ total: 0, revenue: 0, today: 0, todayRevenue: 0, pending: 0 });
-  const [adSlots, setAdSlots] = useState<{ id: string; slot_name: string; enabled: boolean; ad_code: string | null }[]>([]);
+  const [adSlots, setAdSlots] = useState<{ id: string; slot_name: string; enabled: boolean; ad_code: string | null; ad_type: string }[]>([]);
+  const [editingSlot, setEditingSlot] = useState<string | null>(null);
+  const [slotDraft, setSlotDraft] = useState<{ ad_type: string; ad_code: string }>({ ad_type: "custom", ad_code: "" });
   const [recentUrls, setRecentUrls] = useState<{ reel_url: string; created_at: string }[]>([]);
   const [recentReports, setRecentReports] = useState<any[]>([]);
   const [config, setConfig] = useState<Record<string, string>>({});
@@ -337,19 +339,108 @@ const AdminDashboard = () => {
                 <Megaphone className="w-4 h-4 sm:w-5 sm:h-5 text-accent flex-shrink-0" />
                 Ad Slots
               </CardTitle>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Google AdSense, Affiliate links, ya custom HTML ads lagao</p>
             </CardHeader>
             <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-2 sm:space-y-3">
-              {adSlots.map((slot) => (
-                <div key={slot.id} className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-muted/30 border border-border gap-2">
-                  <Label className="text-xs sm:text-sm text-foreground cursor-pointer truncate">
-                    {slotLabels[slot.slot_name] || slot.slot_name}
-                  </Label>
-                  <Switch
-                    checked={slot.enabled}
-                    onCheckedChange={(checked) => toggleAd(slot.id, checked)}
-                  />
-                </div>
-              ))}
+              {adSlots.map((slot) => {
+                const isEditing = editingSlot === slot.id;
+                return (
+                  <div key={slot.id} className="rounded-lg bg-muted/30 border border-border overflow-hidden">
+                    <div className="flex items-center justify-between p-2.5 sm:p-3 gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Label className="text-xs sm:text-sm text-foreground cursor-pointer truncate">
+                          {slotLabels[slot.slot_name] || slot.slot_name}
+                        </Label>
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] font-medium ${
+                          slot.ad_type === "adsense" ? "bg-primary/20 text-primary" :
+                          slot.ad_type === "affiliate" ? "bg-accent/20 text-accent" :
+                          "bg-secondary/20 text-secondary"
+                        }`}>
+                          {slot.ad_type === "adsense" ? "AdSense" : slot.ad_type === "affiliate" ? "Affiliate" : "Custom"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[10px] sm:text-xs"
+                          onClick={() => {
+                            if (isEditing) {
+                              setEditingSlot(null);
+                            } else {
+                              setEditingSlot(slot.id);
+                              setSlotDraft({ ad_type: slot.ad_type || "custom", ad_code: slot.ad_code || "" });
+                            }
+                          }}
+                        >
+                          {isEditing ? "Cancel" : "Edit"}
+                        </Button>
+                        <Switch
+                          checked={slot.enabled}
+                          onCheckedChange={(checked) => toggleAd(slot.id, checked)}
+                        />
+                      </div>
+                    </div>
+
+                    {isEditing && (
+                      <div className="px-2.5 sm:px-3 pb-3 space-y-2 border-t border-border pt-2">
+                        <div className="space-y-1">
+                          <Label className="text-[10px] sm:text-xs text-muted-foreground">Ad Type</Label>
+                          <select
+                            value={slotDraft.ad_type}
+                            onChange={(e) => setSlotDraft(prev => ({ ...prev, ad_type: e.target.value }))}
+                            className="w-full h-8 px-2 rounded-md bg-muted/50 border border-border text-foreground text-xs"
+                          >
+                            <option value="adsense">Google AdSense</option>
+                            <option value="affiliate">Affiliate Ad</option>
+                            <option value="custom">Custom HTML</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] sm:text-xs text-muted-foreground">
+                            {slotDraft.ad_type === "adsense" ? "AdSense Code (paste <script> + <ins> tag)" :
+                             slotDraft.ad_type === "affiliate" ? "Affiliate HTML (banner img, link, etc.)" :
+                             "Custom HTML/JS Code"}
+                          </Label>
+                          <textarea
+                            value={slotDraft.ad_code}
+                            onChange={(e) => setSlotDraft(prev => ({ ...prev, ad_code: e.target.value }))}
+                            placeholder={
+                              slotDraft.ad_type === "adsense"
+                                ? '<ins class="adsbygoogle"...\n<script>(adsbygoogle = ...).push({});</script>'
+                                : slotDraft.ad_type === "affiliate"
+                                ? '<a href="https://affiliate-link.com"><img src="banner.jpg" /></a>'
+                                : '<div>Your custom ad HTML here</div>'
+                            }
+                            rows={4}
+                            className="w-full px-2 py-1.5 rounded-md bg-muted/50 border border-border text-foreground text-xs font-mono resize-y min-h-[80px]"
+                          />
+                        </div>
+                        <Button
+                          size="sm"
+                          className="w-full h-8 text-xs gradient-primary-bg text-primary-foreground"
+                          onClick={async () => {
+                            const { error } = await supabase
+                              .from("ad_config")
+                              .update({
+                                ad_type: slotDraft.ad_type,
+                                ad_code: slotDraft.ad_code,
+                                updated_at: new Date().toISOString(),
+                              } as any)
+                              .eq("id", slot.id);
+                            if (error) { toast.error("Failed to save ad"); return; }
+                            setAdSlots(prev => prev.map(s => s.id === slot.id ? { ...s, ad_type: slotDraft.ad_type, ad_code: slotDraft.ad_code } : s));
+                            setEditingSlot(null);
+                            toast.success("Ad saved!");
+                          }}
+                        >
+                          Save Ad Code
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
         </div>

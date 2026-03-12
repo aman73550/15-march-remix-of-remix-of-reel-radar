@@ -17,6 +17,7 @@ export type Database = {
       ad_config: {
         Row: {
           ad_code: string | null
+          ad_type: string
           enabled: boolean
           id: string
           slot_name: string
@@ -24,6 +25,7 @@ export type Database = {
         }
         Insert: {
           ad_code?: string | null
+          ad_type?: string
           enabled?: boolean
           id?: string
           slot_name: string
@@ -31,6 +33,7 @@ export type Database = {
         }
         Update: {
           ad_code?: string | null
+          ad_type?: string
           enabled?: boolean
           id?: string
           slot_name?: string
