@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, CheckCircle2, Link, Video, ScanSearch, Brain, FileText } from "lucide-react";
 import { BannerAd } from "./AdSlots";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProcessingOverlayProps {
   show: boolean;
