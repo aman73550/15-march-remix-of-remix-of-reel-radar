@@ -193,6 +193,88 @@ const AdminDashboard = () => {
     });
   };
 
+  const handleAdminGenerateReport = async () => {
+    if (!adminReelUrl.trim()) { toast.error("Enter a reel URL"); return; }
+    setAdminGenerating(true);
+    setAdminReportData(null);
+    try {
+      // Step 1: Analyze the reel
+      const { data: analysisData, error: analysisErr } = await supabase.functions.invoke("analyze-reel", {
+        body: { reelUrl: adminReelUrl.trim() },
+      });
+      if (analysisErr || !analysisData?.success) throw new Error(analysisData?.error || "Analysis failed");
+
+      const analysis = analysisData.analysis;
+
+      // Step 2: Generate master report (no payment needed)
+      const { data: reportData, error: reportErr } = await supabase.functions.invoke("generate-master-report", {
+        body: { reportId: "admin-" + Date.now(), analysisData: analysis, reelUrl: adminReelUrl.trim() },
+      });
+      if (reportErr || !reportData?.success) throw new Error(reportData?.error || "Report generation failed");
+
+      setAdminReportData({ analysis, premium: reportData.premiumAnalysis });
+      toast.success("Master Report generated! 🎉");
+    } catch (err: any) {
+      console.error("Admin report error:", err);
+      toast.error(err.message || "Failed to generate report");
+    } finally {
+      setAdminGenerating(false);
+    }
+  };
+
+  const handleAdminDownloadTxt = () => {
+    if (!adminReportData) return;
+    const { analysis, premium } = adminReportData;
+    const lines: string[] = [];
+    lines.push("═══════════════════════════════════════════");
+    lines.push("       MASTER VIRAL ANALYSIS REPORT");
+    lines.push("       Admin Generated — No Payment");
+    lines.push("═══════════════════════════════════════════");
+    lines.push("");
+    lines.push(`Reel URL: ${adminReelUrl}`);
+    lines.push(`Generated: ${new Date().toLocaleString("en-IN")}`);
+    lines.push(`Viral Score: ${analysis.viralClassification?.score || analysis.viralScore || 0}/80`);
+    lines.push(`Status: ${analysis.viralClassification?.status || "N/A"}`);
+    lines.push("");
+
+    if (premium.scoreBreakdown) {
+      lines.push("── SCORE BREAKDOWN ──");
+      Object.entries(premium.scoreBreakdown).forEach(([k, v]) => lines.push(`  ${k}: ${v}/8`));
+      lines.push("");
+    }
+    if (premium.viralityInsights) {
+      lines.push("── VIRALITY INSIGHTS ──");
+      Object.entries(premium.viralityInsights).forEach(([k, v]: [string, any]) => {
+        lines.push(`  ${k}:`);
+        if (v?.impact) lines.push(`    Impact: ${v.impact}`);
+        if (v?.reason) lines.push(`    Reason: ${v.reason}`);
+        if (v?.solution) lines.push(`    Solution: ${v.solution}`);
+      });
+      lines.push("");
+    }
+    if (premium.improvementRoadmap) {
+      lines.push("── 5-STEP IMPROVEMENT ROADMAP ──");
+      premium.improvementRoadmap.forEach((step: any, i: number) => {
+        lines.push(`  Step ${i + 1}: ${step.title || step.step || ""}`);
+        if (step.description) lines.push(`    ${step.description}`);
+      });
+      lines.push("");
+    }
+    if (premium.quickTips) {
+      lines.push("── QUICK TIPS ──");
+      premium.quickTips.forEach((t: string, i: number) => lines.push(`  ${i + 1}. ${t}`));
+      lines.push("");
+    }
+
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `master-report-admin-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
