@@ -535,7 +535,7 @@ serve(async (req) => {
         const screenshotUrl = scrapeResult.screenshot.startsWith("data:")
           ? scrapeResult.screenshot
           : `data:image/png;base64,${scrapeResult.screenshot}`;
-        visionAnalysis = await analyzeVisual(screenshotUrl, LOVABLE_API_KEY, true);
+        visionAnalysis = await analyzeVisual(screenshotUrl, GEMINI_API_KEY, true);
         screenshotUsed = true;
         console.log("Screenshot vision analysis complete");
       }
