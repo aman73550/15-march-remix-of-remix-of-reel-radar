@@ -361,7 +361,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { url, lang = "en" } = await req.json();
+    const { url, lang = "en", caption: userCaption, hashtags: userHashtags, metrics: userMetrics, sampleComments: userComments } = await req.json();
     const respondInHindi = lang === "hi";
 
     if (!url) {
@@ -382,32 +382,38 @@ serve(async (req) => {
     const scrapeResult = await scrapeReelWithFirecrawl(url);
 
     // === STEP 2: Extract data from scraped content ===
-    let caption = "";
-    let hashtags = "";
-    let metrics: any = {};
-    let sampleComments = "";
+    let caption = userCaption || "";
+    let hashtags = userHashtags || "";
+    let metrics: any = userMetrics || {};
+    let sampleComments = userComments || "";
     let authorName = "";
     let visionAnalysis = "";
     let thumbnailUrl = "";
     let screenshotUsed = false;
 
+    // Check if user provided meaningful metrics
+    const userProvidedMetrics = userMetrics && Object.values(userMetrics).some((v: any) => v !== undefined && v !== null);
+
     if (scrapeResult) {
-      // Use AI to extract structured data from markdown
+      // Use AI to extract structured data from markdown (fill gaps user didn't provide)
       console.log("Step 2: Extracting data from scraped content...");
       const extracted = await extractDataFromScrapedContent(scrapeResult.markdown, LOVABLE_API_KEY);
 
       if (extracted) {
-        caption = extracted.caption || "";
-        hashtags = extracted.hashtags || "";
-        authorName = extracted.authorName || "";
-        sampleComments = extracted.sampleComments || "";
-        metrics = {
-          likes: extracted.likes,
-          comments: extracted.comments,
-          views: extracted.views,
-          shares: extracted.shares,
-          saves: extracted.saves,
-        };
+        // Only use auto-extracted data if user didn't provide it
+        if (!caption) caption = extracted.caption || "";
+        if (!hashtags) hashtags = extracted.hashtags || "";
+        if (!authorName) authorName = extracted.authorName || "";
+        if (!sampleComments) sampleComments = extracted.sampleComments || "";
+        if (!userProvidedMetrics) {
+          metrics = {
+            likes: extracted.likes,
+            comments: extracted.comments,
+            views: extracted.views,
+            shares: extracted.shares,
+            saves: extracted.saves,
+          };
+        }
         console.log("Extracted data:", JSON.stringify({ caption: caption.substring(0, 100), hashtags, authorName, metrics }));
       }
 
