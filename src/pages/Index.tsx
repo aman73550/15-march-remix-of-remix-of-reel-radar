@@ -280,7 +280,7 @@ const Index = () => {
               <motion.div className="sm:col-span-3" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
                 <Card className="glass p-5 sm:p-8 flex flex-col items-center h-full justify-center">
                   <ViralScoreCircle score={analysis.viralClassification?.score ?? analysis.viralScore} />
-                  <motion.p className="mt-4 text-sm text-muted-foreground text-center max-w-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
+                  <motion.p className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground text-center max-w-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
                     {analysis.overallSummary}
                   </motion.p>
                 </Card>

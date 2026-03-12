@@ -72,7 +72,7 @@ const ViralStatusBadge = ({ classification }: Props) => {
           <div className="text-right">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
             <motion.p
-              className={`text-3xl font-bold ${c.color}`}
+              className={`text-2xl sm:text-3xl font-bold ${c.color}`}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", delay: 0.3 }}
