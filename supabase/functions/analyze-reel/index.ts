@@ -627,11 +627,20 @@ serve(async (req) => {
         };
       }
 
-      // Capture screenshot URL for vision in the single AI call
-      if (scrapeResult.screenshot) {
-        screenshotUrl = scrapeResult.screenshot.startsWith("data:")
-          ? scrapeResult.screenshot
-          : `data:image/png;base64,${scrapeResult.screenshot}`;
+      // Capture ALL screenshot URLs for multi-image vision
+      if (scrapeResult.screenshots && scrapeResult.screenshots.length > 0) {
+        for (const shot of scrapeResult.screenshots) {
+          if (shot) {
+            const shotUrl = shot.startsWith("data:")
+              ? shot
+              : shot.startsWith("http")
+              ? shot
+              : `data:image/png;base64,${shot}`;
+            screenshotUrls.push(shotUrl);
+          }
+        }
+        screenshotUrl = screenshotUrls[0] || "";
+        console.log(`Prepared ${screenshotUrls.length} screenshot(s) for AI vision`);
       }
     }
 
