@@ -363,10 +363,14 @@ const Index = () => {
               </Card>
             </motion.div>
 
+            <InlineAd slot="after-recommendations" />
+
             {/* Master Report CTA */}
             <div ref={masterReportRef}>
               <MasterReportButton analysis={analysis} reelUrl={url} />
             </div>
+
+            <InlineAd slot="master-report-below" />
 
             {/* Example PDF Preview */}
             <ExamplePDFPreview />
