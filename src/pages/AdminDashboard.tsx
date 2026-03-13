@@ -11,6 +11,8 @@ import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar,
 import MasterReportPDF from "@/components/MasterReportPDF";
 import AdminBehaviourSettings from "@/components/AdminBehaviourSettings";
 import AdminAIUsage from "@/components/AdminAIUsage";
+import SEOResultsDisplay from "@/components/SEOResultsDisplay";
+import { Textarea } from "@/components/ui/textarea";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
