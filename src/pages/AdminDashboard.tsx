@@ -623,7 +623,7 @@ const AdminDashboard = () => {
             <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
               <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
                 <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-[hsl(var(--viral-high))] flex-shrink-0" />
-                Recent Reports
+                Recent Paid Reports
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
@@ -654,12 +654,12 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Recent Usage */}
+          {/* Recent Free Analyses */}
           <Card className="border-border bg-card">
             <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
               <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
                 <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
-                Recent Analyses
+                Recent Free Analyses
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
