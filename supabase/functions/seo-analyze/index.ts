@@ -158,15 +158,17 @@ Be specific, actionable, and data-driven. All recommendations should be optimize
       throw new Error("Failed to parse SEO analysis");
     }
 
-    // Update the paid report with SEO results
-    await supabase
-      .from("paid_reports")
-      .update({
-        analysis_data: seoResult,
-        status: "completed",
-        completed_at: new Date().toISOString(),
-      })
-      .eq("id", reportId);
+    // Update the paid report with SEO results (skip for admin free)
+    if (!adminFree && reportId) {
+      await supabase
+        .from("paid_reports")
+        .update({
+          analysis_data: seoResult,
+          status: "completed",
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", reportId);
+    }
 
     const durationMs = Date.now() - startTime;
 
