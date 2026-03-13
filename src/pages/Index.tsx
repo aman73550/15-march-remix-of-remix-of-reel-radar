@@ -333,6 +333,8 @@ const Index = () => {
             {analysis.captionAnalysis && <CaptionAnalysisCard data={analysis.captionAnalysis} title={t.captionTitle} />}
             {analysis.hashtagAnalysis && <HashtagAnalysisCard data={analysis.hashtagAnalysis} title={t.hashtagTitle} />}
 
+            <InlineAd slot="after-hooks" />
+
             <InlineAd slot="mid-2" />
 
             {analysis.videoSignals && <VideoSignalsCard data={analysis.videoSignals} title={t.videoTitle} />}
