@@ -68,7 +68,7 @@ const Index = () => {
   const inputRef = useRef<HTMLDivElement>(null);
   const masterReportRef = useRef<HTMLDivElement>(null);
   const [activeTool, setActiveTool] = useState<"reel" | "seo">("reel");
-
+  const [seoSheetOpen, setSeoSheetOpen] = useState(false);
   const scrollToMasterReport = () => {
     masterReportRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
