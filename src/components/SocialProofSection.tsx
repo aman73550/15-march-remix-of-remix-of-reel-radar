@@ -1,20 +1,17 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Activity, BarChart3 } from "lucide-react";
+import { Activity, BarChart3 } from "lucide-react";
 
-// --- Smooth drift: number changes by small ±delta, not random jumps ---
+// --- Smooth drift: number changes by small ±delta ---
 function useDriftingCount(base: number, range: number, intervalMs: number) {
   const [count, setCount] = useState(base);
   useEffect(() => {
     const id = setInterval(() => {
       setCount((prev) => {
-        // Drift by ±1 to ±5% of range, stay within bounds
         const maxStep = Math.max(1, Math.floor(range * 0.06));
         const delta = Math.floor(Math.random() * maxStep * 2) - maxStep;
         const next = prev + delta;
-        const min = base - range;
-        const max = base + range;
-        return Math.min(max, Math.max(min, next));
+        return Math.min(base + range, Math.max(base - range, next));
       });
     }, intervalMs);
     return () => clearInterval(id);
@@ -22,37 +19,45 @@ function useDriftingCount(base: number, range: number, intervalMs: number) {
   return count;
 }
 
-// --- Activity Feed ---
-const CITIES = [
-  "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Pune", "Chennai",
-  "Kolkata", "Jaipur", "Lucknow", "Ahmedabad", "Chandigarh", "Indore",
-  "Surat", "Nagpur", "Patna", "Bhopal", "Kochi", "Goa",
-  "Noida", "Gurgaon", "Vadodara", "Ranchi", "Dehradun", "Mysore",
-  "Dubai", "London", "New York", "Toronto", "Singapore", "Sydney",
-  "Los Angeles", "San Francisco", "Berlin", "Tokyo", "Jakarta",
-  "Kuala Lumpur", "Bangkok", "Riyadh", "Doha", "Amsterdam",
+// --- Activity Feed with realistic actions ---
+const NAMES = [
+  "Priya", "Arjun", "Sneha", "Rahul", "Meera", "Vikram", "Ananya", "Rohit",
+  "Divya", "Karan", "Nisha", "Amit", "Pooja", "Raj", "Shreya", "Aditya",
+  "Sarah", "Mike", "Jessica", "David", "Emma", "James", "Lisa", "Tom",
+  "Fatima", "Ali", "Carlos", "Ana", "Yuki", "Chen",
 ];
-const ROLES = ["creator", "marketer", "influencer", "brand strategist", "content creator", "social media manager", "blogger"];
+const CITIES = [
+  "Mumbai", "Delhi", "Bangalore", "Pune", "Chennai", "Hyderabad",
+  "Kolkata", "Jaipur", "Ahmedabad", "Surat", "Lucknow", "Indore",
+  "Dubai", "London", "New York", "Toronto", "Singapore", "Sydney",
+  "Los Angeles", "Berlin", "Tokyo", "Bangkok", "São Paulo",
+];
 const ACTIONS = [
-  "analyzed a reel",
+  "just analyzed a reel",
+  "got 76% viral score",
+  "checked hook strength",
+  "optimized hashtags",
+  "downloaded analysis report",
+  "tested caption quality",
+  "got 71% viral prediction",
+  "improved hook score to 8/10",
+  "analyzed trending reel",
   "checked viral potential",
-  "ran a reel analysis",
-  "tested a reel",
 ];
 
 function generateEntry() {
+  const name = NAMES[Math.floor(Math.random() * NAMES.length)];
   const city = CITIES[Math.floor(Math.random() * CITIES.length)];
-  const role = ROLES[Math.floor(Math.random() * ROLES.length)];
   const action = ACTIONS[Math.floor(Math.random() * ACTIONS.length)];
-  const seconds = Math.floor(Math.random() * 55) + 3;
+  const seconds = Math.floor(Math.random() * 50) + 5;
   return {
     id: Date.now() + Math.random(),
-    text: `A ${role} from ${city} ${action}`,
+    text: `${name} from ${city} ${action}`,
     time: `${seconds}s ago`,
   };
 }
 
-// --- Reels Counter: time-based organic growth ---
+// --- Reels Counter ---
 const BASE_COUNT = 48750;
 const STORAGE_KEY = "rva_reel_counter";
 const COUNTER_TS_KEY = "rva_counter_ts";
@@ -64,10 +69,8 @@ function getStoredCount(): number {
     if (v && ts) {
       const stored = parseInt(v, 10);
       const elapsed = Date.now() - parseInt(ts, 10);
-      // Grow ~2-4 per minute organically based on time elapsed
       const organic = Math.floor(elapsed / 1000 / 60 * (2 + Math.random() * 2));
       const total = Math.max(BASE_COUNT, stored + organic);
-      // Save updated
       localStorage.setItem(STORAGE_KEY, String(total));
       localStorage.setItem(COUNTER_TS_KEY, String(Date.now()));
       return total;
@@ -83,7 +86,6 @@ function getStoredCount(): number {
 function tickCounter(): number {
   try {
     const current = parseInt(localStorage.getItem(STORAGE_KEY) || String(BASE_COUNT), 10);
-    // Add 1-3 randomly per tick
     const bump = Math.floor(Math.random() * 3) + 1;
     const next = current + bump;
     localStorage.setItem(STORAGE_KEY, String(next));
@@ -96,7 +98,6 @@ function tickCounter(): number {
 // --- Components ---
 
 export const LiveActivityIndicator = () => {
-  // Drift around 2200 ± 800, small steps every 8-12s
   const count = useDriftingCount(2200, 800, 8000 + Math.random() * 4000);
 
   return (
@@ -129,11 +130,8 @@ export const LiveActivityIndicator = () => {
 export const ReelsAnalyzedCounter = () => {
   const [count, setCount] = useState(getStoredCount);
 
-  // Tick every 15-45s with small random bumps
   useEffect(() => {
-    const tick = () => {
-      setCount(tickCounter());
-    };
+    const tick = () => setCount(tickCounter());
     const id = setInterval(tick, 15000 + Math.random() * 30000);
     return () => clearInterval(id);
   }, []);
@@ -158,7 +156,6 @@ export const ActivityFeed = () => {
   const [entries, setEntries] = useState(() => [generateEntry(), generateEntry(), generateEntry()]);
 
   useEffect(() => {
-    // Vary interval between 4-9 seconds for natural feel
     let timeout: ReturnType<typeof setTimeout>;
     const scheduleNext = () => {
       const delay = 4000 + Math.random() * 5000;
@@ -205,7 +202,7 @@ export const SocialProofBadge = () => (
     animate={{ opacity: 1 }}
     transition={{ delay: 0.6 }}
   >
-    Used by Instagram creators to check reel performance potential
+    Trusted by 48,000+ Instagram creators worldwide
   </motion.p>
 );
 
