@@ -105,7 +105,7 @@ export function useBehaviourSettings() {
         .from("site_config")
         .select("config_key, config_value")
         .eq("config_key", "behaviour_settings")
-        .single();
+        .maybeSingle();
       if (data) {
         try {
           setSettings(JSON.parse((data as any).config_value));

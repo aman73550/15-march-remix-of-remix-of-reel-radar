@@ -92,7 +92,7 @@ export default function AdminBehaviourSettings() {
         .from("site_config")
         .select("id")
         .eq("config_key", "behaviour_settings")
-        .single();
+        .maybeSingle();
 
       const payload = { config_key: "behaviour_settings", config_value: JSON.stringify(settings), updated_at: new Date().toISOString() };
 
