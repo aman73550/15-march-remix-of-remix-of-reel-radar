@@ -349,6 +349,29 @@ const Index = () => {
               </motion.div>
             </div>
 
+            {/* Radar Chart + Engagement Donut */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
+                <Card className="glass p-5">
+                  <h3 className="font-semibold text-foreground text-sm mb-3 flex items-center gap-2">🕸️ Performance Radar</h3>
+                  <ScoreRadarChart hookScore={scores.hook} captionScore={scores.caption} hashtagScore={scores.hashtag} engagementScore={scores.engagement} trendScore={scores.trend} labels={chartLabels} />
+                </Card>
+              </motion.div>
+              {analysis.metricsComparison && (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                  <Card className="glass p-5">
+                    <h3 className="font-semibold text-foreground text-sm mb-3 flex items-center gap-2">🎯 Engagement Breakdown</h3>
+                    <EngagementDonutChart
+                      likes={analysis.metricsComparison.likes?.value}
+                      comments={analysis.metricsComparison.comments?.value}
+                      shares={analysis.metricsComparison.shares?.value}
+                      saves={analysis.metricsComparison.saves?.value}
+                    />
+                  </Card>
+                </motion.div>
+              )}
+            </div>
+
             <InlineAd slot="after-charts" />
 
             {analysis.patternComparison && (
