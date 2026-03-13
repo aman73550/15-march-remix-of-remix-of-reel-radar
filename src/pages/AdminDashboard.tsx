@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Menu, X, Star, Crown, Loader2, Download, ArrowLeft } from "lucide-react";
 import MasterReportPDF from "@/components/MasterReportPDF";
 import AdminBehaviourSettings from "@/components/AdminBehaviourSettings";
+import AdminAIUsage from "@/components/AdminAIUsage";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -651,6 +652,9 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* AI & API Usage Analyzer */}
+        <AdminAIUsage />
 
         {/* Admin Master Report Generator */}
         <div>

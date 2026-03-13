@@ -99,6 +99,11 @@ serve(async (req) => {
       });
     }
 
+    // Log usage
+    supabase.from("api_usage_logs").insert({
+      function_name: "create-payment", is_ai_call: false, estimated_cost: 0, status_code: 200,
+    }).catch(() => {});
+
     // Fallback: return report info for manual/WhatsApp payment
     return new Response(JSON.stringify({
       success: true,
