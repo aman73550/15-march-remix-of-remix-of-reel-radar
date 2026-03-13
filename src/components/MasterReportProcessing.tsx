@@ -122,6 +122,11 @@ const MasterReportProcessing = ({ show, reportReady, onDownload }: Props) => {
           </div>
         </div>
 
+        {/* Ad below progress bar */}
+        <div className="-mx-6 sm:mx-0">
+          <BannerAd slot="report-progress-below" />
+        </div>
+
         {/* Steps */}
         <div className="space-y-1.5">
           {STEPS.map((step, i) => {
@@ -169,14 +174,14 @@ const MasterReportProcessing = ({ show, reportReady, onDownload }: Props) => {
           </motion.div>
         )}
 
-        {/* Ads */}
+        {/* Ads during processing */}
         {!completed && (
           <>
             <div className="-mx-6 sm:mx-0">
               <BannerAd slot="processing-overlay" />
             </div>
             <div className="-mx-6 sm:mx-0">
-              <BannerAd slot="banner-bottom" />
+              <BannerAd slot="report-processing-bottom" />
             </div>
           </>
         )}

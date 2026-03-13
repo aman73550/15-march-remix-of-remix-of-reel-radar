@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { BannerAd, InlineAd } from "@/components/AdSlots";
 import type { ReelAnalysis } from "@/lib/types";
 import { Download, FileText, Crown, BarChart3, Calendar, Target, Lightbulb, TrendingUp, CheckCircle, Star, Zap, ArrowUp, ArrowDown, Minus, AlertTriangle, Clock, Eye, Music, Hash, Video, Mic, Sparkles, Users, MapPin, ShieldCheck, XCircle, BookOpen } from "lucide-react";
 
