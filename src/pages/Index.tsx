@@ -237,9 +237,11 @@ const Index = () => {
         </Card>
       </motion.div>
 
-      {/* Share Unlock Gate */}
+      {/* Share Unlock Gate with blur background */}
       {showShareGate && (
-        <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
+        <div className="fixed inset-0 z-50 bg-background/60 backdrop-blur-md flex items-center justify-center">
+          <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
+        </div>
       )}
 
       {/* Social Proof Section */}
