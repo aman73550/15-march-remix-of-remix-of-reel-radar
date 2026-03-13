@@ -711,6 +711,8 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
         </Card>
       )}
 
+      <BannerAd slot="report-bottom" />
+
       {/* ===== HIDDEN PDF RENDER ===== */}
       <div ref={reportRef} style={{ display: "none" }}>
         <div style={{ width: "800px", padding: "40px", backgroundColor: "#0a0b14", color: "#e5e7eb", fontFamily: "Inter, sans-serif" }}>
