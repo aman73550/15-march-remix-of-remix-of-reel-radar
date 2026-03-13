@@ -33,6 +33,9 @@ const AdminDashboard = () => {
   const [adminGenerating, setAdminGenerating] = useState(false);
   const [adminReportData, setAdminReportData] = useState<{ analysis: any; premium: any } | null>(null);
   const [adminShowPdfPreview, setAdminShowPdfPreview] = useState(false);
+  const [adminSeoTopic, setAdminSeoTopic] = useState("");
+  const [adminSeoGenerating, setAdminSeoGenerating] = useState(false);
+  const [adminSeoResults, setAdminSeoResults] = useState<any>(null);
 
   useEffect(() => {
     checkAdminAndLoad();
