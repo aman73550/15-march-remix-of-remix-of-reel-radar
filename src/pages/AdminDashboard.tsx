@@ -785,6 +785,22 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Full Report Preview Modal */}
+      {adminShowPdfPreview && adminReportData && (
+        <div className="fixed inset-0 z-[200] bg-background/95 backdrop-blur-md overflow-y-auto">
+          <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
+            <Button
+              onClick={() => setAdminShowPdfPreview(false)}
+              variant="outline"
+              className="border-border/50 text-foreground"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Admin
+            </Button>
+            <MasterReportPDF analysis={adminReportData.analysis} premiumData={adminReportData.premium} reelUrl={adminReelUrl} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
