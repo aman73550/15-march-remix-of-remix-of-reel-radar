@@ -12,10 +12,10 @@ serve(async (req) => {
   const startTime = Date.now();
 
   try {
-    const { topic, reportId } = await req.json();
+    const { topic, reportId, adminFree } = await req.json();
 
-    if (!topic || !reportId) {
-      return new Response(JSON.stringify({ success: false, error: "Topic and reportId are required" }), {
+    if (!topic) {
+      return new Response(JSON.stringify({ success: false, error: "Topic is required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -29,17 +29,50 @@ serve(async (req) => {
       throw new Error("AI API key not configured");
     }
 
-    // Verify payment status
-    const { data: report } = await supabase
-      .from("paid_reports")
-      .select("status")
-      .eq("id", reportId)
-      .single();
+    // Verify payment status (skip for admin free access)
+    if (!adminFree) {
+      if (!reportId) {
+        return new Response(JSON.stringify({ success: false, error: "reportId is required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: report } = await supabase
+        .from("paid_reports")
+        .select("status")
+        .eq("id", reportId)
+        .single();
 
-    if (!report || report.status !== "paid") {
-      return new Response(JSON.stringify({ success: false, error: "Payment not verified" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (!report || report.status !== "paid") {
+        return new Response(JSON.stringify({ success: false, error: "Payment not verified" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      // Verify admin role via auth header
+      const authHeader = req.headers.get("Authorization");
+      if (authHeader) {
+        const token = authHeader.replace("Bearer ", "");
+        const { data: { user } } = await supabase.auth.getUser(token);
+        if (!user) {
+          return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
+            status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin");
+        if (!roles || roles.length === 0) {
+          return new Response(JSON.stringify({ success: false, error: "Admin access required" }), {
+            status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } else {
+        return new Response(JSON.stringify({ success: false, error: "Authorization required" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     console.log("Starting SEO analysis for topic:", topic);
@@ -125,15 +158,17 @@ Be specific, actionable, and data-driven. All recommendations should be optimize
       throw new Error("Failed to parse SEO analysis");
     }
 
-    // Update the paid report with SEO results
-    await supabase
-      .from("paid_reports")
-      .update({
-        analysis_data: seoResult,
-        status: "completed",
-        completed_at: new Date().toISOString(),
-      })
-      .eq("id", reportId);
+    // Update the paid report with SEO results (skip for admin free)
+    if (!adminFree && reportId) {
+      await supabase
+        .from("paid_reports")
+        .update({
+          analysis_data: seoResult,
+          status: "completed",
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", reportId);
+    }
 
     const durationMs = Date.now() - startTime;
 

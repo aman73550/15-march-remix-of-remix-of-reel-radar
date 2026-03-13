@@ -7,10 +7,12 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Menu, X, Star, Crown, Loader2, Download, ArrowLeft } from "lucide-react";
+import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Menu, X, Star, Crown, Loader2, Download, ArrowLeft, Search, Hash, Tag, Music, Clock } from "lucide-react";
 import MasterReportPDF from "@/components/MasterReportPDF";
 import AdminBehaviourSettings from "@/components/AdminBehaviourSettings";
 import AdminAIUsage from "@/components/AdminAIUsage";
+import SEOResultsDisplay from "@/components/SEOResultsDisplay";
+import { Textarea } from "@/components/ui/textarea";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -31,6 +33,9 @@ const AdminDashboard = () => {
   const [adminGenerating, setAdminGenerating] = useState(false);
   const [adminReportData, setAdminReportData] = useState<{ analysis: any; premium: any } | null>(null);
   const [adminShowPdfPreview, setAdminShowPdfPreview] = useState(false);
+  const [adminSeoTopic, setAdminSeoTopic] = useState("");
+  const [adminSeoGenerating, setAdminSeoGenerating] = useState(false);
+  const [adminSeoResults, setAdminSeoResults] = useState<any>(null);
 
   useEffect(() => {
     checkAdminAndLoad();
@@ -277,6 +282,29 @@ const AdminDashboard = () => {
     a.download = `master-report-admin-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleAdminSeoGenerate = async () => {
+    if (!adminSeoTopic.trim()) { toast.error("Enter a topic or context"); return; }
+    setAdminSeoGenerating(true);
+    setAdminSeoResults(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase.functions.invoke("seo-analyze", {
+        body: { topic: adminSeoTopic.trim(), adminFree: true },
+      });
+
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "SEO analysis failed");
+      setAdminSeoResults(data.data);
+      toast.success("SEO Analysis generated! 🎉");
+    } catch (err: any) {
+      console.error("Admin SEO error:", err);
+      toast.error(err.message || "Failed to generate SEO analysis");
+    } finally {
+      setAdminSeoGenerating(false);
+    }
   };
 
   if (loading) {
@@ -707,6 +735,39 @@ const AdminDashboard = () => {
                     </Button>
                   </div>
                   <p className="text-[9px] text-muted-foreground">Premium data sections: {Object.keys(adminReportData.premium).length} sections generated</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Admin SEO Optimizer (Free) */}
+        <div>
+          <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">🔍 SEO Optimizer (Free for Admin)</h2>
+          <Card className="border-border bg-card">
+            <CardContent className="p-4 sm:p-6 space-y-4">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Enter any topic or context to generate deep SEO optimization — titles, hashtags, music, posting time, top viral reels. No payment needed.</p>
+              <Textarea
+                value={adminSeoTopic}
+                onChange={(e) => setAdminSeoTopic(e.target.value)}
+                placeholder="Enter reel topic or context... (e.g., 'Morning routine for college students', 'Street food in Mumbai', 'Budget travel tips')"
+                className="bg-muted/50 border-border text-xs sm:text-sm min-h-[80px] resize-none"
+              />
+              <Button
+                onClick={handleAdminSeoGenerate}
+                disabled={adminSeoGenerating || !adminSeoTopic.trim()}
+                className="w-full gradient-primary-bg text-primary-foreground h-9 sm:h-10 text-xs sm:text-sm"
+              >
+                {adminSeoGenerating ? (
+                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Generating SEO Analysis...</>
+                ) : (
+                  <><Search className="w-3.5 h-3.5 mr-1.5" /> Generate SEO Analysis</>
+                )}
+              </Button>
+
+              {adminSeoResults && (
+                <div className="mt-4">
+                  <SEOResultsDisplay data={adminSeoResults} topic={adminSeoTopic} />
                 </div>
               )}
             </CardContent>
