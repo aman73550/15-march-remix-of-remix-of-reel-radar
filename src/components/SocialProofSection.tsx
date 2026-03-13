@@ -17,50 +17,51 @@ function useDriftingCount(base: number, range: number, intervalMs: number) {
   return count;
 }
 
-// --- Names, cities, and actions pools expanded for more natural variety ---
+// Real Indian names + global, varied cities, natural messy actions
 const FIRST_NAMES = [
   "Priya", "Arjun", "Sneha", "Rahul", "Meera", "Vikram", "Ananya", "Rohit",
   "Divya", "Karan", "Nisha", "Amit", "Pooja", "Raj", "Shreya", "Aditya",
   "Sarah", "Mike", "Jessica", "David", "Emma", "James", "Lisa", "Tom",
   "Fatima", "Ali", "Carlos", "Ana", "Yuki", "Chen", "Ritu", "Manish",
   "Kavita", "Harsh", "Simran", "Neha", "Deepak", "Aarti", "Suresh", "Mohit",
-  "Brandon", "Rachel", "Chris", "Sofia", "Diego", "Isabella", "Marcus", "Ben",
-  "Omar", "Liam", "Anna", "Kriti", "Varun", "Sanya", "Tanvi", "Ananya",
+  "Gaurav", "Komal", "Sameer", "Tanya", "Kunal", "Swati", "Nikhil", "Pallavi",
+  "Naveen", "Megha", "Vishal", "Divya", "Kriti", "Varun", "Sanya", "Tanvi",
 ];
 const CITIES = [
   "Mumbai", "Delhi", "Bangalore", "Pune", "Chennai", "Hyderabad",
   "Kolkata", "Jaipur", "Ahmedabad", "Surat", "Lucknow", "Indore",
   "Chandigarh", "Noida", "Gurgaon", "Kochi", "Goa", "Nagpur",
+  "Patna", "Ranchi", "Bhopal", "Varanasi", "Thane", "Vizag",
   "Dubai", "London", "New York", "Toronto", "Singapore", "Sydney",
-  "Los Angeles", "Berlin", "Tokyo", "Bangkok", "São Paulo", "Amsterdam",
-  "Auckland", "Milan", "Chicago", "Vancouver", "Dublin", "Riyadh",
+  "São Paulo", "Berlin", "Tokyo", "Auckland", "Lagos", "Riyadh",
 ];
 
-// More natural, specific actions with scores/results embedded
+// Natural varied actions — some with scores, some casual, some with typos
 const ACTIONS = [
   "just analyzed a reel",
-  "got 76% viral score",
-  "got 72% viral prediction",
-  "got 68% on a cooking reel",
-  "scored 80% on dance reel",
+  "got 76% viral score 🔥",
+  "scored 72% on a new reel",
+  "got 68% on cooking reel",
+  "scored 81% on dance reel",
   "checked hook strength",
-  "optimized hashtags for better reach",
-  "downloaded analysis report",
+  "optimized hashtags",
+  "downloaded the PDF report",
   "tested caption quality",
-  "improved hook score from 5 to 8",
-  "analyzed trending reel format",
+  "improved hook score to 8",
+  "analyzed trending format",
   "checked viral potential",
   "got caption score 7/10",
   "fixed weak hook intro",
   "compared 2 caption versions",
-  "ran hashtag competition check",
+  "ran hashtag check",
   "scored 74% on fitness reel",
   "got engagement tips",
-  "tested new reel before posting",
-  "unlocked master report",
-  "analyzed competitor's reel",
+  "tested reel before posting",
+  "got master report",
   "got 69% on tutorial reel",
   "improved viral score by 12%",
+  "re-analyzed after edits",
+  "checked trend matching",
 ];
 
 function generateEntry() {
@@ -75,7 +76,7 @@ function generateEntry() {
   };
 }
 
-// --- Reels Counter ---
+// --- Reels Counter (grows organically over time) ---
 const BASE_COUNT = 48750;
 const STORAGE_KEY = "rva_reel_counter";
 const COUNTER_TS_KEY = "rva_counter_ts";
