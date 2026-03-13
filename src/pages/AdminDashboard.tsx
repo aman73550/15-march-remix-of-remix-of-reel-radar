@@ -284,6 +284,29 @@ const AdminDashboard = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleAdminSeoGenerate = async () => {
+    if (!adminSeoTopic.trim()) { toast.error("Enter a topic or context"); return; }
+    setAdminSeoGenerating(true);
+    setAdminSeoResults(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase.functions.invoke("seo-analyze", {
+        body: { topic: adminSeoTopic.trim(), adminFree: true },
+      });
+
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "SEO analysis failed");
+      setAdminSeoResults(data.data);
+      toast.success("SEO Analysis generated! 🎉");
+    } catch (err: any) {
+      console.error("Admin SEO error:", err);
+      toast.error(err.message || "Failed to generate SEO analysis");
+    } finally {
+      setAdminSeoGenerating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
