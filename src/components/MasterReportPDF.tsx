@@ -542,6 +542,8 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
         </Card>
       )}
 
+      <InlineAd slot="report-mid-1" />
+
       {/* Quick Tips */}
       {premiumData.quickTips && (
         <Card className="glass p-5 space-y-3">
