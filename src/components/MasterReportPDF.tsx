@@ -295,6 +295,8 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
         </Card>
       )}
 
+      <InlineAd slot="report-after-category" />
+
       {/* Reel Age Decay */}
       {premiumData.reelAgeFactor && (
         <Card className="glass p-5 space-y-3">
