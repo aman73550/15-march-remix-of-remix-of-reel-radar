@@ -50,7 +50,6 @@ async function callGemini(body: Record<string, unknown>): Promise<Response> {
         continue;
       }
 
-      // Success or other error - use this key next time too
       currentKeyIndex = idx;
       return response;
     } catch (e) {
@@ -59,17 +58,232 @@ async function callGemini(body: Record<string, unknown>): Promise<Response> {
     }
   }
 
-  // All keys exhausted - advance index for next call
   currentKeyIndex = (startIndex + 1) % keys.length;
   throw lastError || new Error("All API keys exhausted");
 }
 
-// Step 0a: Direct HTML fetch with browser headers to extract meta tags (bypasses 403 often)
-async function scrapeMetaTags(url: string): Promise<{
-  ogImage: string;
-  ogDescription: string;
-  ogTitle: string;
+// ========== REGEX-BASED DATA EXTRACTION (NO AI) ==========
+
+function parseNumberString(s: string | undefined | null): number | null {
+  if (!s) return null;
+  s = s.replace(/,/g, "").trim();
+  if (/k$/i.test(s)) return Math.round(parseFloat(s) * 1000);
+  if (/m$/i.test(s)) return Math.round(parseFloat(s) * 1000000);
+  if (/b$/i.test(s)) return Math.round(parseFloat(s) * 1000000000);
+  if (/lakh/i.test(s)) return Math.round(parseFloat(s) * 100000);
+  if (/cr/i.test(s)) return Math.round(parseFloat(s) * 10000000);
+  const n = parseInt(s);
+  return isNaN(n) ? null : n;
+}
+
+function extractDataFromMarkdown(markdown: string): {
+  caption: string;
+  hashtags: string;
+  likes: number | null;
+  comments: number | null;
+  views: number | null;
+  shares: number | null;
+  saves: number | null;
   authorName: string;
+  postDate: string | null;
+  sampleComments: string[];
+} {
+  const result = {
+    caption: "",
+    hashtags: "",
+    likes: null as number | null,
+    comments: null as number | null,
+    views: null as number | null,
+    shares: null as number | null,
+    saves: null as number | null,
+    authorName: "",
+    postDate: null as string | null,
+    sampleComments: [] as string[],
+  };
+
+  if (!markdown || markdown.length < 20) return result;
+
+  const text = markdown;
+
+  // --- Extract likes ---
+  const likesPatterns = [
+    /(\d[\d,.\w]*)\s+likes?/i,
+    /likes?\s*[:=]\s*(\d[\d,.\w]*)/i,
+    /❤️\s*(\d[\d,.\w]*)/i,
+    /(\d[\d,.\w]*)\s*❤/i,
+  ];
+  for (const pat of likesPatterns) {
+    const m = text.match(pat);
+    if (m) { result.likes = parseNumberString(m[1]); break; }
+  }
+
+  // --- Extract comments count ---
+  const commentsPatterns = [
+    /(\d[\d,.\w]*)\s+comments?/i,
+    /comments?\s*[:=]\s*(\d[\d,.\w]*)/i,
+    /💬\s*(\d[\d,.\w]*)/i,
+  ];
+  for (const pat of commentsPatterns) {
+    const m = text.match(pat);
+    if (m) { result.comments = parseNumberString(m[1]); break; }
+  }
+
+  // --- Extract views ---
+  const viewsPatterns = [
+    /(\d[\d,.\w]*)\s+views?/i,
+    /views?\s*[:=]\s*(\d[\d,.\w]*)/i,
+    /▶️?\s*(\d[\d,.\w]*)/i,
+    /(\d[\d,.\w]*)\s+plays?/i,
+  ];
+  for (const pat of viewsPatterns) {
+    const m = text.match(pat);
+    if (m) { result.views = parseNumberString(m[1]); break; }
+  }
+
+  // --- Extract shares ---
+  const sharesMatch = text.match(/(\d[\d,.\w]*)\s+shares?/i) || text.match(/shares?\s*[:=]\s*(\d[\d,.\w]*)/i);
+  if (sharesMatch) result.shares = parseNumberString(sharesMatch[1]);
+
+  // --- Extract saves ---
+  const savesMatch = text.match(/(\d[\d,.\w]*)\s+saves?/i) || text.match(/saves?\s*[:=]\s*(\d[\d,.\w]*)/i);
+  if (savesMatch) result.saves = parseNumberString(savesMatch[1]);
+
+  // --- Extract hashtags ---
+  const hashtagMatches = text.match(/#[\w\u0900-\u097F]+/g);
+  if (hashtagMatches) {
+    result.hashtags = [...new Set(hashtagMatches)].join(" ");
+  }
+
+  // --- Extract caption ---
+  // Pattern 1: "on Instagram: "caption""
+  const captionMatch1 = text.match(/on Instagram:\s*["""]?([\s\S]*?)(?:["""]?\s*$|#\w)/im);
+  if (captionMatch1) {
+    result.caption = captionMatch1[1].replace(/#[\w]+/g, "").trim();
+  }
+  // Pattern 2: Look for a long paragraph that's not a comment
+  if (!result.caption) {
+    const lines = text.split("\n").filter(l => l.trim().length > 30 && !l.trim().startsWith("@") && !l.trim().startsWith("http"));
+    if (lines.length > 0) {
+      // Pick the longest line as likely caption
+      result.caption = lines.sort((a, b) => b.length - a.length)[0].trim();
+    }
+  }
+  // Remove hashtags from caption
+  if (result.caption) {
+    result.caption = result.caption.replace(/#[\w\u0900-\u097F]+/g, "").trim();
+  }
+
+  // --- Extract author/username ---
+  const authorPatterns = [
+    /(?:@|by\s+)(\w[\w.]{1,29})/i,
+    /^(.+?)\s+on\s+Instagram/im,
+    /(?:Author|Username|Posted by):\s*(.+)/im,
+  ];
+  for (const pat of authorPatterns) {
+    const m = text.match(pat);
+    if (m) { result.authorName = m[1].trim(); break; }
+  }
+
+  // --- Extract post date ---
+  const datePatterns = [
+    /(\d{4}-\d{2}-\d{2}T[\d:]+)/,  // ISO format
+    /(\w+ \d{1,2},?\s*\d{4})/,      // "Jan 15, 2024"
+    /(\d{1,2}\s+\w+\s+\d{4})/,      // "15 January 2024"
+    /(\d{1,2}\/\d{1,2}\/\d{4})/,    // "01/15/2024"
+    /(\d+)\s*(?:hours?|hrs?|h)\s*ago/i,
+    /(\d+)\s*(?:days?|d)\s*ago/i,
+    /(\d+)\s*(?:weeks?|w)\s*ago/i,
+  ];
+  for (const pat of datePatterns) {
+    const m = text.match(pat);
+    if (m) {
+      // Handle relative dates
+      if (/hours?\s*ago/i.test(m[0])) {
+        const d = new Date(); d.setHours(d.getHours() - parseInt(m[1]));
+        result.postDate = d.toISOString();
+      } else if (/days?\s*ago/i.test(m[0])) {
+        const d = new Date(); d.setDate(d.getDate() - parseInt(m[1]));
+        result.postDate = d.toISOString();
+      } else if (/weeks?\s*ago/i.test(m[0])) {
+        const d = new Date(); d.setDate(d.getDate() - parseInt(m[1]) * 7);
+        result.postDate = d.toISOString();
+      } else {
+        try {
+          const d = new Date(m[1]);
+          if (!isNaN(d.getTime())) result.postDate = d.toISOString();
+        } catch { /* skip */ }
+      }
+      break;
+    }
+  }
+
+  // --- Extract sample comments (lines starting with @username or short conversational lines) ---
+  const commentLines = text.split("\n")
+    .filter(l => /^@\w/.test(l.trim()) || (/^\w/.test(l.trim()) && l.trim().length < 150 && l.trim().length > 5))
+    .slice(0, 5);
+  result.sampleComments = commentLines.map(l => l.trim());
+
+  return result;
+}
+
+// ========== LIGHTWEIGHT HEURISTIC SIGNALS (NO AI) ==========
+
+function computeHeuristics(caption: string, hashtags: string, markdown: string): {
+  hookStyleHint: string;
+  textHookInCaption: boolean;
+  estimatedTopicPopularity: string;
+  captionLength: string;
+  hashtagCount: number;
+  hasCTA: boolean;
+  hasEmoji: boolean;
+  hasQuestion: boolean;
+  languageHint: string;
+} {
+  const captionLower = caption.toLowerCase();
+  const fullText = `${caption} ${hashtags}`.toLowerCase();
+
+  // Hook style detection from caption
+  let hookStyleHint = "unknown";
+  if (/^(did you know|kya aapko pata|क्या आपको|have you ever|what if)/i.test(caption)) hookStyleHint = "question";
+  else if (/^(shocking|unbelievable|you won't believe|😱|🤯)/i.test(caption)) hookStyleHint = "shock";
+  else if (/^(story|let me tell|ek kahani|एक कहानी|once upon)/i.test(caption)) hookStyleHint = "storytelling";
+  else if (/^(watch|look at|see this|dekho|देखो)/i.test(caption)) hookStyleHint = "visual";
+  else if (/\d+%|\d+x|\d+ out of|\d+ million/i.test(caption.substring(0, 80))) hookStyleHint = "statistic";
+
+  // Text hook presence
+  const textHookInCaption = /^[A-Z🔥⚡💥😱🤯❗️].{5,60}[.!?…]/.test(caption.trim());
+
+  // Topic popularity estimation
+  const trendingKeywords = ["trend", "viral", "challenge", "grwm", "transformation", "recipe", "hack", "diy", "motivation", "gym", "fitness", "dance", "fashion", "festival", "wedding", "cricket", "ipl", "bollywood"];
+  const matchedTrending = trendingKeywords.filter(k => fullText.includes(k));
+  const estimatedTopicPopularity = matchedTrending.length >= 3 ? "high" : matchedTrending.length >= 1 ? "medium" : "low";
+
+  // Caption length assessment
+  const captionLen = caption.length;
+  const captionLength = captionLen === 0 ? "missing" : captionLen < 30 ? "very_short" : captionLen < 100 ? "short" : captionLen < 300 ? "optimal" : "long";
+
+  // Hashtag count
+  const hashtagCount = (hashtags.match(/#/g) || []).length;
+
+  // CTA detection
+  const hasCTA = /follow|like|share|comment|save|subscribe|link in bio|swipe|tap|click|tag/i.test(captionLower);
+
+  // Emoji presence
+  const hasEmoji = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2702}-\u{27B0}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}]/u.test(caption);
+
+  // Question in caption
+  const hasQuestion = /\?|kya|क्या|kaise|कैसे|kyun|क्यों/.test(captionLower);
+
+  // Language hint
+  const languageHint = /[\u0900-\u097F]/.test(caption) ? "hindi" : /[a-zA-Z]/.test(caption) ? "english" : "unknown";
+
+  return { hookStyleHint, textHookInCaption, estimatedTopicPopularity, captionLength, hashtagCount, hasCTA, hasEmoji, hasQuestion, languageHint };
+}
+
+// ========== SCRAPING FUNCTIONS ==========
+
+async function scrapeMetaTags(url: string): Promise<{
+  ogImage: string; ogDescription: string; ogTitle: string; authorName: string;
 } | null> {
   try {
     console.log("Attempting direct meta tag scrape:", url);
@@ -87,15 +301,10 @@ async function scrapeMetaTags(url: string): Promise<{
       redirect: "follow",
     });
 
-    if (!response.ok) {
-      console.log("Direct fetch failed:", response.status);
-      return null;
-    }
+    if (!response.ok) return null;
 
     const html = await response.text();
-    
     const getMetaContent = (property: string): string => {
-      // Match both property="og:x" and name="og:x" patterns
       const regex = new RegExp(`<meta[^>]*(?:property|name)=["']${property}["'][^>]*content=["']([^"']*)["']`, "i");
       const regex2 = new RegExp(`<meta[^>]*content=["']([^"']*)["'][^>]*(?:property|name)=["']${property}["']`, "i");
       return regex.exec(html)?.[1] || regex2.exec(html)?.[1] || "";
@@ -104,25 +313,16 @@ async function scrapeMetaTags(url: string): Promise<{
     const ogImage = getMetaContent("og:image");
     const ogDescription = getMetaContent("og:description");
     const ogTitle = getMetaContent("og:title");
-    
-    // Extract author from og:title pattern "Author on Instagram: ..."
+
     let authorName = "";
     const authorMatch = ogTitle.match(/^(.+?)\s+on\s+Instagram/i);
     if (authorMatch) authorName = authorMatch[1];
-
-    // Also try to get from description pattern
     if (!authorName) {
       const descAuthor = ogDescription.match(/^(\d[\d,.KMBkmb]*)\s+likes?,\s+\d+\s+comments?\s+-\s+(.+?)\s+\(/i);
       if (descAuthor) authorName = descAuthor[2];
     }
 
-    console.log("Meta scrape result - ogImage:", ogImage ? "yes" : "no", "ogDesc length:", ogDescription.length, "author:", authorName);
-
-    if (!ogImage && !ogDescription) {
-      console.log("No useful meta tags found");
-      return null;
-    }
-
+    if (!ogImage && !ogDescription) return null;
     return { ogImage, ogDescription, ogTitle, authorName };
   } catch (e) {
     console.error("Direct meta scrape error:", e);
@@ -130,167 +330,32 @@ async function scrapeMetaTags(url: string): Promise<{
   }
 }
 
-// Step 0b: Scrape reel page with Firecrawl to get screenshot + page content
-async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshot: string; markdown: string; html: string } | null> {
+async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshot: string; markdown: string } | null> {
   const apiKey = Deno.env.get("FIRECRAWL_API_KEY");
-  if (!apiKey) {
-    console.log("FIRECRAWL_API_KEY not configured, skipping scrape");
-    return null;
-  }
+  if (!apiKey) return null;
 
   try {
     console.log("Scraping reel with Firecrawl:", url);
     const response = await fetch("https://api.firecrawl.dev/v1/scrape", {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        url,
-        formats: ["screenshot", "markdown"],
-        waitFor: 5000,
-      }),
+      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ url, formats: ["screenshot", "markdown"], waitFor: 5000 }),
     });
 
-    if (!response.ok) {
-      console.error("Firecrawl scrape failed:", response.status);
-      return null;
-    }
-
+    if (!response.ok) return null;
     const data = await response.json();
-    const screenshot = data.data?.screenshot || data.screenshot || "";
-    const markdown = data.data?.markdown || data.markdown || "";
-    const html = data.data?.html || data.html || "";
-
-    console.log("Firecrawl scrape success, screenshot:", screenshot ? "yes" : "no", "markdown length:", markdown.length);
-    return { screenshot, markdown, html };
+    return {
+      screenshot: data.data?.screenshot || data.screenshot || "",
+      markdown: data.data?.markdown || data.markdown || "",
+    };
   } catch (e) {
     console.error("Firecrawl scrape error:", e);
     return null;
   }
 }
 
-// Step 0b: Use AI to extract structured data from scraped content
-async function extractDataFromScrapedContent(markdown: string, _apiKey?: string): Promise<{
-  caption: string;
-  hashtags: string;
-  likes: number | null;
-  comments: number | null;
-  views: number | null;
-  shares: number | null;
-  saves: number | null;
-  authorName: string;
-  postDate: string | null;
-  sampleComments: string;
-} | null> {
-  if (!markdown || markdown.length < 50) return null;
+// ========== PATTERN DB FUNCTIONS ==========
 
-  try {
-    const response = await callGemini({
-      model: "gemini-2.5-flash",
-      messages: [
-        {
-          role: "system",
-          content: "You extract structured data from scraped Instagram reel pages. Return ONLY valid JSON, no markdown fences.",
-        },
-        {
-          role: "user",
-          content: `Extract the following data from this scraped Instagram reel page content. If a field is not found, use null for numbers and empty string for text.
-
-Page content:
-${markdown.substring(0, 8000)}
-
-Return JSON:
-{
-  "caption": "<full caption text without hashtags>",
-  "hashtags": "<all hashtags space-separated>",
-  "likes": <number or null>,
-  "comments": <number or null>,
-  "views": <number or null>,
-  "shares": <number or null>,
-  "saves": <number or null>,
-  "authorName": "<username or author name>",
-  "postDate": "<ISO date string or null>",
-  "sampleComments": "<up to 5 sample comments, one per line>"
-}`,
-        },
-      ],
-    });
-
-    if (!response.ok) {
-      console.error("Data extraction AI failed:", response.status);
-      return null;
-    }
-
-    const data = await response.json();
-    let content = data.choices?.[0]?.message?.content?.trim() || "";
-    if (content.startsWith("```")) {
-      content = content.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
-    }
-    return JSON.parse(content);
-  } catch (e) {
-    console.error("Data extraction error:", e);
-    return null;
-  }
-}
-
-// Step 1: Analyze screenshot/thumbnail with Gemini vision
-async function analyzeVisual(imageUrl: string, _apiKey?: string, isScreenshot?: boolean): Promise<string> {
-  try {
-    const imageContent = { type: "image_url" as const, image_url: { url: imageUrl } };
-
-    const response = await callGemini({
-      model: "gemini-2.5-flash",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: isScreenshot
-                ? `This is a screenshot of an Instagram Reel page. Analyze EVERYTHING visible:
-1. INSTAGRAM UI DATA: Extract any visible likes count, comments count, views count, username, caption text, hashtags, date posted
-2. VIDEO CONTENT: What is shown in the video player? Describe the scene, objects, people, actions
-3. TEXT ON SCREEN: Any overlay text, captions, subtitles visible
-4. VISUAL STYLE: Professional, casual, cinematic, raw?
-5. COLORS & MOOD: Dominant colors, lighting
-6. ESTIMATED CATEGORY: Content niche (education, motivation, comedy, fitness, cooking, marketing, lifestyle, beauty, tech, gaming, storytelling, news, etc.)
-7. ENGAGEMENT SIGNALS: Any visible engagement indicators (comment previews, like counts, share counts)
-
-Be extremely specific about numbers and text you can read. This is a full page screenshot so extract ALL visible Instagram data.`
-                : `Analyze this Instagram Reel thumbnail image in detail. Describe:
-1. OBJECTS: What objects, items, or props are visible?
-2. PEOPLE: Are there people? How many? What are they doing?
-3. SCENE: What is the setting/environment?
-4. ACTIONS: What activity or action seems to be happening?
-5. TEXT ON SCREEN: Is there any visible text or overlay text?
-6. VISUAL STYLE: Professional, casual, cinematic, raw?
-7. COLORS & MOOD: Dominant colors, lighting mood
-8. ESTIMATED CATEGORY: Content niche
-
-Be specific and factual about what you see.`,
-            },
-            imageContent,
-          ],
-        },
-      ],
-    });
-
-    if (!response.ok) {
-      console.error("Vision analysis failed:", response.status);
-      return "";
-    }
-
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || "";
-  } catch (e) {
-    console.error("Visual analysis error:", e);
-    return "";
-  }
-}
-
-// Step 2: Fetch similar viral patterns from database
 async function fetchViralPatterns(category: string, supabaseUrl: string, serviceKey: string): Promise<any[]> {
   try {
     const supabase = createClient(supabaseUrl, serviceKey);
@@ -301,25 +366,16 @@ async function fetchViralPatterns(category: string, supabaseUrl: string, service
       .gte("viral_score", 50)
       .order("viral_score", { ascending: false })
       .limit(20);
-
-    if (error) {
-      console.error("Error fetching patterns:", error);
-      return [];
-    }
+    if (error) { console.error("Error fetching patterns:", error); return []; }
     return data || [];
-  } catch (e) {
-    console.error("Pattern fetch error:", e);
-    return [];
-  }
+  } catch (e) { console.error("Pattern fetch error:", e); return []; }
 }
 
-// Step 3: Store new pattern in database
 async function storePattern(analysis: any, url: string, metrics: any, caption: string, hashtags: string, supabaseUrl: string, serviceKey: string) {
   try {
     const supabase = createClient(supabaseUrl, serviceKey);
     const cc = analysis.contentClassification;
     const hashtagCount = hashtags ? hashtags.split(/[#\s,]+/).filter((h: string) => h.length > 0).length : 0;
-
     const pattern = {
       reel_url: url,
       primary_category: cc?.primaryCategory || "other",
@@ -354,22 +410,16 @@ async function storePattern(analysis: any, url: string, metrics: any, caption: s
       emotional_triggers: analysis.captionAnalysis?.emotionalTriggers || [],
       thumbnail_analyzed: analysis.thumbnailAnalyzed || false,
     };
-
     const { error } = await supabase.from("viral_patterns").insert(pattern);
     if (error) console.error("Error storing pattern:", error);
     else console.log("Pattern stored successfully");
-  } catch (e) {
-    console.error("Pattern store error:", e);
-  }
+  } catch (e) { console.error("Pattern store error:", e); }
 }
 
-// Step 4: Compare current reel against viral patterns
 function compareWithPatterns(analysis: any, patterns: any[]): any {
   if (patterns.length === 0) {
     return {
-      patternsCompared: 0,
-      similarityScore: null,
-      categoryAvgScore: null,
+      patternsCompared: 0, similarityScore: null, categoryAvgScore: null,
       insights: ["No viral patterns in database yet for this category. Your analysis will help build the pattern database!"],
       topPatternFeatures: null,
     };
@@ -378,8 +428,7 @@ function compareWithPatterns(analysis: any, patterns: any[]): any {
   const scores = patterns.map(p => p.viral_score).filter(Boolean);
   const categoryAvg = scores.length > 0 ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length) : 0;
 
-  let matchCount = 0;
-  let totalChecks = 0;
+  let matchCount = 0, totalChecks = 0;
   const currentHookType = analysis.hookAnalysis?.openingType?.toLowerCase();
   const currentCategory = analysis.contentClassification?.primaryCategory?.toLowerCase();
   const currentFace = analysis.videoSignals?.facePresenceLikely?.toLowerCase();
@@ -389,22 +438,10 @@ function compareWithPatterns(analysis: any, patterns: any[]): any {
   const viralPatterns = patterns.filter(p => (p.viral_score || 0) >= 70);
 
   for (const p of viralPatterns) {
-    if (p.hook_type) {
-      totalChecks++;
-      if (p.hook_type.toLowerCase() === currentHookType) matchCount++;
-    }
-    if (p.face_presence) {
-      totalChecks++;
-      if (p.face_presence.toLowerCase().includes(currentFace?.split("/")[0] || "")) matchCount++;
-    }
-    if (p.motion_intensity) {
-      totalChecks++;
-      if (p.motion_intensity.toLowerCase() === currentMotion) matchCount++;
-    }
-    if (p.scene_cuts) {
-      totalChecks++;
-      if (p.scene_cuts.toLowerCase() === currentSceneCuts) matchCount++;
-    }
+    if (p.hook_type) { totalChecks++; if (p.hook_type.toLowerCase() === currentHookType) matchCount++; }
+    if (p.face_presence) { totalChecks++; if (p.face_presence.toLowerCase().includes(currentFace?.split("/")[0] || "")) matchCount++; }
+    if (p.motion_intensity) { totalChecks++; if (p.motion_intensity.toLowerCase() === currentMotion) matchCount++; }
+    if (p.scene_cuts) { totalChecks++; if (p.scene_cuts.toLowerCase() === currentSceneCuts) matchCount++; }
   }
 
   const similarityScore = totalChecks > 0 ? Math.round((matchCount / totalChecks) * 100) : 50;
@@ -426,21 +463,13 @@ function compareWithPatterns(analysis: any, patterns: any[]): any {
   const insights: string[] = [];
   const currentScore = analysis.viralClassification?.score || analysis.viralScore || 0;
 
-  if (currentScore > categoryAvg) {
-    insights.push(`Your reel scores ${currentScore - categoryAvg} points above the category average (${categoryAvg})`);
-  } else if (currentScore < categoryAvg) {
-    insights.push(`Your reel scores ${categoryAvg - currentScore} points below the category average (${categoryAvg})`);
-  } else {
-    insights.push(`Your reel matches the category average score of ${categoryAvg}`);
-  }
+  if (currentScore > categoryAvg) insights.push(`Your reel scores ${currentScore - categoryAvg} points above the category average (${categoryAvg})`);
+  else if (currentScore < categoryAvg) insights.push(`Your reel scores ${categoryAvg - currentScore} points below the category average (${categoryAvg})`);
+  else insights.push(`Your reel matches the category average score of ${categoryAvg}`);
 
-  if (similarityScore >= 70) {
-    insights.push(`High similarity (${similarityScore}%) with proven viral patterns in ${currentCategory}`);
-  } else if (similarityScore >= 40) {
-    insights.push(`Moderate similarity (${similarityScore}%) with viral patterns — some features align`);
-  } else {
-    insights.push(`Low similarity (${similarityScore}%) with known viral patterns — unique approach detected`);
-  }
+  if (similarityScore >= 70) insights.push(`High similarity (${similarityScore}%) with proven viral patterns in ${currentCategory}`);
+  else if (similarityScore >= 40) insights.push(`Moderate similarity (${similarityScore}%) with viral patterns — some features align`);
+  else insights.push(`Low similarity (${similarityScore}%) with known viral patterns — unique approach detected`);
 
   if (topHook) insights.push(`Most viral hook type in ${currentCategory}: "${topHook[0]}" (${Math.round((topHook[1] / viralPatterns.length) * 100)}% of viral reels)`);
   if (topFace) insights.push(`Face presence in viral reels: "${topFace[0]}" is most common`);
@@ -450,20 +479,15 @@ function compareWithPatterns(analysis: any, patterns: any[]): any {
   const avgCaptionScore = Math.round(viralPatterns.reduce((s, p) => s + (p.caption_score || 0), 0) / Math.max(viralPatterns.length, 1));
 
   return {
-    patternsCompared: patterns.length,
-    viralPatternsCount: viralPatterns.length,
-    similarityScore,
-    categoryAvgScore: categoryAvg,
-    categoryAvgHookScore: avgHookScore,
-    categoryAvgCaptionScore: avgCaptionScore,
+    patternsCompared: patterns.length, viralPatternsCount: viralPatterns.length,
+    similarityScore, categoryAvgScore: categoryAvg,
+    categoryAvgHookScore: avgHookScore, categoryAvgCaptionScore: avgCaptionScore,
     insights,
-    topPatternFeatures: {
-      hookType: topHook?.[0] || null,
-      facePresence: topFace?.[0] || null,
-      motionIntensity: topMotion?.[0] || null,
-    },
+    topPatternFeatures: { hookType: topHook?.[0] || null, facePresence: topFace?.[0] || null, motionIntensity: topMotion?.[0] || null },
   };
 }
+
+// ========== MAIN HANDLER ==========
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -474,8 +498,7 @@ serve(async (req) => {
 
     if (!url) {
       return new Response(JSON.stringify({ success: false, error: "URL is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -485,111 +508,89 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    // Log usage for analytics
+    // Log usage
     try {
       const supabaseForLog = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-      await supabaseForLog.from("usage_logs").insert({
-        reel_url: url,
-        user_agent: req.headers.get("user-agent") || null,
-      });
-    } catch (e) {
-      console.error("Usage log error:", e);
-    }
+      await supabaseForLog.from("usage_logs").insert({ reel_url: url, user_agent: req.headers.get("user-agent") || null });
+    } catch (e) { console.error("Usage log error:", e); }
 
-    // === STEP 1: Direct meta tag scrape (fastest, most reliable) ===
-    console.log("Step 1: Direct meta tag scrape...");
-    const metaResult = await scrapeMetaTags(url);
+    // ==============================
+    // STEP 1: Scrape reel page (parallel meta + Firecrawl)
+    // ==============================
+    console.log("STEP 1: Scraping reel page...");
+    const [metaResult, scrapeResult] = await Promise.all([
+      scrapeMetaTags(url),
+      scrapeReelWithFirecrawl(url),
+    ]);
 
-    // === STEP 2: Firecrawl deep scrape (for screenshot + full content) ===
-    console.log("Step 2: Firecrawl deep scrape...");
-    const scrapeResult = await scrapeReelWithFirecrawl(url);
+    // ==============================
+    // STEP 2: Parse with regex/parser (NO AI)
+    // ==============================
+    console.log("STEP 2: Regex-based extraction...");
 
-    // === STEP 3: Extract & merge data ===
     let caption = userCaption || "";
     let hashtags = userHashtags || "";
     let metrics: any = userMetrics || {};
     let sampleComments = userComments || "";
     let authorName = "";
-    let visionAnalysis = "";
     let thumbnailUrl = "";
-    let screenshotUsed = false;
+    let screenshotUrl = "";
+    let postDate: string | null = null;
 
     const userProvidedMetrics = userMetrics && Object.values(userMetrics).some((v: any) => v !== undefined && v !== null);
 
-    // Layer 1: Meta tags data (og:description often has caption + metrics)
+    // Layer 1: Meta tags
     if (metaResult) {
       if (!caption && metaResult.ogDescription) {
-        // og:description format: "123 likes, 5 comments - Author (@handle) on Instagram: "caption text""
         const descMatch = metaResult.ogDescription.match(/on Instagram:\s*["""]?(.*)/is);
         if (descMatch) caption = descMatch[1].replace(/["""]$/, "").trim();
         else caption = metaResult.ogDescription;
       }
       if (!authorName && metaResult.authorName) authorName = metaResult.authorName;
       if (metaResult.ogImage) thumbnailUrl = metaResult.ogImage;
-      
-      // Try to extract metrics from og:description (e.g. "1,234 likes, 56 comments")
+
+      // Extract metrics from og:description with regex
       if (!userProvidedMetrics && metaResult.ogDescription) {
         const likesMatch = metaResult.ogDescription.match(/([\d,.\w]+)\s+likes?/i);
         const commentsMatch = metaResult.ogDescription.match(/([\d,.\w]+)\s+comments?/i);
-        if (likesMatch || commentsMatch) {
-          const parseNum = (s: string) => {
-            if (!s) return null;
-            s = s.replace(/,/g, "");
-            if (/k$/i.test(s)) return Math.round(parseFloat(s) * 1000);
-            if (/m$/i.test(s)) return Math.round(parseFloat(s) * 1000000);
-            return parseInt(s) || null;
-          };
-          metrics = {
-            ...metrics,
-            likes: metrics.likes || (likesMatch ? parseNum(likesMatch[1]) : null),
-            comments: metrics.comments || (commentsMatch ? parseNum(commentsMatch[1]) : null),
-          };
-          console.log("Extracted metrics from meta tags:", JSON.stringify(metrics));
-        }
+        if (likesMatch) metrics.likes = metrics.likes || parseNumberString(likesMatch[1]);
+        if (commentsMatch) metrics.comments = metrics.comments || parseNumberString(commentsMatch[1]);
       }
     }
 
-    // Layer 2: Firecrawl data (richer, fills remaining gaps)
-    if (scrapeResult) {
-      console.log("Extracting data from Firecrawl content...");
-      const extracted = await extractDataFromScrapedContent(scrapeResult.markdown);
+    // Layer 2: Firecrawl markdown — regex extraction (NO AI call)
+    if (scrapeResult?.markdown) {
+      console.log("Parsing Firecrawl markdown with regex...");
+      const extracted = extractDataFromMarkdown(scrapeResult.markdown);
 
-      if (extracted) {
-        if (!caption) caption = extracted.caption || "";
-        if (!hashtags) hashtags = extracted.hashtags || "";
-        if (!authorName) authorName = extracted.authorName || "";
-        if (!sampleComments) sampleComments = extracted.sampleComments || "";
-        if (!userProvidedMetrics && (!metrics.likes && !metrics.comments)) {
-          metrics = {
-            likes: extracted.likes,
-            comments: extracted.comments,
-            views: extracted.views,
-            shares: extracted.shares,
-            saves: extracted.saves,
-          };
-        }
-        console.log("Firecrawl extracted data:", JSON.stringify({ caption: caption.substring(0, 100), hashtags, authorName }));
+      if (!caption && extracted.caption) caption = extracted.caption;
+      if (!hashtags && extracted.hashtags) hashtags = extracted.hashtags;
+      if (!authorName && extracted.authorName) authorName = extracted.authorName;
+      if (!sampleComments && extracted.sampleComments.length > 0) sampleComments = extracted.sampleComments.join("\n");
+      if (extracted.postDate) postDate = extracted.postDate;
+      if (!userProvidedMetrics && (!metrics.likes && !metrics.comments)) {
+        metrics = {
+          likes: extracted.likes,
+          comments: extracted.comments,
+          views: extracted.views,
+          shares: extracted.shares,
+          saves: extracted.saves,
+        };
       }
 
-      // Use screenshot for vision analysis
+      // Capture screenshot URL for vision in the single AI call
       if (scrapeResult.screenshot) {
-        console.log("Running vision analysis on full screenshot...");
-        const screenshotUrl = scrapeResult.screenshot.startsWith("data:")
+        screenshotUrl = scrapeResult.screenshot.startsWith("data:")
           ? scrapeResult.screenshot
           : `data:image/png;base64,${scrapeResult.screenshot}`;
-        visionAnalysis = await analyzeVisual(screenshotUrl, undefined, true);
-        screenshotUsed = true;
-        console.log("Screenshot vision analysis complete");
       }
     }
 
-    // === Layer 3: oEmbed fallback ===
+    // Layer 3: oEmbed fallback
     let metadata = "";
     if (!thumbnailUrl || !authorName) {
-      console.log("Fallback: Using oEmbed...");
       try {
-        const oembedUrl = `https://api.instagram.com/oembed?url=${encodeURIComponent(url)}`;
-        const oembedResp = await fetch(oembedUrl);
+        const oembedResp = await fetch(`https://api.instagram.com/oembed?url=${encodeURIComponent(url)}`);
         if (oembedResp.ok) {
           const oembed = await oembedResp.json();
           metadata = `Title: ${oembed.title || "N/A"}\nAuthor: ${oembed.author_name || "N/A"}`;
@@ -597,35 +598,34 @@ serve(async (req) => {
           if (!authorName) authorName = oembed.author_name || "";
           if (!caption && oembed.title) caption = oembed.title;
         }
-      } catch {
-        console.log("oEmbed fetch failed");
-      }
+      } catch { console.log("oEmbed fetch failed"); }
     }
 
-    // Layer 4: Alternative oEmbed (noembed.com)
+    // Layer 4: noembed fallback
     if (!thumbnailUrl) {
-      console.log("Fallback: Using noembed...");
       try {
         const noembedResp = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
         if (noembedResp.ok) {
           const noembed = await noembedResp.json();
-          if (!thumbnailUrl && noembed.thumbnail_url) thumbnailUrl = noembed.thumbnail_url;
+          if (noembed.thumbnail_url) thumbnailUrl = noembed.thumbnail_url;
           if (!authorName && noembed.author_name) authorName = noembed.author_name;
           if (!caption && noembed.title) caption = noembed.title;
         }
-      } catch {
-        console.log("noembed fetch failed");
-      }
+      } catch { console.log("noembed fetch failed"); }
     }
 
-    // Vision analysis on thumbnail if screenshot wasn't available
-    if (thumbnailUrl && !visionAnalysis) {
-      console.log("Running vision analysis on thumbnail (fallback)...");
-      visionAnalysis = await analyzeVisual(thumbnailUrl, undefined, false);
-    }
+    if (!metadata && authorName) metadata = `Author: ${authorName}`;
 
-    if (!metadata && authorName) {
-      metadata = `Author: ${authorName}`;
+    // ==============================
+    // STEP 3: Prepare structured input + heuristics
+    // ==============================
+    console.log("STEP 3: Computing heuristics...");
+    const heuristics = computeHeuristics(caption, hashtags, scrapeResult?.markdown || "");
+
+    // Extract hashtags from caption if not already found
+    if (!hashtags && caption) {
+      const captionHashtags = caption.match(/#[\w\u0900-\u097F]+/g);
+      if (captionHashtags) hashtags = [...new Set(captionHashtags)].join(" ");
     }
 
     const hasMetrics = metrics && Object.values(metrics).some((v: any) => v !== undefined && v !== null && v !== 0);
@@ -641,13 +641,29 @@ serve(async (req) => {
     }
 
     let commentsSection = "";
-    if (sampleComments) {
-      commentsSection = `\nSample Comments (auto-extracted):\n${sampleComments}`;
-    }
+    if (sampleComments) commentsSection = `\nSample Comments (auto-extracted):\n${sampleComments}`;
 
-    const visionSection = visionAnalysis
-      ? `\n=== VISUAL CONTENT ANALYSIS (from ${screenshotUsed ? "full page screenshot" : "thumbnail"}) ===\n${visionAnalysis}\n`
-      : "";
+    const heuristicsSection = `
+=== PRE-COMPUTED HEURISTIC SIGNALS (use these as inputs) ===
+Hook Style Hint (from caption text): ${heuristics.hookStyleHint}
+Text Hook Present in Caption: ${heuristics.textHookInCaption}
+Estimated Topic Popularity: ${heuristics.estimatedTopicPopularity}
+Caption Length: ${heuristics.captionLength} (${caption.length} chars)
+Hashtag Count: ${heuristics.hashtagCount}
+CTA Detected: ${heuristics.hasCTA}
+Emoji Present: ${heuristics.hasEmoji}
+Question in Caption: ${heuristics.hasQuestion}
+Language: ${heuristics.languageHint}
+`;
+
+    // ==============================
+    // STEP 4: SINGLE AI CALL — full analysis + visual understanding
+    // ==============================
+    console.log("STEP 4: Single AI analysis call...");
+
+    // Determine image source for vision (prefer screenshot > thumbnail)
+    const imageForVision = screenshotUrl || thumbnailUrl;
+    const isScreenshot = !!screenshotUrl;
 
     const langInstruction = respondInHindi
       ? "\n\nCRITICAL: Write ALL text values in Hindi. Keep JSON keys in English."
@@ -660,102 +676,54 @@ Reel URL: ${url}
 ${metadata ? `Metadata:\n${metadata}` : ""}
 ${caption ? `Caption: ${caption}` : "No caption available"}
 ${hashtags ? `Hashtags: ${hashtags}` : "No hashtags detected"}${metricsSection}${commentsSection}
-${visionSection}
+${heuristicsSection}
+
 === ANALYSIS INSTRUCTIONS ===
 
-${visionAnalysis ? `IMPORTANT: You have VISUAL ANALYSIS DATA from the reel's ${screenshotUsed ? "full page screenshot (includes Instagram UI with metrics)" : "thumbnail"}. Use this as the PRIMARY signal to understand what the reel is actually about. Cross-reference with caption and hashtags to classify the content accurately. The visual content should take priority over hashtags when determining the reel's true category.` : ""}
+${imageForVision ? `IMPORTANT: You have been provided ${isScreenshot ? "a full page screenshot of the Instagram reel page (includes UI with metrics)" : "the reel's thumbnail image"}. Use this as a PRIMARY visual signal to understand what the reel is actually about. Extract any visible text, objects, people, and setting from the image.` : "No visual content available — analyze based on caption, hashtags, and metrics only."}
 
-${screenshotUsed ? `CRITICAL: The screenshot shows the actual Instagram page. If you can see engagement metrics (likes, comments, views) in the screenshot that differ from the extracted data, use the SCREENSHOT values as they are more reliable.` : ""}
+${isScreenshot ? `CRITICAL: If you can see engagement metrics (likes, comments, views) in the screenshot that differ from the extracted data above, use the SCREENSHOT values as they are more reliable.` : ""}
 
 IMPORTANT SCORING RULES:
-- ALL individual scores (hook, caption, hashtag, engagement, trend, video quality, audio quality) must be between 1-8. NEVER give any score above 8 out of 10. Nothing is 100% perfect.
+- ALL individual scores (hook, caption, hashtag, engagement, trend, video quality, audio quality) must be between 1-8. NEVER give any score above 8 out of 10.
 - The overall viralScore must be between 5-80. NEVER give viralScore above 80.
-- Be realistic and critical in scoring. A score of 7-8 means EXCEPTIONALLY good.
-- A score of 5-6 is GOOD. A score of 3-4 is AVERAGE. A score of 1-2 is POOR.
+- Be realistic and critical in scoring. 7-8 = EXCEPTIONALLY good. 5-6 = GOOD. 3-4 = AVERAGE. 1-2 = POOR.
 
-CONTENT VIRALITY FACTORS TO CONSIDER:
-- Entertainment, music, GRWM, cars, bikes, fashion, dance categories have HIGHER viral potential — reflect this in scoring.
-- Educational, learning, tutorial content has LOWER viral potential on Instagram — score conservatively for virality.
-- If a FAMOUS PERSON (celebrity, influencer, politician, sports star) is detected, increase viral potential significantly.
-- If a FAMOUS PLACE (landmark, tourist spot, iconic location) is shown, increase viral potential.
-- If a FAMOUS OBJECT (luxury car, designer item, iconic product) is shown, increase viral potential.
-- If content relates to a FAMOUS INCIDENT or TRENDING NEWS EVENT, increase viral potential.
-- If a visually ATTRACTIVE person (beautiful woman, handsome man, bodybuilder/fitness model) is prominently featured, increase viral potential.
-- If DEEP/BASS VOICE narration is detected or likely, increase viral potential.
-- If content matches a CURRENT TRENDING TOPIC or format, increase viral potential significantly.
+HOOK TYPE CLASSIFICATION (classify into exactly one):
+- "question" — opens with a question or curiosity gap
+- "shock" — opens with a surprising/unbelievable claim
+- "storytelling" — opens with a narrative or personal story
+- "visual" — opens with a striking visual or action
+- "statistic" — opens with a number, data, or percentage
 
-ADDITIONAL DETECTION (add to your analysis):
-- "celebrityOrFamousPerson": true/false — is a recognizable celebrity or famous person in the reel?
+VIRALITY FACTOR DETECTION (safe, reliable checks only):
+- "recognizablePerson": true/false — is a well-known/recognizable person visible?
+- "strongFacialExpression": true/false — does the person show a strong/dramatic facial expression?
+- "strongVisualSubject": true/false — is there a visually compelling subject (luxury item, dramatic scene, beautiful location, etc.)?
 - "famousPlaceOrObject": true/false — is a famous/iconic place or object shown?
-- "attractivePresenter": true/false — is a visually attractive person prominently featured?
-- "deepVoiceLikely": true/false — does the content likely feature a deep/bass voice?
-- "trendingTopicRelevance": "high/medium/low/none" — how closely does this relate to current trending topics?
+- "deepVoiceLikely": true/false — does the content likely feature a deep/bass voice narration?
+- "trendingTopicRelevance": "high/medium/low/none"
 - "famousIncident": true/false — does this relate to a famous or newsworthy incident?
 
-Perform ALL of these analyses:
+CONTENT VIRALITY FACTORS:
+- Entertainment, music, GRWM, cars, bikes, fashion, dance categories have HIGHER viral potential.
+- Educational, learning, tutorial content has LOWER viral potential on Instagram.
+- If a RECOGNIZABLE PERSON (celebrity, influencer, public figure) is detected, increase viral potential significantly.
+- If a FAMOUS PLACE (landmark, tourist spot) or FAMOUS OBJECT (luxury car, designer item) is shown, increase viral potential.
+- If content relates to TRENDING NEWS or FAMOUS INCIDENT, increase viral potential.
 
-1. CONTENT CLASSIFICATION (CRITICAL - analyze what the reel is actually about):
-   - Primary category (education, motivation, comedy, marketing, fitness, lifestyle, cooking, beauty, tech, gaming, storytelling, news, entertainment, music, grwm, cars, bikes, dance, fashion, other)
-   - Sub-category (more specific niche)
-   - Content type (tutorial, entertainment, review, vlog, transformation, skit, etc.)
-   - Detected elements: objects, people, actions, scene setting
-   - On-screen text detected (from visual analysis)
-   - Estimated spoken topic (inferred from visuals + caption)
-   - Confidence level (high/medium/low) based on available signals
+Perform ALL of these analyses in this single response:
 
-2. HOOK ANALYSIS (first 3 seconds):
-   - What type of opening does the content suggest? (question, shock, story, visual)
-   - Rate the attention-grabbing potential (MAX 8)
-   - Estimate hook effectiveness
-
-3. CAPTION ANALYSIS (NLP):
-   - Curiosity level (1-10)
-   - Identify emotional triggers (fear, joy, surprise, anger, etc.)
-   - Is there a call-to-action? What type?
-   - Keyword density assessment
-   - Caption length effectiveness
-
-4. HASHTAG ANALYSIS:
-   - For each hashtag: competition level, relevance, trend strength
-   - Overall hashtag strategy quality
-   - Do hashtags match the actual detected content?
-
-5. VIDEO SIGNALS (estimate from content/niche):
-   - Estimated scene cuts frequency
-   - Text overlay likelihood
-   - Face presence likelihood
-   - Motion intensity
-   - Visual engagement level
-
-6. VIDEO QUALITY ASSESSMENT:
-   - Estimated resolution quality (HD/SD/Low)
-   - Lighting quality (good/average/poor)
-   - Camera stability (stable/moderate/shaky)
-   - Overall visual clarity (sharp/average/blurry)
-
-7. AUDIO QUALITY ASSESSMENT:
-   - Voice clarity (clear/muffled/none)
-   - Background audio quality (clean/moderate/noisy)
-   - Sound balance (balanced/unbalanced/distorted)
-   - Music/sound usage (trending audio/original/none)
-
-8. TREND MATCHING:
-   - Format similarity to current viral trends
-   - Hook pattern matching
-   - Trending structure alignment
-   - Name specific trends it matches
-
-9. ENGAGEMENT ANALYSIS:
-   - Overall engagement quality${hasMetrics ? "\n   - Compare each metric against estimated category averages" : ""}
-   - Engagement rate estimate${sampleComments ? `
-
-10. COMMENT SENTIMENT:
-    - Percentage breakdown: positive, neutral, negative (must sum to 100)
-    - Question ratio (% of comments that are questions)
-    - Engagement signals in comments
-    - Audience intent (curiosity, support, criticism, etc.)
-    - Top 3-5 themes
-    - 2-sentence summary` : ""}
+1. CONTENT CLASSIFICATION
+2. HOOK ANALYSIS (opening type must be one of: question/shock/storytelling/visual/statistic)
+3. CAPTION ANALYSIS
+4. HASHTAG ANALYSIS
+5. VIDEO SIGNALS (from visual analysis)
+6. VIDEO QUALITY ASSESSMENT
+7. AUDIO QUALITY ASSESSMENT
+8. TREND MATCHING
+9. ENGAGEMENT ANALYSIS${hasMetrics ? " with metrics comparison" : ""}
+${sampleComments ? "10. COMMENT SENTIMENT" : ""}
 ${langInstruction}
 
 === REQUIRED JSON OUTPUT ===
@@ -774,17 +742,18 @@ Return ONLY valid JSON (no markdown, no code fences):
       "actions": ["<action1>", "<action2>"],
       "scene": "<scene/setting description>",
       "onScreenText": ["<text1>", "<text2>"],
-      "estimatedTopic": "<main topic of the reel>"
+      "estimatedTopic": "<main topic>"
     },
     "confidence": "<high/medium/low>",
-    "reasoning": "<1-2 sentence explanation of why this category was chosen>",
-    "hashtagAlignment": "<do hashtags match the actual content? yes/partially/no + explanation>"
+    "reasoning": "<1-2 sentence explanation>",
+    "hashtagAlignment": "<yes/partially/no + explanation>"
   },
 
   "viralityFactors": {
-    "celebrityOrFamousPerson": false,
+    "recognizablePerson": false,
+    "strongFacialExpression": false,
+    "strongVisualSubject": false,
     "famousPlaceOrObject": false,
-    "attractivePresenter": false,
     "deepVoiceLikely": false,
     "trendingTopicRelevance": "none",
     "famousIncident": false
@@ -792,19 +761,19 @@ Return ONLY valid JSON (no markdown, no code fences):
 
   "hookAnalysis": {
     "score": <1-8>,
-    "firstThreeSeconds": "<what likely happens in first 3 seconds based on content>",
-    "openingType": "<question/shock/story/visual/tutorial/other>",
+    "firstThreeSeconds": "<what likely happens>",
+    "openingType": "<question/shock/storytelling/visual/statistic>",
     "attentionGrabber": "<main attention element>",
-    "details": ["<specific insight 1>", "<insight 2>", "<insight 3>"]
+    "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
   },
 
   "captionAnalysis": {
     "score": <1-8>,
     "curiosityLevel": <1-10>,
     "emotionalTriggers": ["<trigger1>", "<trigger2>"],
-    "callToAction": "<description of CTA or 'None detected'>",
+    "callToAction": "<description or 'None detected'>",
     "keywordDensity": "<assessment>",
-    "lengthEffectiveness": "<too short/optimal/too long + why>",
+    "lengthEffectiveness": "<assessment>",
     "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
   },
 
@@ -844,7 +813,7 @@ Return ONLY valid JSON (no markdown, no code fences):
   "trendMatching": {
     "score": <1-8>,
     "formatSimilarity": "<description>",
-    "hookPattern": "<matched pattern name>",
+    "hookPattern": "<matched pattern>",
     "trendingStructure": "<structure type>",
     "matchedTrends": ["<trend1>", "<trend2>"],
     "details": ["<insight 1>", "<insight 2>", "<insight 3>"]
@@ -852,7 +821,7 @@ Return ONLY valid JSON (no markdown, no code fences):
 
   "engagementScore": <1-8>,
   "engagementDetails": ["<insight 1>", "<insight 2>", "<insight 3>"],
-  "engagementRate": "<estimated rate if metrics provided>"${hasMetrics ? `,
+  "engagementRate": "<estimated rate>"${hasMetrics ? `,
 
   "metricsComparison": {
     ${metrics?.likes ? '"likes": { "value": ' + metrics.likes + ', "avgInCategory": <estimated>, "verdict": "<verdict>" },' : ''}
@@ -873,16 +842,23 @@ Return ONLY valid JSON (no markdown, no code fences):
     "summary": "<2-sentence summary>"
   }` : ""},
 
-  "topRecommendations": ["<actionable rec 1>", "<rec 2>", "<rec 3>", "<rec 4>", "<rec 5>"]
+  "topRecommendations": ["<rec 1>", "<rec 2>", "<rec 3>", "<rec 4>", "<rec 5>"]
 }`;
+
+    // Build message content — include image inline if available
+    const userContent: any[] = [{ type: "text", text: prompt }];
+    if (imageForVision) {
+      userContent.push({ type: "image_url", image_url: { url: imageForVision } });
+    }
 
     const response = await callGemini({
       model: "gemini-2.5-flash",
       messages: [
-        { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from screenshots and thumbnails to understand what a reel is actually about. Return only valid JSON. Be specific and actionable in your analysis." },
-        { role: "user", content: prompt },
+        { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from screenshots and thumbnails. Return only valid JSON. Be specific and actionable." },
+        { role: "user", content: userContent },
       ],
     });
+
     if (!response.ok) {
       const errText = await response.text();
       console.error("AI gateway error:", response.status, errText);
@@ -924,9 +900,7 @@ Return ONLY valid JSON (no markdown, no code fences):
 
     if (analysis.contentClassification) {
       const cc = analysis.contentClassification;
-      if (cc.confidence === "high") {
-        reasons.push(`Content identified as ${cc.primaryCategory} (${cc.subCategory}) with high confidence`);
-      }
+      if (cc.confidence === "high") reasons.push(`Content identified as ${cc.primaryCategory} (${cc.subCategory}) with high confidence`);
     }
 
     if (hasMetrics) {
@@ -944,7 +918,7 @@ Return ONLY valid JSON (no markdown, no code fences):
     if (analysis.hashtagAnalysis?.score >= 7) reasons.push("Well-optimized hashtag strategy");
     if (analysis.trendMatching?.score >= 7) reasons.push("Content aligns with current viral trends");
 
-    // === BUILD VIRALITY INSIGHTS (for paid PDF) ===
+    // === VIRALITY INSIGHTS ===
     const viralityInsights: { factor: string; detected: boolean; impact: string; score: number; reason: string; solution: string }[] = [];
 
     // === QUALITY BONUS/PENALTY ===
@@ -955,34 +929,25 @@ Return ONLY valid JSON (no markdown, no code fences):
       if (vqScore >= 7) {
         qualityBonus += 5;
         reasons.push("High video quality boosts viewer retention");
-        viralityInsights.push({ factor: "Video Quality", detected: true, impact: "positive", score: 5, reason: "High quality video with good lighting and clarity keeps viewers watching longer", solution: "Maintain this quality. Use natural light or ring light for consistency." });
+        viralityInsights.push({ factor: "Video Quality", detected: true, impact: "positive", score: 5, reason: "High quality video keeps viewers watching longer", solution: "Maintain this quality. Use natural light or ring light." });
       } else if (vqScore >= 5) {
         qualityBonus += 2;
-        viralityInsights.push({ factor: "Video Quality", detected: true, impact: "neutral", score: 2, reason: "Average video quality — not bad but not standout", solution: "Upgrade to HD recording, use a tripod, and ensure good lighting to boost retention." });
       } else {
         qualityBonus -= 5;
         reasons.push("Low video quality may reduce viewer retention");
-        viralityInsights.push({ factor: "Video Quality", detected: true, impact: "negative", score: -5, reason: "Low quality, dark or shaky footage causes viewers to scroll away quickly", solution: "Record in HD (1080p minimum), use stable mounting, and ensure proper lighting." });
+        viralityInsights.push({ factor: "Video Quality", detected: true, impact: "negative", score: -5, reason: "Low quality footage causes viewers to scroll away", solution: "Record in HD (1080p), use stable mounting, ensure proper lighting." });
       }
     }
     const aq = analysis.audioQuality;
     if (aq) {
       const aqScore = aq.qualityScore ?? 5;
-      if (aqScore >= 7) {
-        qualityBonus += 4;
-        reasons.push("Clean audio quality enhances engagement");
-        viralityInsights.push({ factor: "Audio Quality", detected: true, impact: "positive", score: 4, reason: "Clear audio keeps viewers engaged and increases watch time", solution: "Keep using quality mic setup. Consider adding trending background music for extra boost." });
-      } else if (aqScore >= 5) {
-        qualityBonus += 2;
-      } else {
-        qualityBonus -= 5;
-        reasons.push("Poor audio quality may cause viewers to skip");
-        viralityInsights.push({ factor: "Audio Quality", detected: true, impact: "negative", score: -5, reason: "Poor audio with noise/distortion causes immediate scroll-away", solution: "Use a lapel mic or phone close to mouth. Record in quiet environment. Add background music to mask minor noise." });
-      }
+      if (aqScore >= 7) { qualityBonus += 4; reasons.push("Clean audio quality enhances engagement"); }
+      else if (aqScore >= 5) { qualityBonus += 2; }
+      else { qualityBonus -= 5; reasons.push("Poor audio quality may cause viewers to skip"); }
     }
     qualityBonus = Math.max(-10, Math.min(10, qualityBonus));
 
-    // === CONTENT CATEGORY BONUS (expanded) ===
+    // === CONTENT CATEGORY BONUS ===
     let categoryBonus = 0;
     const cc = analysis.contentClassification;
     if (cc) {
@@ -994,166 +959,145 @@ Return ONLY valid JSON (no markdown, no code fences):
       if (highViralCategories.includes(catLower)) {
         categoryBonus += 5;
         reasons.push(`${cc.primaryCategory} content has higher viral potential on Instagram`);
-        viralityInsights.push({ factor: "Content Category", detected: true, impact: "positive", score: 5, reason: `${cc.primaryCategory} is a viral-friendly niche — Instagram algorithm favors entertainment and visually engaging content`, solution: "Keep creating in this niche. Mix trending formats with your unique style for maximum reach." });
+        viralityInsights.push({ factor: "Content Category", detected: true, impact: "positive", score: 5, reason: `${cc.primaryCategory} is viral-friendly on Instagram`, solution: "Keep creating in this niche with trending formats." });
       } else if (lowViralCategories.includes(catLower) || lowViralCategories.includes(contentTypeLower)) {
         categoryBonus -= 4;
-        reasons.push("Educational/learning content has lower viral potential on Instagram");
-        viralityInsights.push({ factor: "Content Category", detected: true, impact: "negative", score: -4, reason: "Educational content gets less shares and saves compared to entertainment on Instagram", solution: "Make educational content entertaining — use humor, storytelling, quick cuts, and trending audio. 'Edutainment' format performs much better." });
-      } else {
-        viralityInsights.push({ factor: "Content Category", detected: true, impact: "neutral", score: 0, reason: `${cc.primaryCategory} has moderate viral potential`, solution: "Consider adding entertainment elements or trending hooks to boost shareability." });
+        reasons.push("Educational content has lower viral potential on Instagram");
+        viralityInsights.push({ factor: "Content Category", detected: true, impact: "negative", score: -4, reason: "Educational content gets less shares on Instagram", solution: "Make it entertaining — use humor, storytelling, quick cuts, trending audio." });
       }
       if (cc.hashtagAlignment?.toLowerCase().startsWith("yes")) categoryBonus += 2;
       else if (cc.hashtagAlignment?.toLowerCase().startsWith("no")) {
         categoryBonus -= 3;
-        reasons.push("Hashtags don't match actual content — reduces discoverability");
-        viralityInsights.push({ factor: "Hashtag-Content Mismatch", detected: true, impact: "negative", score: -3, reason: "Using unrelated hashtags confuses the algorithm and reduces your content's reach to the right audience", solution: "Use hashtags that directly relate to your video content. Mix 3-5 niche hashtags with 2-3 broader ones." });
+        reasons.push("Hashtags don't match actual content");
+        viralityInsights.push({ factor: "Hashtag-Content Mismatch", detected: true, impact: "negative", score: -3, reason: "Unrelated hashtags confuse the algorithm", solution: "Use hashtags that match your video content directly." });
       }
     }
     categoryBonus = Math.max(-7, Math.min(7, categoryBonus));
 
-    // === VIRALITY FACTORS BONUS ===
+    // === VIRALITY FACTORS BONUS (updated: no "attractivePresenter") ===
     let viralityFactorsBonus = 0;
     const vf = analysis.viralityFactors;
     if (vf) {
-      if (vf.celebrityOrFamousPerson) {
+      if (vf.recognizablePerson) {
         viralityFactorsBonus += 8;
-        reasons.push("Famous person detected — significantly increases viral potential");
-        viralityInsights.push({ factor: "Celebrity/Famous Person", detected: true, impact: "positive", score: 8, reason: "Content featuring celebrities or famous personalities gets 3-5x more shares due to existing fan base and curiosity", solution: "Tag the celebrity, use their trending hashtags, and post when their fans are most active." });
-      } else {
-        viralityInsights.push({ factor: "Celebrity/Famous Person", detected: false, impact: "neutral", score: 0, reason: "No famous personality detected in the reel", solution: "If relevant, create content around trending celebrities or react to their content for more visibility." });
+        reasons.push("Recognizable person detected — significantly increases viral potential");
+        viralityInsights.push({ factor: "Recognizable Person", detected: true, impact: "positive", score: 8, reason: "Content featuring recognizable personalities gets 3-5x more shares", solution: "Tag the person, use their trending hashtags." });
+      }
+      if (vf.strongFacialExpression) {
+        viralityFactorsBonus += 2;
+        viralityInsights.push({ factor: "Strong Facial Expression", detected: true, impact: "positive", score: 2, reason: "Dramatic facial expressions create emotional connection and stop the scroll", solution: "Use expressive reactions — surprise, excitement, shock — in opening frames." });
+      }
+      if (vf.strongVisualSubject) {
+        viralityFactorsBonus += 3;
+        viralityInsights.push({ factor: "Strong Visual Subject", detected: true, impact: "positive", score: 3, reason: "Visually compelling subjects hold attention and increase saves/shares", solution: "Lead with the most visually striking element in the first frame." });
       }
       if (vf.famousPlaceOrObject) {
         viralityFactorsBonus += 5;
         reasons.push("Famous place/object detected — increases viewer interest");
-        viralityInsights.push({ factor: "Famous Place/Object", detected: true, impact: "positive", score: 5, reason: "Iconic locations and luxury/famous objects create aspirational content that gets high engagement", solution: "Use location tags, mention the place in caption, and use location-specific hashtags." });
-      }
-      if (vf.attractivePresenter) {
-        viralityFactorsBonus += 4;
-        reasons.push("Attractive presenter increases viewer retention and shares");
-        viralityInsights.push({ factor: "Attractive Presenter", detected: true, impact: "positive", score: 4, reason: "Visually appealing presenters (beautiful/handsome/fit people) naturally hold attention longer and get more profile visits", solution: "Ensure good grooming, confident body language, and maintain eye contact with camera for maximum impact." });
+        viralityInsights.push({ factor: "Famous Place/Object", detected: true, impact: "positive", score: 5, reason: "Iconic locations and objects create aspirational content", solution: "Use location tags and location-specific hashtags." });
       }
       if (vf.deepVoiceLikely) {
         viralityFactorsBonus += 3;
-        reasons.push("Deep/bass voice narration enhances content authority and engagement");
-        viralityInsights.push({ factor: "Deep/Unique Voice", detected: true, impact: "positive", score: 3, reason: "Deep or unique voice creates an authoritative, memorable impression that increases watch time", solution: "Use this voice consistently as your brand identity. Consider voiceover content where this becomes your signature." });
+        reasons.push("Deep/bass voice narration enhances engagement");
       }
       if (vf.famousIncident) {
         viralityFactorsBonus += 6;
-        reasons.push("Content relates to a famous/trending incident — high share potential");
-        viralityInsights.push({ factor: "Famous/Trending Incident", detected: true, impact: "positive", score: 6, reason: "Trending news and famous incidents drive massive search traffic and shares — timing is everything", solution: "Post as quickly as possible when incidents happen. First-mover advantage is key for news-related virality." });
+        reasons.push("Content relates to a trending incident — high share potential");
+        viralityInsights.push({ factor: "Trending Incident", detected: true, impact: "positive", score: 6, reason: "Trending news drives massive search traffic and shares", solution: "Post as quickly as possible. First-mover advantage is key." });
       }
       const trendRelevance = vf.trendingTopicRelevance?.toLowerCase();
       if (trendRelevance === "high") {
         viralityFactorsBonus += 7;
-        reasons.push("Highly relevant to current trending topics — strong viral potential");
-        viralityInsights.push({ factor: "Trending Topic Relevance", detected: true, impact: "positive", score: 7, reason: "Content matching current trends gets algorithmic boost — Instagram pushes trending content to Explore page", solution: "Keep riding this trend while it's hot. Create multiple variations quickly to maximize reach window." });
+        reasons.push("Highly relevant to current trending topics");
+        viralityInsights.push({ factor: "Trending Topic", detected: true, impact: "positive", score: 7, reason: "Trending content gets algorithmic boost to Explore page", solution: "Ride this trend with multiple variations quickly." });
       } else if (trendRelevance === "medium") {
         viralityFactorsBonus += 4;
         reasons.push("Moderately relevant to trending topics");
-        viralityInsights.push({ factor: "Trending Topic Relevance", detected: true, impact: "positive", score: 4, reason: "Some connection to current trends helps discoverability", solution: "Strengthen the connection to trending topics in your hashtags and caption. Use trending audio to boost." });
-      } else {
-        viralityInsights.push({ factor: "Trending Topic Relevance", detected: false, impact: "neutral", score: 0, reason: "Content doesn't strongly connect to any current trending topic", solution: "Research daily trends on Instagram Explore, Twitter/X, and Google Trends. Adapt your content to include trending elements." });
       }
     }
 
-    // === ADDITIONAL CONTENT FACTORS ===
-    // Thumbnail/visual appeal (from video signals)
+    // Additional content signals from video signals
     const vs = analysis.videoSignals;
     if (vs) {
       if (vs.facePresenceLikely?.toLowerCase().includes("yes")) {
         viralityFactorsBonus += 2;
-        viralityInsights.push({ factor: "Face in Thumbnail", detected: true, impact: "positive", score: 2, reason: "Reels with human faces in thumbnails get 38% more clicks — faces create instant emotional connection", solution: "Always show your face clearly in the first frame. Use expressive emotions for maximum thumbnail appeal." });
+        viralityInsights.push({ factor: "Face in Thumbnail", detected: true, impact: "positive", score: 2, reason: "Reels with faces get 38% more clicks", solution: "Show your face clearly in the first frame." });
       }
       if (vs.textOverlayLikely?.toLowerCase().includes("yes")) {
         viralityFactorsBonus += 2;
-        viralityInsights.push({ factor: "Text Overlay/Hook", detected: true, impact: "positive", score: 2, reason: "On-screen text hooks stop the scroll and give viewers a reason to watch even with sound off", solution: "Keep text hooks short (5-7 words max), use bold fonts, and create curiosity gaps." });
+        viralityInsights.push({ factor: "Text Overlay", detected: true, impact: "positive", score: 2, reason: "On-screen text stops the scroll", solution: "Keep text hooks 5-7 words max with bold fonts." });
       }
       if (vs.motionIntensity?.toLowerCase() === "high") {
         viralityFactorsBonus += 2;
-        viralityInsights.push({ factor: "High Motion/Action", detected: true, impact: "positive", score: 2, reason: "Dynamic, fast-paced content with action sequences maintains viewer attention through the full video", solution: "Maintain this energy. Use quick cuts (every 2-3 seconds) and avoid static shots longer than 3 seconds." });
       } else if (vs.motionIntensity?.toLowerCase() === "low") {
-        viralityInsights.push({ factor: "Low Motion/Static", detected: true, impact: "negative", score: -1, reason: "Static or slow-moving content has higher drop-off rates on Instagram Reels", solution: "Add camera movement, zoom transitions, B-roll clips, or text animations to create visual dynamism." });
+        viralityInsights.push({ factor: "Low Motion", detected: true, impact: "negative", score: -1, reason: "Static content has higher drop-off", solution: "Add camera movement, zoom transitions, or text animations." });
       }
     }
 
-    // Trending music
     if (aq?.musicUsage?.toLowerCase() === "trending") {
       viralityFactorsBonus += 3;
-      reasons.push("Trending background music boosts algorithmic reach");
-      viralityInsights.push({ factor: "Trending Music", detected: true, impact: "positive", score: 3, reason: "Instagram algorithm heavily promotes content using currently trending audio — it can 2-3x your reach", solution: "Always check Instagram's trending audio section before posting. Use audio within first 48 hours of it trending." });
-    } else if (aq?.musicUsage?.toLowerCase() === "none") {
-      viralityInsights.push({ factor: "No Background Music", detected: true, impact: "negative", score: -1, reason: "Reels without any music/audio feel incomplete and get less engagement", solution: "Add trending or mood-matching background music. Even soft background music improves watch time significantly." });
+      reasons.push("Trending background music boosts reach");
+      viralityInsights.push({ factor: "Trending Music", detected: true, impact: "positive", score: 3, reason: "Instagram algorithm promotes trending audio content 2-3x", solution: "Use audio within first 48 hours of it trending." });
     }
 
-    // Humor/memes/pets detection from content classification
+    // Humor/memes/pets detection
     if (cc) {
       const catLower = cc.primaryCategory?.toLowerCase() || "";
       const subCatLower = cc.subCategory?.toLowerCase() || "";
       const topicLower = cc.detectedElements?.estimatedTopic?.toLowerCase() || "";
-      
-      if (catLower.includes("meme") || subCatLower.includes("meme") || subCatLower.includes("humor") || topicLower.includes("meme") || topicLower.includes("funny")) {
+
+      if (catLower.includes("meme") || subCatLower.includes("meme") || subCatLower.includes("humor") || topicLower.includes("funny")) {
         viralityFactorsBonus += 3;
-        viralityInsights.push({ factor: "Humor/Memes", detected: true, impact: "positive", score: 3, reason: "Humorous and meme content is the most shared content type on Instagram — people love making others laugh", solution: "Keep the humor relatable. Use current meme formats and add your own twist for uniqueness." });
       }
-      if (topicLower.includes("pet") || topicLower.includes("dog") || topicLower.includes("cat") || topicLower.includes("animal") || subCatLower.includes("pet")) {
+      if (topicLower.includes("pet") || topicLower.includes("dog") || topicLower.includes("cat") || topicLower.includes("animal")) {
         viralityFactorsBonus += 3;
-        viralityInsights.push({ factor: "Cute Animals/Pets", detected: true, impact: "positive", score: 3, reason: "Pet and animal content consistently goes viral — it's universally loved and highly shareable", solution: "Capture candid, funny, or adorable moments. Add relatable captions from the pet's perspective." });
       }
-      if (topicLower.includes("challenge") || topicLower.includes("trend") || subCatLower.includes("challenge") || topicLower.includes("festival")) {
+      if (topicLower.includes("challenge") || topicLower.includes("trend") || topicLower.includes("festival")) {
         viralityFactorsBonus += 3;
-        viralityInsights.push({ factor: "Challenge/Trend/Festival", detected: true, impact: "positive", score: 3, reason: "Challenges, trends, and festival content ride massive organic wave — perfect timing multiplies reach", solution: "Post challenge content within the first 48-72 hours of the trend. For festivals, start 2-3 days before." });
       }
     }
 
     viralityFactorsBonus = Math.max(0, Math.min(18, viralityFactorsBonus));
 
-    // === AGE PENALTY: Refined gradual decrease ===
+    // === AGE PENALTY ===
     let agePenalty = 0;
-    let postDate: Date | null = null;
+    let resolvedPostDate: Date | null = null;
     let daysSincePost: number | null = null;
-    if (analysis._postDate) {
-      const pd = new Date(analysis._postDate);
-      if (!isNaN(pd.getTime())) postDate = pd;
+
+    // Use regex-extracted postDate or AI's _postDate
+    const dateStr = postDate || analysis._postDate;
+    if (dateStr) {
+      const pd = new Date(dateStr);
+      if (!isNaN(pd.getTime())) resolvedPostDate = pd;
     }
 
-    if (postDate) {
+    if (resolvedPostDate) {
       const now = new Date();
-      daysSincePost = (now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24);
-      
+      daysSincePost = (now.getTime() - resolvedPostDate.getTime()) / (1000 * 60 * 60 * 24);
+
       if (daysSincePost <= 2) {
-        // 0-2 days: Full potential, no penalty
         agePenalty = 0;
-        viralityInsights.push({ factor: "Reel Age (Fresh)", detected: true, impact: "positive", score: 0, reason: "Reel is fresh (0-2 days old) — this is the peak viral window. Most viral reels blow up within first 48 hours", solution: "Maximize engagement NOW. Reply to every comment, share to stories, and ask friends to engage in first hour." });
+        viralityInsights.push({ factor: "Reel Age (Fresh)", detected: true, impact: "positive", score: 0, reason: "Reel is fresh (0-2 days) — peak viral window", solution: "Maximize engagement NOW. Reply to every comment, share to stories." });
       } else if (daysSincePost <= 5) {
-        // 3-5 days: Small gradual decrease
         agePenalty = -Math.round((daysSincePost - 2) * 2);
-        reasons.push(`Reel is ${Math.round(daysSincePost)} days old — initial viral window narrowing`);
-        viralityInsights.push({ factor: "Reel Age (3-5 Days)", detected: true, impact: "negative", score: agePenalty, reason: "Reel has passed the initial 48-hour peak window. Algorithm starts favoring newer content", solution: "Share to stories again, cross-post to other platforms, engage heavily with comments to signal activity." });
+        reasons.push(`Reel is ${Math.round(daysSincePost)} days old — viral window narrowing`);
       } else if (daysSincePost <= 7) {
-        // 6-7 days: Moderate decrease
         agePenalty = -Math.round(6 + (daysSincePost - 5) * 2);
         reasons.push(`Reel is ${Math.round(daysSincePost)} days old — viral potential declining`);
-        viralityInsights.push({ factor: "Reel Age (6-7 Days)", detected: true, impact: "negative", score: agePenalty, reason: "After a week, the algorithm significantly reduces push for this content. Viral chance is much lower", solution: "Focus on creating a new reel with improved elements. Learn from this reel's analytics and iterate." });
       } else if (daysSincePost <= 15) {
-        // 8-15 days: Low chance
         agePenalty = -Math.round(10 + (daysSincePost - 7) * 1.5);
-        reasons.push(`Reel is ${Math.round(daysSincePost)} days old — viral chance is very low`);
-        viralityInsights.push({ factor: "Reel Age (8-15 Days)", detected: true, impact: "negative", score: agePenalty, reason: "Content is too old for algorithm boost. Only exceptionally engaging content gets rediscovered after this point", solution: "Create a fresh version of this content with updated hooks and trending audio. Don't try to revive old reels." });
+        reasons.push(`Reel is ${Math.round(daysSincePost)} days old — viral chance very low`);
       } else {
-        // 15+ days: Almost negligible
         agePenalty = -Math.round(Math.min(25, 22 + (daysSincePost - 15) * 0.3));
-        reasons.push(`Reel is ${Math.round(daysSincePost)}+ days old — viral window has passed`);
-        viralityInsights.push({ factor: "Reel Age (15+ Days)", detected: true, impact: "negative", score: agePenalty, reason: "Viral potential is almost negligible. Instagram prioritizes fresh content. If it didn't go viral in 1-2 days, it likely won't now", solution: "Don't waste time promoting old reels. Take the best elements and create new content. Consistency beats revival." });
+        reasons.push(`Reel is ${Math.round(daysSincePost)}+ days old — viral window passed`);
       }
     }
 
-    // Old reel + low engagement = extra penalty
     if (daysSincePost !== null && daysSincePost > 7 && hasMetrics && !isAlreadyViral && !isGrowing) {
       agePenalty -= 5;
-      viralityInsights.push({ factor: "Old + Low Engagement", detected: true, impact: "negative", score: -5, reason: "Old reel with low engagement is a strong signal that the content won't go viral", solution: "Analyze what didn't work: Was the hook weak? Caption unengaging? Wrong posting time? Apply these learnings to your next reel." });
     }
 
-    // === PATTERN MATCHING BONUS ===
+    // === PATTERN MATCHING ===
     let patternBonus = 0;
     let patternComparison = null;
 
@@ -1163,38 +1107,21 @@ Return ONLY valid JSON (no markdown, no code fences):
       patternComparison = compareWithPatterns(analysis, patterns);
 
       if (patternComparison.similarityScore !== null) {
-        if (patternComparison.similarityScore >= 70) {
-          patternBonus = 8;
-          reasons.push(`High match (${patternComparison.similarityScore}%) with proven viral patterns`);
-        } else if (patternComparison.similarityScore >= 40) {
-          patternBonus = 4;
-          reasons.push(`Moderate match (${patternComparison.similarityScore}%) with viral patterns`);
-        } else {
-          patternBonus = -3;
-        }
+        if (patternComparison.similarityScore >= 70) { patternBonus = 8; reasons.push(`High match (${patternComparison.similarityScore}%) with proven viral patterns`); }
+        else if (patternComparison.similarityScore >= 40) { patternBonus = 4; reasons.push(`Moderate match (${patternComparison.similarityScore}%) with viral patterns`); }
+        else { patternBonus = -3; }
       }
     }
     patternBonus = Math.max(-8, Math.min(8, patternBonus));
 
-    // === Hook in first 3 seconds bonus ===
+    // Hook insights
     const hookScore = analysis.hookAnalysis?.score ?? 5;
     if (hookScore >= 7) {
-      viralityInsights.push({ factor: "Strong Hook (First 3 Sec)", detected: true, impact: "positive", score: 3, reason: "A powerful opening hook in the first 3 seconds is the #1 factor for viral reels — it stops the scroll", solution: "Keep using strong hooks. Test different types: questions, shocking facts, visual surprises, or bold statements." });
+      viralityInsights.push({ factor: "Strong Hook", detected: true, impact: "positive", score: 3, reason: "Powerful opening stops the scroll", solution: "Keep using strong hooks. Test question, shock, and visual types." });
     } else if (hookScore <= 3) {
-      viralityInsights.push({ factor: "Weak Hook (First 3 Sec)", detected: true, impact: "negative", score: -2, reason: "Weak opening causes 60-70% of viewers to scroll away within first 2 seconds", solution: "Start with a bang: bold text overlay, surprising visual, provocative question, or emotional trigger in the very first frame." });
+      viralityInsights.push({ factor: "Weak Hook", detected: true, impact: "negative", score: -2, reason: "Weak opening causes 60-70% drop in first 2 seconds", solution: "Start with bold text, surprising visual, or provocative question." });
     }
 
-    // Trending hashtags bonus
-    if (analysis.hashtagAnalysis?.score >= 7) {
-      viralityInsights.push({ factor: "Trending/Engaging Hashtags", detected: true, impact: "positive", score: 2, reason: "Well-researched hashtags help Instagram categorize and push your content to the right audience", solution: "Mix 5-7 niche + 3-5 broad hashtags. Research trending tags daily using Instagram search." });
-    }
-
-    // Caption engagement
-    if (analysis.captionAnalysis?.score >= 7) {
-      viralityInsights.push({ factor: "Engaging Caption", detected: true, impact: "positive", score: 2, reason: "Captions that create curiosity or emotion drive comments and saves, boosting algorithmic ranking", solution: "Keep using storytelling and questions in captions. End with a CTA that encourages comments." });
-    }
-
-    // Store insights in analysis for paid PDF
     analysis._viralityInsights = viralityInsights;
     analysis._daysSincePost = daysSincePost;
 
@@ -1230,7 +1157,6 @@ Return ONLY valid JSON (no markdown, no code fences):
       }
     }
 
-    // Final hard cap at 80
     viralScore = Math.min(80, viralScore);
 
     analysis.viralClassification = {
@@ -1241,15 +1167,14 @@ Return ONLY valid JSON (no markdown, no code fences):
       engagementRate: hasMetrics && viewsVal > 0 ? engRate : undefined,
     };
 
-    analysis.thumbnailAnalyzed = !!visionAnalysis;
+    analysis.thumbnailAnalyzed = !!imageForVision;
     analysis.patternComparison = patternComparison;
 
-    // Store pattern in background
+    // Store pattern + log in background
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       storePattern(analysis, url, metrics, caption || "", hashtags || "", SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
         .catch(e => console.error("Background pattern store failed:", e));
 
-      // Log API usage
       const logSupabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
       logSupabase.from("api_usage_logs").insert({
         function_name: "analyze-reel",
