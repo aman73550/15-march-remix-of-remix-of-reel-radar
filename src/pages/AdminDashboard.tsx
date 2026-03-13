@@ -709,6 +709,9 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {/* Behaviour Triggers */}
+        <AdminBehaviourSettings />
+
         {/* User Feedback */}
         <div>
           <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">⭐ User Feedback</h2>
