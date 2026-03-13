@@ -329,25 +329,53 @@ const AdminDashboard = () => {
     { label: "Pending", value: paidStats.pending, icon: CreditCard, color: "text-[hsl(var(--viral-mid))]" },
   ];
 
-  const slotLabels: Record<string, string> = {
-    "banner-top": "🔝 Top Banner (Homepage)",
-    "banner-mid": "📍 Mid Banner",
-    "banner-bottom": "⬇️ Bottom Banner (Results End)",
-    "sidebar-left": "◀️ Left Sidebar (Desktop)",
-    "sidebar-right": "▶️ Right Sidebar (Desktop)",
-    "processing-overlay": "⏳ Processing Overlay",
-    "below-progress": "📊 Below Progress Bar",
-    "after-score": "🎯 After Viral Score",
-    "after-charts": "📈 After Charts Section",
-    "after-hooks": "🪝 After Hook/Caption/Hashtag",
-    "after-recommendations": "💡 After Recommendations",
-    "master-report-below": "👑 Below Master Report",
-    "before-leaderboard": "🏆 Before Leaderboard",
-    "before-reviews": "💬 Before Reviews",
-    "footer-above": "📌 Above Footer",
-    "share-gate-below": "🔒 Below Share Gate",
-    "footer-banner": "🔻 Footer Banner",
+  const slotLabels: Record<string, { label: string; group: string }> = {
+    // Homepage & Global
+    "banner-top": { label: "🔝 Top Banner (Homepage)", group: "Homepage" },
+    "banner-mid": { label: "📍 Mid Banner", group: "Homepage" },
+    "banner-bottom": { label: "⬇️ Bottom Banner (Results End)", group: "Homepage" },
+    "sidebar-left": { label: "◀️ Left Sidebar (Desktop)", group: "Homepage" },
+    "sidebar-right": { label: "▶️ Right Sidebar (Desktop)", group: "Homepage" },
+    // During Analysis
+    "processing-overlay": { label: "⏳ Processing Overlay", group: "Processing" },
+    "below-progress": { label: "📊 Below Progress Bar", group: "Processing" },
+    // Results Section
+    "after-score": { label: "🎯 After Viral Score", group: "Results" },
+    "mid-1": { label: "📊 Results Mid-1", group: "Results" },
+    "after-charts": { label: "📈 After Charts Section", group: "Results" },
+    "after-hooks": { label: "🪝 After Hook/Caption/Hashtag", group: "Results" },
+    "mid-2": { label: "📊 Results Mid-2", group: "Results" },
+    "after-recommendations": { label: "💡 After Recommendations", group: "Results" },
+    "master-report-below": { label: "👑 Below Master Report", group: "Results" },
+    // SEO Section
+    "seo-input-below": { label: "🔍 Below SEO Input", group: "SEO" },
+    "seo-processing-top": { label: "⏳ SEO Processing Top", group: "SEO" },
+    "seo-processing-mid": { label: "⏳ SEO Processing Mid", group: "SEO" },
+    "seo-processing-bottom": { label: "⏳ SEO Processing Bottom", group: "SEO" },
+    "seo-results-mid": { label: "📊 SEO Results Mid", group: "SEO" },
+    "seo-results-bottom": { label: "📊 SEO Results Bottom", group: "SEO" },
+    // Footer & Misc
+    "before-leaderboard": { label: "🏆 Before Leaderboard", group: "Footer" },
+    "before-reviews": { label: "💬 Before Reviews", group: "Footer" },
+    "footer-above": { label: "📌 Above Footer", group: "Footer" },
+    "share-gate-below": { label: "🔒 Below Share Gate", group: "Footer" },
+    "footer-banner": { label: "🔻 Footer Banner", group: "Footer" },
   };
+
+  const AD_TEMPLATES = [
+    { name: "Google AdSense (Auto)", type: "adsense", code: '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>\n<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>\n<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>' },
+    { name: "Affiliate Banner", type: "affiliate", code: '<a href="YOUR_AFFILIATE_LINK" target="_blank" rel="noopener sponsored">\n  <img src="YOUR_BANNER_IMAGE_URL" alt="Ad" style="width:100%;height:auto;border-radius:8px;" />\n</a>' },
+    { name: "Custom CTA Card", type: "custom", code: '<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:16px;border-radius:12px;text-align:center;">\n  <p style="color:#e94560;font-weight:bold;font-size:14px;margin:0 0 8px;">🔥 Special Offer!</p>\n  <p style="color:#eee;font-size:12px;margin:0 0 12px;">Get 50% off on our premium plan</p>\n  <a href="YOUR_LINK" style="background:#e94560;color:white;padding:8px 20px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:bold;">Grab Deal →</a>\n</div>' },
+  ];
+
+  // Group ad slots
+  const groupedSlots: Record<string, typeof adSlots> = {};
+  adSlots.forEach(slot => {
+    const meta = slotLabels[slot.slot_name];
+    const group = meta?.group || "Other";
+    if (!groupedSlots[group]) groupedSlots[group] = [];
+    groupedSlots[group].push(slot);
+  });
 
   return (
     <div className="min-h-screen bg-background">
