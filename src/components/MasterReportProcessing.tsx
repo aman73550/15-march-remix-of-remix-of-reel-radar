@@ -111,7 +111,7 @@ const MasterReportProcessing = ({ show, reportReady, onDownload }: Props) => {
         <div className="space-y-2">
           <div className="w-full h-3 rounded-full bg-muted/50 border border-border overflow-hidden">
             <motion.div
-              className="h-full rounded-full gradient-primary-bg"
+              className="h-full rounded-full instagram-progress-bg"
               style={{ width: `${progress}%` }}
               transition={{ duration: 0.3, ease: "easeOut" }}
             />
