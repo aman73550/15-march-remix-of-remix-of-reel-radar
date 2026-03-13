@@ -137,6 +137,11 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
               </div>
             </div>
 
+            {/* Ad below progress bar */}
+            <div className="-mx-6 sm:mx-0">
+              <BannerAd slot="below-progress" />
+            </div>
+
             {/* Status steps */}
             <div className="space-y-1.5">
               {STEPS.map((step, i) => {

@@ -152,6 +152,11 @@ const ShareUnlockScreen = ({ onUnlocked }: Props) => {
               <p className="text-[10px] text-center text-muted-foreground">
                 Each button click counts as 1 share. Share on {SHARE_REQUIRED} platforms to unlock.
               </p>
+
+              {/* Ad below share gate */}
+              <div className="-mx-2 sm:mx-0">
+                <BannerAd slot="share-gate-below" />
+              </div>
             </Card>
           </motion.div>
         )}
