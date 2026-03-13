@@ -158,9 +158,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden">
+    <div className="min-h-screen bg-background relative overflow-x-hidden pb-20 md:pb-0">
       <LanguageToggle />
       <SidebarAds />
+      <MobileBottomNav activeTool={activeTool} onToolChange={setActiveTool} />
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
 
       {/* Behaviour Trigger Overlay */}
