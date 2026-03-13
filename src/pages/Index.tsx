@@ -28,6 +28,7 @@ import ShareToolPopup from "@/components/ShareToolPopup";
 import ShareUnlockScreen from "@/components/ShareUnlockScreen";
 import SocialProofSection, { SocialProofBadge } from "@/components/SocialProofSection";
 import SampleAnalysisPreview from "@/components/SampleAnalysisPreview";
+import ViralReelsShowcase from "@/components/ViralReelsShowcase";
 import TrendingLeaderboard from "@/components/TrendingLeaderboard";
 import UserReviews from "@/components/UserReviews";
 import TrustBadges from "@/components/TrustBadges";
@@ -447,6 +448,7 @@ const Index = () => {
       {!analysis && (
         <div className="space-y-2">
           <TrustBadges />
+          <ViralReelsShowcase onAnalyzeClick={scrollToInput} />
           <SampleAnalysisPreview />
           <InlineAd slot="before-leaderboard" />
           <TrendingLeaderboard onScrollToInput={scrollToInput} />
