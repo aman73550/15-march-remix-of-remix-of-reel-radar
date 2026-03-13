@@ -162,7 +162,7 @@ const Index = () => {
     <div className="min-h-screen bg-background relative overflow-x-hidden pb-20 md:pb-0">
       <LanguageToggle />
       <SidebarAds />
-      <MobileBottomNav activeTool={activeTool} onToolChange={setActiveTool} />
+      <MobileBottomNav activeTool={activeTool} onToolChange={setActiveTool} onSEOOpen={() => setSeoSheetOpen(true)} />
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
 
       {/* Behaviour Trigger Overlay */}
