@@ -38,6 +38,7 @@ import ExamplePDFPreview from "@/components/ExamplePDFPreview";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
+import { useBehaviourTrigger, BehaviourTriggerDisplay } from "@/components/BehaviourTrigger";
 import type { ReelAnalysis } from "@/lib/types";
 import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
 
