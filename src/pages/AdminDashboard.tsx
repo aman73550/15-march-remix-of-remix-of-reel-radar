@@ -653,6 +653,9 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {/* AI & API Usage Analyzer */}
+        <AdminAIUsage />
+
         {/* Admin Master Report Generator */}
         <div>
           <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">👑 Generate Master Report (Free)</h2>
