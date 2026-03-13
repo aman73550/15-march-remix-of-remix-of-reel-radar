@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { BannerAd, InlineAd } from "@/components/AdSlots";
 import type { ReelAnalysis } from "@/lib/types";
 import { Download, FileText, Crown, BarChart3, Calendar, Target, Lightbulb, TrendingUp, CheckCircle, Star, Zap, ArrowUp, ArrowDown, Minus, AlertTriangle, Clock, Eye, Music, Hash, Video, Mic, Sparkles, Users, MapPin, ShieldCheck, XCircle, BookOpen } from "lucide-react";
 
@@ -209,7 +210,7 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
   const decayData = premiumData.reelAgeFactor?.decayData || [];
 
   return (
-    <motion.div className="space-y-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+    <motion.div className="space-y-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
       {/* Download CTA */}
       <Card className="glass p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
         <div className="flex items-center gap-3">
@@ -293,6 +294,8 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
           </div>
         </Card>
       )}
+
+      <InlineAd slot="report-after-category" />
 
       {/* Reel Age Decay */}
       {premiumData.reelAgeFactor && (
@@ -408,6 +411,8 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
           )}
         </Card>
       )}
+
+      <InlineAd slot="report-after-famous" />
 
       {/* Thumbnail & Hook */}
       {premiumData.thumbnailHookAnalysis && (
@@ -537,6 +542,8 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
         </Card>
       )}
 
+      <InlineAd slot="report-mid-1" />
+
       {/* Quick Tips */}
       {premiumData.quickTips && (
         <Card className="glass p-5 space-y-3">
@@ -618,6 +625,8 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
           </div>
         </Card>
       )}
+
+      <InlineAd slot="report-mid-2" />
 
       {/* AI Recommendations */}
       {premiumData.aiRecommendations && (
@@ -703,6 +712,8 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
           </div>
         </Card>
       )}
+
+      <BannerAd slot="report-bottom" />
 
       {/* ===== HIDDEN PDF RENDER ===== */}
       <div ref={reportRef} style={{ display: "none" }}>

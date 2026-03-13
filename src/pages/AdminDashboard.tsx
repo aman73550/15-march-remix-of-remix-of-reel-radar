@@ -336,17 +336,27 @@ const AdminDashboard = () => {
     "banner-bottom": { label: "⬇️ Bottom Banner (Results End)", group: "Homepage" },
     "sidebar-left": { label: "◀️ Left Sidebar (Desktop)", group: "Homepage" },
     "sidebar-right": { label: "▶️ Right Sidebar (Desktop)", group: "Homepage" },
-    // During Analysis
-    "processing-overlay": { label: "⏳ Processing Overlay", group: "Processing" },
-    "below-progress": { label: "📊 Below Progress Bar", group: "Processing" },
+    // During Analysis Processing
+    "processing-overlay": { label: "⏳ Analysis Processing Overlay", group: "Processing" },
+    "below-progress": { label: "📊 Below Analysis Progress Bar", group: "Processing" },
+    // Master Report Processing
+    "report-progress-below": { label: "📊 Below Report Progress Bar", group: "Report Processing" },
+    "report-processing-bottom": { label: "⬇️ Report Processing Bottom", group: "Report Processing" },
     // Results Section
     "after-score": { label: "🎯 After Viral Score", group: "Results" },
     "mid-1": { label: "📊 Results Mid-1", group: "Results" },
     "after-charts": { label: "📈 After Charts Section", group: "Results" },
     "after-hooks": { label: "🪝 After Hook/Caption/Hashtag", group: "Results" },
     "mid-2": { label: "📊 Results Mid-2", group: "Results" },
+    "mid-3": { label: "📊 Results Mid-3", group: "Results" },
     "after-recommendations": { label: "💡 After Recommendations", group: "Results" },
-    "master-report-below": { label: "👑 Below Master Report", group: "Results" },
+    "master-report-below": { label: "👑 Below Master Report CTA", group: "Results" },
+    // Master Report PDF Sections
+    "report-after-category": { label: "📂 Report: After Category", group: "Master Report" },
+    "report-after-famous": { label: "⭐ Report: After Famous Elements", group: "Master Report" },
+    "report-mid-1": { label: "📊 Report: Mid Section 1", group: "Master Report" },
+    "report-mid-2": { label: "📊 Report: Mid Section 2", group: "Master Report" },
+    "report-bottom": { label: "⬇️ Report: Bottom Banner", group: "Master Report" },
     // SEO Section
     "seo-input-below": { label: "🔍 Below SEO Input", group: "SEO" },
     "seo-processing-top": { label: "⏳ SEO Processing Top", group: "SEO" },
@@ -562,7 +572,7 @@ const AdminDashboard = () => {
               {Object.entries(groupedSlots).map(([group, slots]) => (
                 <div key={group}>
                   <h4 className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                    {group === "Homepage" ? "🏠" : group === "Processing" ? "⏳" : group === "Results" ? "📊" : group === "SEO" ? "🔍" : "📌"} {group}
+                    {group === "Homepage" ? "🏠" : group === "Processing" ? "⏳" : group === "Report Processing" ? "👑" : group === "Results" ? "📊" : group === "Master Report" ? "📄" : group === "SEO" ? "🔍" : group === "Footer" ? "📌" : "📦"} {group}
                   </h4>
                   <div className="space-y-1.5">
                     {slots.map((slot) => {
