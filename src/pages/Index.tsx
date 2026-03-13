@@ -39,6 +39,8 @@ import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import { useBehaviourTrigger, BehaviourTriggerDisplay } from "@/components/BehaviourTrigger";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import SEOOptimizerSection from "@/components/SEOOptimizerSection";
 import type { ReelAnalysis } from "@/lib/types";
 import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
 
