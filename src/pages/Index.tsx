@@ -160,6 +160,17 @@ const Index = () => {
       <SidebarAds />
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
 
+      {/* Behaviour Trigger Overlay */}
+      {activeTrigger && (
+        <BehaviourTriggerDisplay
+          trigger={activeTrigger.trigger}
+          message={activeTrigger.message}
+          displayType={activeTrigger.displayType}
+          onDismiss={dismissTrigger}
+          onRetry={handleTriggerRetry}
+        />
+      )}
+
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-primary/10 blur-[120px]" animate={{ x: [0, 50, 0], y: [0, -30, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} />
