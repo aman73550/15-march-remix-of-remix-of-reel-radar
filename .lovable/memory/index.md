@@ -13,7 +13,10 @@ Dark theme Instagram Reel viral analysis tool. Design tokens in index.css (HSL).
 - Payment: site_config table stores Razorpay/Stripe keys, price (default ₹29), WhatsApp number
 - No user login required - payment only via gateway
 - Scoring: ALL scores capped at 80 max (nothing is 100% perfect). Sub-scores max 8/10.
-- Virality factors: celebrity, famous place/object, attractive presenter, deep voice, trending topic, famous incident — all give bonus
+- Virality factors: recognizable person, strong facial expression, strong visual subject, famous place/object, deep voice, trending topic, famous incident — all give bonus
 - Category bonuses: entertainment/music/GRWM/cars/bikes/dance/fashion = higher viral potential; educational/learning = lower
 - Age penalty: 15+ day old reels get reduced viral score (peak virality happens in 1-2 days)
 - Feedback: star rating (1-5) + optional comment, stored in feedback table, shown in admin panel
+- OPTIMIZED: Single AI call architecture — regex extraction first, heuristics computed locally, one Gemini call for all analysis+vision
+- Hook types: question/shock/storytelling/visual/statistic (classified by AI)
+- No "attractive presenter" detection — replaced with strongFacialExpression + strongVisualSubject
