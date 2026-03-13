@@ -395,9 +395,12 @@ const Index = () => {
         <div className="space-y-2">
           <TrustBadges />
           <SampleAnalysisPreview />
+          <InlineAd slot="before-leaderboard" />
           <TrendingLeaderboard onScrollToInput={scrollToInput} />
+          <InlineAd slot="before-reviews" />
           <UserReviews />
           <div className="py-8 space-y-4">
+            <BannerAd slot="footer-above" />
             <div className="flex justify-center"><ShareToolPopup /></div>
             <BannerAd slot="footer-banner" />
           </div>
