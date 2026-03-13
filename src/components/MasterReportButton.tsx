@@ -242,7 +242,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
               ) : (
                 <>
                   <Crown className="w-4 h-4 mr-2" />
-                  Unlock Master Report — ₹29 Only
+                  Unlock Master Report — <span className="line-through text-primary-foreground/60 mr-1">₹99</span> ₹29 Only
                 </>
               )}
             </Button>

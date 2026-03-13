@@ -21,13 +21,16 @@ import TrendMatchingCard from "@/components/TrendMatchingCard";
 import ContentClassificationCard from "@/components/ContentClassificationCard";
 import ViralPatternCard from "@/components/ViralPatternCard";
 import ViralStatusBadge from "@/components/ViralStatusBadge";
-import LanguageToggle from "@/components/LanguageToggle";
 import ShareToolPopup from "@/components/ShareToolPopup";
 import ShareUnlockScreen from "@/components/ShareUnlockScreen";
 import SocialProofSection, { SocialProofBadge } from "@/components/SocialProofSection";
 import SampleAnalysisPreview from "@/components/SampleAnalysisPreview";
 import TrendingLeaderboard from "@/components/TrendingLeaderboard";
 import { BannerAd, InlineAd, SidebarAds } from "@/components/AdSlots";
+import HomepageBadges from "@/components/HomepageBadges";
+import FakeReviewsSection from "@/components/FakeReviewsSection";
+import BeforeAfterSection from "@/components/BeforeAfterSection";
+import TodaysFakeLinks from "@/components/TodaysFakeLinks";
 import ProcessingOverlay from "@/components/ProcessingOverlay";
 import MasterReportButton from "@/components/MasterReportButton";
 import FeedbackRating from "@/components/FeedbackRating";
@@ -140,7 +143,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden">
-      <LanguageToggle />
       <SidebarAds />
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
 
@@ -235,13 +237,21 @@ const Index = () => {
         </Card>
       </motion.div>
 
-      {/* Share Unlock Gate */}
+      {/* Share Unlock Gate with blur background */}
       {showShareGate && (
-        <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
+        <div className="fixed inset-0 z-50 bg-background/60 backdrop-blur-md flex items-center justify-center">
+          <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
+        </div>
       )}
 
-      {/* Social Proof Section */}
-      {!analysis && !showShareGate && <SocialProofSection />}
+      {/* Social Proof & Homepage Sections */}
+      {!analysis && !showShareGate && (
+        <>
+          <SocialProofSection />
+          <HomepageBadges />
+          <TodaysFakeLinks />
+        </>
+      )}
 
       <div className="py-4"><BannerAd slot="top-banner" /></div>
 
@@ -381,7 +391,9 @@ const Index = () => {
 
       {!analysis && (
         <div className="space-y-2">
+          <BeforeAfterSection />
           <SampleAnalysisPreview />
+          <FakeReviewsSection />
           <TrendingLeaderboard onScrollToInput={scrollToInput} />
           <div className="py-8 space-y-4">
             <div className="flex justify-center"><ShareToolPopup /></div>
