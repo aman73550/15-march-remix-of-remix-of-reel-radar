@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Menu, X, Star, Crown, Loader2, Download, ArrowLeft, Search, Hash, Tag, Music, Clock } from "lucide-react";
+import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Star, Crown, Loader2, Download, ArrowLeft, Search } from "lucide-react";
 import MasterReportPDF from "@/components/MasterReportPDF";
 import AdminBehaviourSettings from "@/components/AdminBehaviourSettings";
 import AdminAIUsage from "@/components/AdminAIUsage";
@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   const [recentReports, setRecentReports] = useState<any[]>([]);
   const [config, setConfig] = useState<Record<string, string>>({});
   const [savingConfig, setSavingConfig] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   const [feedbackStats, setFeedbackStats] = useState({ total: 0, avg: 0, distribution: [0, 0, 0, 0, 0] });
   const [recentFeedback, setRecentFeedback] = useState<any[]>([]);
   const [adminReelUrl, setAdminReelUrl] = useState("");
