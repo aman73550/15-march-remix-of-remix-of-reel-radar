@@ -44,7 +44,7 @@ const AdminDashboard = () => {
 
     if (!roles || roles.length === 0) {
       await supabase.auth.signOut();
-      navigate("/admin-login");
+      navigate("/bosslogin");
       return;
     }
 
