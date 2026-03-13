@@ -118,7 +118,19 @@ const Index = () => {
       return;
     }
 
+    // Behaviour trigger check (blocks analysis if triggered, reward loop ensures next attempt succeeds)
+    if (checkTriggers()) {
+      return;
+    }
+
     setShowShareGate(false);
+    setShowInterstitial(true);
+    runAnalysis();
+  };
+
+  const handleTriggerRetry = () => {
+    dismissTrigger();
+    // After seeing trigger, next attempt always succeeds (reward loop)
     setShowInterstitial(true);
     runAnalysis();
   };
