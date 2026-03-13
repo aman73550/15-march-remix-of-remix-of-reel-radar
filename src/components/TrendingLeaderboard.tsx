@@ -13,35 +13,55 @@ interface LeaderboardEntry {
   captionScore: number;
   hashtagScore: number;
   views: string;
-  timeAgo: string;
 }
 
-// Realistic analyzed reel entries that look like actual user data
+// 25+ entries for better rotation variety
 const ALL_ENTRIES: LeaderboardEntry[] = [
-  { creator: "fitness_arjun", niche: "Gym Transformation", emoji: "💪", viralScore: 78, hookScore: 8, captionScore: 7, hashtagScore: 8, views: "1.2M", timeAgo: "2h ago" },
-  { creator: "priya.cooks", niche: "Quick Recipe", emoji: "🍳", viralScore: 74, hookScore: 8, captionScore: 7, hashtagScore: 7, views: "856K", timeAgo: "4h ago" },
-  { creator: "travel.with.mike", niche: "Hidden Gems", emoji: "✈️", viralScore: 71, hookScore: 7, captionScore: 8, hashtagScore: 7, views: "623K", timeAgo: "1h ago" },
-  { creator: "comedy_raj", niche: "Relatable Skit", emoji: "😂", viralScore: 76, hookScore: 8, captionScore: 7, hashtagScore: 6, views: "2.1M", timeAgo: "3h ago" },
-  { creator: "tech.sarah", niche: "iPhone Hack", emoji: "📱", viralScore: 69, hookScore: 7, captionScore: 7, hashtagScore: 8, views: "445K", timeAgo: "5h ago" },
-  { creator: "dance.meera", niche: "Trending Audio", emoji: "💃", viralScore: 73, hookScore: 8, captionScore: 6, hashtagScore: 7, views: "934K", timeAgo: "2h ago" },
-  { creator: "skincare.nisha", niche: "Night Routine", emoji: "✨", viralScore: 67, hookScore: 7, captionScore: 7, hashtagScore: 7, views: "312K", timeAgo: "6h ago" },
-  { creator: "motivate.vikram", niche: "Morning Mindset", emoji: "🔥", viralScore: 65, hookScore: 7, captionScore: 8, hashtagScore: 6, views: "278K", timeAgo: "4h ago" },
-  { creator: "pet.lover.sam", niche: "Dog Training", emoji: "🐕", viralScore: 72, hookScore: 8, captionScore: 6, hashtagScore: 7, views: "567K", timeAgo: "3h ago" },
-  { creator: "fashion.divya", niche: "GRWM Outfit", emoji: "👗", viralScore: 70, hookScore: 7, captionScore: 7, hashtagScore: 7, views: "489K", timeAgo: "1h ago" },
-  { creator: "car.enthusiast", niche: "Supercar Review", emoji: "🏎️", viralScore: 75, hookScore: 8, captionScore: 7, hashtagScore: 7, views: "1.5M", timeAgo: "5h ago" },
-  { creator: "study.with.ana", niche: "Study Tips", emoji: "📚", viralScore: 63, hookScore: 6, captionScore: 8, hashtagScore: 7, views: "198K", timeAgo: "7h ago" },
+  { creator: "fitness_arjun", niche: "Gym Transformation", emoji: "💪", viralScore: 78, hookScore: 8, captionScore: 7, hashtagScore: 8, views: "1.2M" },
+  { creator: "priya.cooks", niche: "Quick Recipe", emoji: "🍳", viralScore: 74, hookScore: 8, captionScore: 7, hashtagScore: 7, views: "856K" },
+  { creator: "travel.with.mike", niche: "Hidden Gems", emoji: "✈️", viralScore: 71, hookScore: 7, captionScore: 8, hashtagScore: 7, views: "623K" },
+  { creator: "comedy_raj", niche: "Relatable Skit", emoji: "😂", viralScore: 76, hookScore: 8, captionScore: 7, hashtagScore: 6, views: "2.1M" },
+  { creator: "tech.sarah", niche: "iPhone Hack", emoji: "📱", viralScore: 69, hookScore: 7, captionScore: 7, hashtagScore: 8, views: "445K" },
+  { creator: "dance.meera", niche: "Trending Audio", emoji: "💃", viralScore: 73, hookScore: 8, captionScore: 6, hashtagScore: 7, views: "934K" },
+  { creator: "skincare.nisha", niche: "Night Routine", emoji: "✨", viralScore: 67, hookScore: 7, captionScore: 7, hashtagScore: 7, views: "312K" },
+  { creator: "motivate.vikram", niche: "Morning Mindset", emoji: "🔥", viralScore: 65, hookScore: 7, captionScore: 8, hashtagScore: 6, views: "278K" },
+  { creator: "pet.lover.sam", niche: "Dog Training", emoji: "🐕", viralScore: 72, hookScore: 8, captionScore: 6, hashtagScore: 7, views: "567K" },
+  { creator: "fashion.divya", niche: "GRWM Outfit", emoji: "👗", viralScore: 70, hookScore: 7, captionScore: 7, hashtagScore: 7, views: "489K" },
+  { creator: "car.enthusiast", niche: "Supercar Review", emoji: "🏎️", viralScore: 75, hookScore: 8, captionScore: 7, hashtagScore: 7, views: "1.5M" },
+  { creator: "study.with.ana", niche: "Study Tips", emoji: "📚", viralScore: 63, hookScore: 6, captionScore: 8, hashtagScore: 7, views: "198K" },
+  { creator: "wanderlust.emma", niche: "Solo Travel Vlog", emoji: "🌍", viralScore: 72, hookScore: 7, captionScore: 8, hashtagScore: 7, views: "734K" },
+  { creator: "biryani.king", niche: "Street Food Review", emoji: "🍛", viralScore: 77, hookScore: 8, captionScore: 7, hashtagScore: 8, views: "1.8M" },
+  { creator: "yoga.with.ananya", niche: "Morning Flow", emoji: "🧘", viralScore: 68, hookScore: 7, captionScore: 8, hashtagScore: 6, views: "356K" },
+  { creator: "desi.memes.daily", niche: "Desi Comedy", emoji: "🤣", viralScore: 79, hookScore: 8, captionScore: 7, hashtagScore: 7, views: "3.2M" },
+  { creator: "makeup.by.zara", niche: "Drugstore Dupe", emoji: "💄", viralScore: 71, hookScore: 7, captionScore: 7, hashtagScore: 8, views: "521K" },
+  { creator: "crypto.decoded", niche: "Market Analysis", emoji: "💰", viralScore: 64, hookScore: 7, captionScore: 7, hashtagScore: 7, views: "234K" },
+  { creator: "painting.daily", niche: "Art Timelapse", emoji: "🎨", viralScore: 74, hookScore: 8, captionScore: 6, hashtagScore: 7, views: "678K" },
+  { creator: "bike.rides.india", niche: "Royal Enfield Tour", emoji: "🏍️", viralScore: 76, hookScore: 8, captionScore: 7, hashtagScore: 7, views: "1.1M" },
+  { creator: "plantmom.life", niche: "Indoor Garden", emoji: "🌿", viralScore: 66, hookScore: 7, captionScore: 7, hashtagScore: 7, views: "289K" },
+  { creator: "photography.lens", niche: "Phone Photography", emoji: "📷", viralScore: 70, hookScore: 7, captionScore: 8, hashtagScore: 7, views: "412K" },
+  { creator: "cricket.clips", niche: "Match Highlights", emoji: "🏏", viralScore: 80, hookScore: 8, captionScore: 7, hashtagScore: 8, views: "4.5M" },
+  { creator: "mumbai.foodie", niche: "Vada Pav Review", emoji: "🍔", viralScore: 73, hookScore: 8, captionScore: 7, hashtagScore: 6, views: "892K" },
+  { creator: "baby.moments", niche: "First Steps Video", emoji: "👶", viralScore: 75, hookScore: 8, captionScore: 6, hashtagScore: 7, views: "1.3M" },
 ];
 
-function getEntriesForSession(count: number): LeaderboardEntry[] {
-  // Use hour-based seed so entries change every few hours
-  const hourSeed = Math.floor(Date.now() / (1000 * 60 * 60 * 4));
+// Deterministic time labels rotating with seed
+function getTimeLabel(seed: number, index: number): string {
+  const opts = ["12m ago", "28m ago", "1h ago", "2h ago", "3h ago", "4h ago", "5h ago", "45m ago", "1.5h ago", "just now", "8m ago", "35m ago"];
+  return opts[(seed + index * 5) % opts.length];
+}
+
+// Rotate every 3 days
+function getEntriesForCycle(count: number): (LeaderboardEntry & { timeAgo: string })[] {
+  const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24 * 3));
+  const seed = dayIndex * 13;
   const pool = [...ALL_ENTRIES];
-  const result: LeaderboardEntry[] = [];
-  let idx = hourSeed;
+  const result: (LeaderboardEntry & { timeAgo: string })[] = [];
+  let idx = seed;
   while (result.length < count && pool.length > 0) {
     const pick = idx % pool.length;
-    result.push(pool.splice(pick, 1)[0]);
-    idx += 3;
+    const entry = pool.splice(pick, 1)[0];
+    result.push({ ...entry, timeAgo: getTimeLabel(seed, result.length) });
+    idx += 7;
   }
   return result.sort((a, b) => b.viralScore - a.viralScore);
 }
@@ -57,7 +77,7 @@ interface Props {
 }
 
 const TrendingLeaderboard = ({ onScrollToInput }: Props) => {
-  const entries = useMemo(() => getEntriesForSession(5), []);
+  const entries = useMemo(() => getEntriesForCycle(5), []);
 
   return (
     <motion.div
@@ -84,7 +104,6 @@ const TrendingLeaderboard = ({ onScrollToInput }: Props) => {
           >
             <Card className={`glass p-3 sm:p-3.5 ${i === 0 ? "border-[hsl(var(--viral-high))]/30 bg-[hsl(var(--viral-high))]/5" : ""}`}>
               <div className="flex items-center gap-2 sm:gap-3">
-                {/* Rank */}
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                   i === 0 ? "bg-[hsl(var(--accent))]/15 text-[hsl(var(--accent))]" :
                   i <= 2 ? "bg-muted text-foreground" :
@@ -92,8 +111,6 @@ const TrendingLeaderboard = ({ onScrollToInput }: Props) => {
                 }`}>
                   #{i + 1}
                 </div>
-
-                {/* Creator info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                     <span className="text-sm">{entry.emoji}</span>
@@ -108,14 +125,10 @@ const TrendingLeaderboard = ({ onScrollToInput }: Props) => {
                   <div className="flex items-center gap-2 sm:gap-3 mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] text-muted-foreground">
                     <span>Hook: <span className="font-bold text-foreground">{entry.hookScore}/10</span></span>
                     <span>Caption: <span className="font-bold text-foreground">{entry.captionScore}/10</span></span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <Eye className="w-2.5 h-2.5" /> {entry.views}
-                    </span>
+                    <span className="inline-flex items-center gap-0.5"><Eye className="w-2.5 h-2.5" /> {entry.views}</span>
                     <span className="text-muted-foreground/50">{entry.timeAgo}</span>
                   </div>
                 </div>
-
-                {/* Viral Score */}
                 <div className="flex-shrink-0 text-right">
                   <span className={`text-base sm:text-lg font-bold ${getScoreColor(entry.viralScore)}`}>{entry.viralScore}%</span>
                   <p className="text-[8px] sm:text-[9px] text-muted-foreground">viral score</p>
@@ -126,17 +139,8 @@ const TrendingLeaderboard = ({ onScrollToInput }: Props) => {
         ))}
       </div>
 
-      {/* CTA */}
-      <motion.div
-        className="mt-6 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
-      >
-        <Button
-          onClick={onScrollToInput}
-          className="gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity px-8"
-        >
+      <motion.div className="mt-6 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }}>
+        <Button onClick={onScrollToInput} className="gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity px-8">
           <TrendingUp className="w-4 h-4 mr-2" />
           Analyze Your Reel
         </Button>
