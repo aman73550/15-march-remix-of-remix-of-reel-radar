@@ -330,22 +330,70 @@ async function scrapeMetaTags(url: string): Promise<{
   }
 }
 
-async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshot: string; markdown: string } | null> {
+async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshots: string[]; markdown: string } | null> {
   const apiKey = Deno.env.get("FIRECRAWL_API_KEY");
   if (!apiKey) return null;
 
   try {
-    console.log("Scraping reel with Firecrawl:", url);
+    console.log("Scraping reel with Firecrawl (multi-screenshot):", url);
     const response = await fetch("https://api.firecrawl.dev/v1/scrape", {
       method: "POST",
       headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url, formats: ["screenshot", "markdown"], waitFor: 5000 }),
+      body: JSON.stringify({
+        url,
+        formats: ["screenshot", "markdown"],
+        waitFor: 5000,
+        actions: [
+          { type: "wait", milliseconds: 3000 },
+          { type: "screenshot", fullPage: false },
+          { type: "wait", milliseconds: 10000 },
+          { type: "screenshot", fullPage: false },
+          { type: "scroll", direction: "down", amount: 600 },
+          { type: "wait", milliseconds: 3000 },
+          { type: "screenshot", fullPage: false },
+          { type: "scroll", direction: "down", amount: 600 },
+          { type: "wait", milliseconds: 3000 },
+          { type: "screenshot", fullPage: false },
+        ],
+      }),
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn("Firecrawl actions failed, trying simple scrape...");
+      // Fallback to simple scrape without actions
+      const fallbackResp = await fetch("https://api.firecrawl.dev/v1/scrape", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ url, formats: ["screenshot", "markdown"], waitFor: 5000 }),
+      });
+      if (!fallbackResp.ok) return null;
+      const fallbackData = await fallbackResp.json();
+      const mainScreenshot = fallbackData.data?.screenshot || fallbackData.screenshot || "";
+      return {
+        screenshots: mainScreenshot ? [mainScreenshot] : [],
+        markdown: fallbackData.data?.markdown || fallbackData.markdown || "",
+      };
+    }
+
     const data = await response.json();
+    const allScreenshots: string[] = [];
+
+    // Main screenshot
+    const mainShot = data.data?.screenshot || data.screenshot || "";
+    if (mainShot) allScreenshots.push(mainShot);
+
+    // Action screenshots
+    const actionScreenshots = data.data?.actions?.screenshots || [];
+    for (const shot of actionScreenshots) {
+      if (shot && !allScreenshots.includes(shot)) {
+        allScreenshots.push(shot);
+      }
+    }
+
+    console.log(`Captured ${allScreenshots.length} screenshots from Firecrawl`);
+
     return {
-      screenshot: data.data?.screenshot || data.screenshot || "",
+      screenshots: allScreenshots.slice(0, 4), // Max 4 screenshots
       markdown: data.data?.markdown || data.markdown || "",
     };
   } catch (e) {
@@ -534,6 +582,7 @@ serve(async (req) => {
     let sampleComments = userComments || "";
     let authorName = "";
     let thumbnailUrl = "";
+    let screenshotUrls: string[] = [];
     let screenshotUrl = "";
     let postDate: string | null = null;
 
@@ -578,11 +627,20 @@ serve(async (req) => {
         };
       }
 
-      // Capture screenshot URL for vision in the single AI call
-      if (scrapeResult.screenshot) {
-        screenshotUrl = scrapeResult.screenshot.startsWith("data:")
-          ? scrapeResult.screenshot
-          : `data:image/png;base64,${scrapeResult.screenshot}`;
+      // Capture ALL screenshot URLs for multi-image vision
+      if (scrapeResult.screenshots && scrapeResult.screenshots.length > 0) {
+        for (const shot of scrapeResult.screenshots) {
+          if (shot) {
+            const shotUrl = shot.startsWith("data:")
+              ? shot
+              : shot.startsWith("http")
+              ? shot
+              : `data:image/png;base64,${shot}`;
+            screenshotUrls.push(shotUrl);
+          }
+        }
+        screenshotUrl = screenshotUrls[0] || "";
+        console.log(`Prepared ${screenshotUrls.length} screenshot(s) for AI vision`);
       }
     }
 
@@ -661,9 +719,17 @@ Language: ${heuristics.languageHint}
     // ==============================
     console.log("STEP 4: Single AI analysis call...");
 
-    // Determine image source for vision (prefer screenshot > thumbnail)
-    const imageForVision = screenshotUrl || thumbnailUrl;
-    const isScreenshot = !!screenshotUrl;
+    // Collect all available images for vision (screenshots + thumbnail)
+    const allImagesForVision: string[] = [...screenshotUrls];
+    if (thumbnailUrl && !allImagesForVision.includes(thumbnailUrl)) {
+      allImagesForVision.push(thumbnailUrl);
+    }
+    // Max 4 images for AI
+    const imagesForVision = allImagesForVision.slice(0, 4);
+    const imageForVision = imagesForVision.length > 0 ? imagesForVision[0] : "";
+    const isScreenshot = screenshotUrls.length > 0;
+    const hasMultipleImages = imagesForVision.length > 1;
+    console.log(`Images for AI vision: ${imagesForVision.length} (screenshots: ${screenshotUrls.length}, thumbnail: ${thumbnailUrl ? 1 : 0})`);
 
     const langInstruction = respondInHindi
       ? "\n\nCRITICAL: Write ALL text values in Hindi. Keep JSON keys in English."
@@ -680,9 +746,14 @@ ${heuristicsSection}
 
 === ANALYSIS INSTRUCTIONS ===
 
-${imageForVision ? `IMPORTANT: You have been provided ${isScreenshot ? "a full page screenshot of the Instagram reel page (includes UI with metrics)" : "the reel's thumbnail image"}. Use this as a PRIMARY visual signal to understand what the reel is actually about. Extract any visible text, objects, people, and setting from the image.` : "No visual content available — analyze based on caption, hashtags, and metrics only."}
+${imagesForVision.length > 0 ? `IMPORTANT: You have been provided ${imagesForVision.length} image(s) of this reel:
+${hasMultipleImages ? `- Multiple screenshots captured at different time intervals showing the reel content, UI metrics (likes, comments, views, username, caption), and comments section.
+- Analyze ALL images carefully to extract maximum information about the content, visual elements, on-screen text, people, objects, and engagement metrics.
+- If metrics are visible in screenshots that differ from extracted data above, use the SCREENSHOT values as they are more reliable.
+- Look for: username, like count, comment count, view count, caption text, hashtags, share button, save button, profile picture, any on-screen text/overlays.` : `- ${isScreenshot ? "A full page screenshot of the Instagram reel page (includes UI with metrics)" : "The reel's thumbnail image"}. Use this as a PRIMARY visual signal.`}
+Extract any visible text, objects, people, and setting from the image(s).` : "No visual content available — analyze based on caption, hashtags, and metrics only."}
 
-${isScreenshot ? `CRITICAL: If you can see engagement metrics (likes, comments, views) in the screenshot that differ from the extracted data above, use the SCREENSHOT values as they are more reliable.` : ""}
+${isScreenshot ? `CRITICAL: If you can see engagement metrics (likes, comments, views) in the screenshots that differ from the extracted data above, use the SCREENSHOT values as they are more reliable.` : ""}
 
 IMPORTANT SCORING RULES:
 - ALL individual scores (hook, caption, hashtag, engagement, trend, video quality, audio quality) must be between 1-8. NEVER give any score above 8 out of 10.
@@ -848,10 +919,13 @@ Return ONLY valid JSON (no markdown, no code fences):
     // Build message content — include image inline if available
     const systemMsg = { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from screenshots and thumbnails. Return only valid JSON. Be specific and actionable." };
 
-    async function tryAICall(includeImage: boolean): Promise<Response> {
+    async function tryAICall(includeImages: boolean): Promise<Response> {
       const userContent: any[] = [{ type: "text", text: prompt }];
-      if (includeImage && imageForVision) {
-        userContent.push({ type: "image_url", image_url: { url: imageForVision } });
+      if (includeImages && imagesForVision.length > 0) {
+        for (const imgUrl of imagesForVision) {
+          userContent.push({ type: "image_url", image_url: { url: imgUrl } });
+        }
+        console.log(`Sending ${imagesForVision.length} image(s) to AI`);
       }
       return await callGemini({
         model: "gemini-2.5-flash",
@@ -859,12 +933,12 @@ Return ONLY valid JSON (no markdown, no code fences):
       });
     }
 
-    let response = await tryAICall(!!imageForVision);
+    let response = await tryAICall(imagesForVision.length > 0);
 
-    // If image URL caused a 400 error, retry without image
-    if (!response.ok && imageForVision) {
+    // If image URLs caused a 400 error, retry without images
+    if (!response.ok && imagesForVision.length > 0) {
       const errText = await response.text();
-      console.warn("AI call failed with image, retrying without image:", response.status, errText);
+      console.warn("AI call failed with images, retrying without images:", response.status, errText);
       response = await tryAICall(false);
     }
 
