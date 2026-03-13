@@ -139,8 +139,7 @@ interface InlineAdProps {
 }
 
 export const InlineAd = ({ slot = "inline" }: InlineAdProps) => {
-  const slotName = slot.startsWith("banner-") ? slot : `banner-${slot}`;
-  const ad = useAdSlot(slotName);
+  const ad = useAdSlot(slot);
 
   if (ad && !ad.enabled) return null;
 
