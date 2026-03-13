@@ -38,6 +38,7 @@ import ExamplePDFPreview from "@/components/ExamplePDFPreview";
 import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
+import { useBehaviourTrigger, BehaviourTriggerDisplay } from "@/components/BehaviourTrigger";
 import type { ReelAnalysis } from "@/lib/types";
 import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
 
@@ -60,6 +61,7 @@ const Index = () => {
   const [remaining, setRemaining] = useState(getRemainingAnalyses());
   const { toast } = useToast();
   const { lang, t } = useLang();
+  const { activeTrigger, checkTriggers, dismissTrigger } = useBehaviourTrigger();
   const inputRef = useRef<HTMLDivElement>(null);
   const masterReportRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +118,19 @@ const Index = () => {
       return;
     }
 
+    // Behaviour trigger check (blocks analysis if triggered, reward loop ensures next attempt succeeds)
+    if (checkTriggers()) {
+      return;
+    }
+
     setShowShareGate(false);
+    setShowInterstitial(true);
+    runAnalysis();
+  };
+
+  const handleTriggerRetry = () => {
+    dismissTrigger();
+    // After seeing trigger, next attempt always succeeds (reward loop)
     setShowInterstitial(true);
     runAnalysis();
   };
@@ -145,6 +159,17 @@ const Index = () => {
       <LanguageToggle />
       <SidebarAds />
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
+
+      {/* Behaviour Trigger Overlay */}
+      {activeTrigger && (
+        <BehaviourTriggerDisplay
+          trigger={activeTrigger.trigger}
+          message={activeTrigger.message}
+          displayType={activeTrigger.displayType}
+          onDismiss={dismissTrigger}
+          onRetry={handleTriggerRetry}
+        />
+      )}
 
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
