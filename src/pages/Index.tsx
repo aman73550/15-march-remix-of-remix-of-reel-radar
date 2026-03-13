@@ -446,9 +446,7 @@ const Index = () => {
             <BannerAd slot="footer-banner" />
           </div>
         </div>
-      )}
-      </>
-      )}
+      }
 
       <WhatsAppButton />
       <footer className="relative z-10 mt-12 sm:mt-16">
