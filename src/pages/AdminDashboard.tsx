@@ -741,6 +741,39 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {/* Admin SEO Optimizer (Free) */}
+        <div>
+          <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3">🔍 SEO Optimizer (Free for Admin)</h2>
+          <Card className="border-border bg-card">
+            <CardContent className="p-4 sm:p-6 space-y-4">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Enter any topic or context to generate deep SEO optimization — titles, hashtags, music, posting time, top viral reels. No payment needed.</p>
+              <Textarea
+                value={adminSeoTopic}
+                onChange={(e) => setAdminSeoTopic(e.target.value)}
+                placeholder="Enter reel topic or context... (e.g., 'Morning routine for college students', 'Street food in Mumbai', 'Budget travel tips')"
+                className="bg-muted/50 border-border text-xs sm:text-sm min-h-[80px] resize-none"
+              />
+              <Button
+                onClick={handleAdminSeoGenerate}
+                disabled={adminSeoGenerating || !adminSeoTopic.trim()}
+                className="w-full gradient-primary-bg text-primary-foreground h-9 sm:h-10 text-xs sm:text-sm"
+              >
+                {adminSeoGenerating ? (
+                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Generating SEO Analysis...</>
+                ) : (
+                  <><Search className="w-3.5 h-3.5 mr-1.5" /> Generate SEO Analysis</>
+                )}
+              </Button>
+
+              {adminSeoResults && (
+                <div className="mt-4">
+                  <SEOResultsDisplay data={adminSeoResults} topic={adminSeoTopic} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Behaviour Triggers */}
         <AdminBehaviourSettings />
 
