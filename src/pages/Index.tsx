@@ -245,7 +245,7 @@ const Index = () => {
       {/* Social Proof Section */}
       {!analysis && !showShareGate && <SocialProofSection />}
 
-      <div className="py-4"><BannerAd slot="top-banner" /></div>
+      <div className="py-4"><BannerAd slot="banner-top" /></div>
 
       {/* Results */}
       <AnimatePresence>
@@ -294,6 +294,8 @@ const Index = () => {
               </motion.div>
             </div>
 
+            <InlineAd slot="after-score" />
+
             {/* Metrics Comparison */}
             {analysis.metricsComparison && Object.keys(analysis.metricsComparison).length > 0 && (
               <MetricsComparison metrics={analysis.metricsComparison} />
@@ -317,6 +319,8 @@ const Index = () => {
               </motion.div>
             </div>
 
+            <InlineAd slot="after-charts" />
+
             {analysis.patternComparison && (
               <ViralPatternCard data={analysis.patternComparison} />
             )}
@@ -328,6 +332,8 @@ const Index = () => {
             {analysis.hookAnalysis && <HookAnalysisCard data={analysis.hookAnalysis} title={t.hookTitle} />}
             {analysis.captionAnalysis && <CaptionAnalysisCard data={analysis.captionAnalysis} title={t.captionTitle} />}
             {analysis.hashtagAnalysis && <HashtagAnalysisCard data={analysis.hashtagAnalysis} title={t.hashtagTitle} />}
+
+            <InlineAd slot="after-hooks" />
 
             <InlineAd slot="mid-2" />
 
@@ -357,10 +363,14 @@ const Index = () => {
               </Card>
             </motion.div>
 
+            <InlineAd slot="after-recommendations" />
+
             {/* Master Report CTA */}
             <div ref={masterReportRef}>
               <MasterReportButton analysis={analysis} reelUrl={url} />
             </div>
+
+            <InlineAd slot="master-report-below" />
 
             {/* Example PDF Preview */}
             <ExamplePDFPreview />
@@ -376,7 +386,7 @@ const Index = () => {
               <ShareToolPopup />
             </motion.div>
 
-            <BannerAd slot="bottom-banner" />
+            <BannerAd slot="banner-bottom" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -385,9 +395,12 @@ const Index = () => {
         <div className="space-y-2">
           <TrustBadges />
           <SampleAnalysisPreview />
+          <InlineAd slot="before-leaderboard" />
           <TrendingLeaderboard onScrollToInput={scrollToInput} />
+          <InlineAd slot="before-reviews" />
           <UserReviews />
           <div className="py-8 space-y-4">
+            <BannerAd slot="footer-above" />
             <div className="flex justify-center"><ShareToolPopup /></div>
             <BannerAd slot="footer-banner" />
           </div>
