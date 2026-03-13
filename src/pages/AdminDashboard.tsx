@@ -329,25 +329,53 @@ const AdminDashboard = () => {
     { label: "Pending", value: paidStats.pending, icon: CreditCard, color: "text-[hsl(var(--viral-mid))]" },
   ];
 
-  const slotLabels: Record<string, string> = {
-    "banner-top": "🔝 Top Banner (Homepage)",
-    "banner-mid": "📍 Mid Banner",
-    "banner-bottom": "⬇️ Bottom Banner (Results End)",
-    "sidebar-left": "◀️ Left Sidebar (Desktop)",
-    "sidebar-right": "▶️ Right Sidebar (Desktop)",
-    "processing-overlay": "⏳ Processing Overlay",
-    "below-progress": "📊 Below Progress Bar",
-    "after-score": "🎯 After Viral Score",
-    "after-charts": "📈 After Charts Section",
-    "after-hooks": "🪝 After Hook/Caption/Hashtag",
-    "after-recommendations": "💡 After Recommendations",
-    "master-report-below": "👑 Below Master Report",
-    "before-leaderboard": "🏆 Before Leaderboard",
-    "before-reviews": "💬 Before Reviews",
-    "footer-above": "📌 Above Footer",
-    "share-gate-below": "🔒 Below Share Gate",
-    "footer-banner": "🔻 Footer Banner",
+  const slotLabels: Record<string, { label: string; group: string }> = {
+    // Homepage & Global
+    "banner-top": { label: "🔝 Top Banner (Homepage)", group: "Homepage" },
+    "banner-mid": { label: "📍 Mid Banner", group: "Homepage" },
+    "banner-bottom": { label: "⬇️ Bottom Banner (Results End)", group: "Homepage" },
+    "sidebar-left": { label: "◀️ Left Sidebar (Desktop)", group: "Homepage" },
+    "sidebar-right": { label: "▶️ Right Sidebar (Desktop)", group: "Homepage" },
+    // During Analysis
+    "processing-overlay": { label: "⏳ Processing Overlay", group: "Processing" },
+    "below-progress": { label: "📊 Below Progress Bar", group: "Processing" },
+    // Results Section
+    "after-score": { label: "🎯 After Viral Score", group: "Results" },
+    "mid-1": { label: "📊 Results Mid-1", group: "Results" },
+    "after-charts": { label: "📈 After Charts Section", group: "Results" },
+    "after-hooks": { label: "🪝 After Hook/Caption/Hashtag", group: "Results" },
+    "mid-2": { label: "📊 Results Mid-2", group: "Results" },
+    "after-recommendations": { label: "💡 After Recommendations", group: "Results" },
+    "master-report-below": { label: "👑 Below Master Report", group: "Results" },
+    // SEO Section
+    "seo-input-below": { label: "🔍 Below SEO Input", group: "SEO" },
+    "seo-processing-top": { label: "⏳ SEO Processing Top", group: "SEO" },
+    "seo-processing-mid": { label: "⏳ SEO Processing Mid", group: "SEO" },
+    "seo-processing-bottom": { label: "⏳ SEO Processing Bottom", group: "SEO" },
+    "seo-results-mid": { label: "📊 SEO Results Mid", group: "SEO" },
+    "seo-results-bottom": { label: "📊 SEO Results Bottom", group: "SEO" },
+    // Footer & Misc
+    "before-leaderboard": { label: "🏆 Before Leaderboard", group: "Footer" },
+    "before-reviews": { label: "💬 Before Reviews", group: "Footer" },
+    "footer-above": { label: "📌 Above Footer", group: "Footer" },
+    "share-gate-below": { label: "🔒 Below Share Gate", group: "Footer" },
+    "footer-banner": { label: "🔻 Footer Banner", group: "Footer" },
   };
+
+  const AD_TEMPLATES = [
+    { name: "Google AdSense (Auto)", type: "adsense", code: '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>\n<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>\n<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>' },
+    { name: "Affiliate Banner", type: "affiliate", code: '<a href="YOUR_AFFILIATE_LINK" target="_blank" rel="noopener sponsored">\n  <img src="YOUR_BANNER_IMAGE_URL" alt="Ad" style="width:100%;height:auto;border-radius:8px;" />\n</a>' },
+    { name: "Custom CTA Card", type: "custom", code: '<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);padding:16px;border-radius:12px;text-align:center;">\n  <p style="color:#e94560;font-weight:bold;font-size:14px;margin:0 0 8px;">🔥 Special Offer!</p>\n  <p style="color:#eee;font-size:12px;margin:0 0 12px;">Get 50% off on our premium plan</p>\n  <a href="YOUR_LINK" style="background:#e94560;color:white;padding:8px 20px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:bold;">Grab Deal →</a>\n</div>' },
+  ];
+
+  // Group ad slots
+  const groupedSlots: Record<string, typeof adSlots> = {};
+  adSlots.forEach(slot => {
+    const meta = slotLabels[slot.slot_name];
+    const group = meta?.group || "Other";
+    if (!groupedSlots[group]) groupedSlots[group] = [];
+    groupedSlots[group].push(slot);
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -504,115 +532,195 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Ad Management */}
+          {/* Ad Management - Grouped */}
           <Card className="border-border bg-card">
             <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
               <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
                 <Megaphone className="w-4 h-4 sm:w-5 sm:h-5 text-accent flex-shrink-0" />
-                Ad Slots
+                Ad Slots ({adSlots.filter(s => s.enabled).length}/{adSlots.length} active)
               </CardTitle>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Google AdSense, Affiliate links, ya custom HTML ads lagao</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Google AdSense, Affiliate links, ya custom HTML ads — directly deploy from here</p>
             </CardHeader>
-            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-2 sm:space-y-3">
-              {adSlots.map((slot) => {
-                const isEditing = editingSlot === slot.id;
-                return (
-                  <div key={slot.id} className="rounded-lg bg-muted/30 border border-border overflow-hidden">
-                    <div className="flex items-center justify-between p-2.5 sm:p-3 gap-2">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <Label className="text-xs sm:text-sm text-foreground cursor-pointer truncate">
-                          {slotLabels[slot.slot_name] || slot.slot_name}
-                        </Label>
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] font-medium ${
-                          slot.ad_type === "adsense" ? "bg-primary/20 text-primary" :
-                          slot.ad_type === "affiliate" ? "bg-accent/20 text-accent" :
-                          "bg-secondary/20 text-secondary"
-                        }`}>
-                          {slot.ad_type === "adsense" ? "AdSense" : slot.ad_type === "affiliate" ? "Affiliate" : "Custom"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-[10px] sm:text-xs"
-                          onClick={() => {
-                            if (isEditing) {
-                              setEditingSlot(null);
-                            } else {
-                              setEditingSlot(slot.id);
-                              setSlotDraft({ ad_type: slot.ad_type || "custom", ad_code: slot.ad_code || "" });
-                            }
-                          }}
-                        >
-                          {isEditing ? "Cancel" : "Edit"}
-                        </Button>
-                        <Switch
-                          checked={slot.enabled}
-                          onCheckedChange={(checked) => toggleAd(slot.id, checked)}
-                        />
-                      </div>
-                    </div>
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4">
+              {/* Quick Stats */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-lg bg-primary/10 p-2 text-center">
+                  <p className="text-lg font-bold text-primary">{adSlots.filter(s => s.ad_type === "adsense" && s.ad_code).length}</p>
+                  <p className="text-[9px] text-muted-foreground">AdSense</p>
+                </div>
+                <div className="rounded-lg bg-accent/10 p-2 text-center">
+                  <p className="text-lg font-bold text-accent">{adSlots.filter(s => s.ad_type === "affiliate" && s.ad_code).length}</p>
+                  <p className="text-[9px] text-muted-foreground">Affiliate</p>
+                </div>
+                <div className="rounded-lg bg-secondary/10 p-2 text-center">
+                  <p className="text-lg font-bold text-secondary">{adSlots.filter(s => s.ad_code).length}</p>
+                  <p className="text-[9px] text-muted-foreground">With Code</p>
+                </div>
+              </div>
 
-                    {isEditing && (
-                      <div className="px-2.5 sm:px-3 pb-3 space-y-2 border-t border-border pt-2">
-                        <div className="space-y-1">
-                          <Label className="text-[10px] sm:text-xs text-muted-foreground">Ad Type</Label>
-                          <select
-                            value={slotDraft.ad_type}
-                            onChange={(e) => setSlotDraft(prev => ({ ...prev, ad_type: e.target.value }))}
-                            className="w-full h-8 px-2 rounded-md bg-muted/50 border border-border text-foreground text-xs"
-                          >
-                            <option value="adsense">Google AdSense</option>
-                            <option value="affiliate">Affiliate Ad</option>
-                            <option value="custom">Custom HTML</option>
-                          </select>
+              {/* Grouped Slots */}
+              {Object.entries(groupedSlots).map(([group, slots]) => (
+                <div key={group}>
+                  <h4 className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                    {group === "Homepage" ? "🏠" : group === "Processing" ? "⏳" : group === "Results" ? "📊" : group === "SEO" ? "🔍" : "📌"} {group}
+                  </h4>
+                  <div className="space-y-1.5">
+                    {slots.map((slot) => {
+                      const isEditing = editingSlot === slot.id;
+                      const meta = slotLabels[slot.slot_name];
+                      return (
+                        <div key={slot.id} className="rounded-lg bg-muted/30 border border-border overflow-hidden">
+                          <div className="flex items-center justify-between p-2 sm:p-2.5 gap-2">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <Label className="text-[10px] sm:text-xs text-foreground cursor-pointer truncate">
+                                {meta?.label || slot.slot_name}
+                              </Label>
+                              {slot.ad_code && (
+                                <span className={`px-1.5 py-0.5 rounded text-[8px] font-medium ${
+                                  slot.ad_type === "adsense" ? "bg-primary/20 text-primary" :
+                                  slot.ad_type === "affiliate" ? "bg-accent/20 text-accent" :
+                                  "bg-secondary/20 text-secondary"
+                                }`}>
+                                  {slot.ad_type === "adsense" ? "AdSense" : slot.ad_type === "affiliate" ? "Affiliate" : "Custom"}
+                                </span>
+                              )}
+                              {!slot.ad_code && (
+                                <span className="px-1.5 py-0.5 rounded text-[8px] font-medium bg-muted/50 text-muted-foreground">Empty</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={() => {
+                                  if (isEditing) {
+                                    setEditingSlot(null);
+                                  } else {
+                                    setEditingSlot(slot.id);
+                                    setSlotDraft({ ad_type: slot.ad_type || "custom", ad_code: slot.ad_code || "" });
+                                  }
+                                }}
+                              >
+                                {isEditing ? "Cancel" : "Edit"}
+                              </Button>
+                              <Switch
+                                checked={slot.enabled}
+                                onCheckedChange={(checked) => toggleAd(slot.id, checked)}
+                              />
+                            </div>
+                          </div>
+
+                          {isEditing && (
+                            <div className="px-2.5 sm:px-3 pb-3 space-y-2 border-t border-border pt-2">
+                              {/* Quick Templates */}
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">⚡ Quick Templates</Label>
+                                <div className="flex gap-1.5 flex-wrap">
+                                  {AD_TEMPLATES.map((tpl) => (
+                                    <button
+                                      key={tpl.name}
+                                      onClick={() => setSlotDraft({ ad_type: tpl.type, ad_code: tpl.code })}
+                                      className="px-2 py-1 rounded-md text-[9px] font-medium bg-muted/40 border border-border hover:border-primary/40 hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-all"
+                                    >
+                                      {tpl.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">Ad Type</Label>
+                                <select
+                                  value={slotDraft.ad_type}
+                                  onChange={(e) => setSlotDraft(prev => ({ ...prev, ad_type: e.target.value }))}
+                                  className="w-full h-8 px-2 rounded-md bg-muted/50 border border-border text-foreground text-xs"
+                                >
+                                  <option value="adsense">Google AdSense</option>
+                                  <option value="affiliate">Affiliate Ad</option>
+                                  <option value="custom">Custom HTML</option>
+                                </select>
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground">
+                                  {slotDraft.ad_type === "adsense" ? "AdSense Code (paste full code)" :
+                                   slotDraft.ad_type === "affiliate" ? "Affiliate HTML (banner/link)" :
+                                   "Custom HTML/JS Code"}
+                                </Label>
+                                <textarea
+                                  value={slotDraft.ad_code}
+                                  onChange={(e) => setSlotDraft(prev => ({ ...prev, ad_code: e.target.value }))}
+                                  placeholder={
+                                    slotDraft.ad_type === "adsense"
+                                      ? '<ins class="adsbygoogle"...\n<script>(adsbygoogle = ...).push({});</script>'
+                                      : slotDraft.ad_type === "affiliate"
+                                      ? '<a href="https://affiliate-link.com"><img src="banner.jpg" /></a>'
+                                      : '<div>Your custom ad HTML here</div>'
+                                  }
+                                  rows={4}
+                                  className="w-full px-2 py-1.5 rounded-md bg-muted/50 border border-border text-foreground text-xs font-mono resize-y min-h-[80px]"
+                                />
+                              </div>
+
+                              {/* Live Preview */}
+                              {slotDraft.ad_code && (
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] text-muted-foreground">👁️ Preview</Label>
+                                  <div className="rounded-lg border border-border bg-background p-2 max-h-[120px] overflow-auto">
+                                    <div dangerouslySetInnerHTML={{ __html: slotDraft.ad_code.replace(/<script[\s\S]*?<\/script>/gi, '<p style="color:#888;font-size:10px;">[Script will execute on live site]</p>') }} />
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className="flex gap-2">
+                                {slot.ad_code && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 text-xs border-border flex-1"
+                                    onClick={async () => {
+                                      const { error } = await supabase
+                                        .from("ad_config")
+                                        .update({ ad_code: null, updated_at: new Date().toISOString() } as any)
+                                        .eq("id", slot.id);
+                                      if (error) { toast.error("Failed to clear ad"); return; }
+                                      setAdSlots(prev => prev.map(s => s.id === slot.id ? { ...s, ad_code: null } : s));
+                                      setEditingSlot(null);
+                                      toast.success("Ad cleared!");
+                                    }}
+                                  >
+                                    🗑️ Clear Ad
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  className="h-8 text-xs gradient-primary-bg text-primary-foreground flex-1"
+                                  onClick={async () => {
+                                    const { error } = await supabase
+                                      .from("ad_config")
+                                      .update({
+                                        ad_type: slotDraft.ad_type,
+                                        ad_code: slotDraft.ad_code,
+                                        updated_at: new Date().toISOString(),
+                                      } as any)
+                                      .eq("id", slot.id);
+                                    if (error) { toast.error("Failed to save ad"); return; }
+                                    setAdSlots(prev => prev.map(s => s.id === slot.id ? { ...s, ad_type: slotDraft.ad_type, ad_code: slotDraft.ad_code } : s));
+                                    setEditingSlot(null);
+                                    toast.success("Ad deployed! 🚀 Live on website now.");
+                                  }}
+                                >
+                                  🚀 Deploy Ad
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px] sm:text-xs text-muted-foreground">
-                            {slotDraft.ad_type === "adsense" ? "AdSense Code (paste <script> + <ins> tag)" :
-                             slotDraft.ad_type === "affiliate" ? "Affiliate HTML (banner img, link, etc.)" :
-                             "Custom HTML/JS Code"}
-                          </Label>
-                          <textarea
-                            value={slotDraft.ad_code}
-                            onChange={(e) => setSlotDraft(prev => ({ ...prev, ad_code: e.target.value }))}
-                            placeholder={
-                              slotDraft.ad_type === "adsense"
-                                ? '<ins class="adsbygoogle"...\n<script>(adsbygoogle = ...).push({});</script>'
-                                : slotDraft.ad_type === "affiliate"
-                                ? '<a href="https://affiliate-link.com"><img src="banner.jpg" /></a>'
-                                : '<div>Your custom ad HTML here</div>'
-                            }
-                            rows={4}
-                            className="w-full px-2 py-1.5 rounded-md bg-muted/50 border border-border text-foreground text-xs font-mono resize-y min-h-[80px]"
-                          />
-                        </div>
-                        <Button
-                          size="sm"
-                          className="w-full h-8 text-xs gradient-primary-bg text-primary-foreground"
-                          onClick={async () => {
-                            const { error } = await supabase
-                              .from("ad_config")
-                              .update({
-                                ad_type: slotDraft.ad_type,
-                                ad_code: slotDraft.ad_code,
-                                updated_at: new Date().toISOString(),
-                              } as any)
-                              .eq("id", slot.id);
-                            if (error) { toast.error("Failed to save ad"); return; }
-                            setAdSlots(prev => prev.map(s => s.id === slot.id ? { ...s, ad_type: slotDraft.ad_type, ad_code: slotDraft.ad_code } : s));
-                            setEditingSlot(null);
-                            toast.success("Ad saved!");
-                          }}
-                        >
-                          Save Ad Code
-                        </Button>
-                      </div>
-                    )}
+                      );
+                    })}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </CardContent>
           </Card>
         </div>
