@@ -34,7 +34,7 @@ const AdminDashboard = () => {
 
   const checkAdminAndLoad = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { navigate("/admin-login"); return; }
+    if (!user) { navigate("/bosslogin"); return; }
 
     const { data: roles } = await supabase
       .from("user_roles")
