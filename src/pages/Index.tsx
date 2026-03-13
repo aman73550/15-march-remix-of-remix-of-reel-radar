@@ -40,8 +40,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import { useBehaviourTrigger, BehaviourTriggerDisplay } from "@/components/BehaviourTrigger";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import SEOOptimizerSection from "@/components/SEOOptimizerSection";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { ReelAnalysis } from "@/lib/types";
 import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
 
@@ -67,8 +65,6 @@ const Index = () => {
   const { activeTrigger, checkTriggers, dismissTrigger } = useBehaviourTrigger();
   const inputRef = useRef<HTMLDivElement>(null);
   const masterReportRef = useRef<HTMLDivElement>(null);
-  const [activeTool, setActiveTool] = useState<"reel" | "seo">("reel");
-  const [seoSheetOpen, setSeoSheetOpen] = useState(false);
   const scrollToMasterReport = () => {
     masterReportRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
@@ -162,7 +158,7 @@ const Index = () => {
     <div className="min-h-screen bg-background relative overflow-x-hidden pb-20 md:pb-0">
       <LanguageToggle />
       <SidebarAds />
-      <MobileBottomNav activeTool={activeTool} onToolChange={setActiveTool} onSEOOpen={() => setSeoSheetOpen(true)} />
+      <MobileBottomNav />
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
 
       {/* Behaviour Trigger Overlay */}
@@ -183,15 +179,6 @@ const Index = () => {
         <motion.div className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full bg-accent/5 blur-[100px]" animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} />
       </div>
 
-      {/* SEO Optimizer Sheet */}
-      <Sheet open={seoSheetOpen} onOpenChange={setSeoSheetOpen}>
-        <SheetContent side="bottom" className="h-[85vh] overflow-y-auto rounded-t-2xl">
-          <SheetHeader>
-            <SheetTitle className="sr-only">SEO Optimizer</SheetTitle>
-          </SheetHeader>
-          <SEOOptimizerSection />
-        </SheetContent>
-      </Sheet>
 
       {/* Hero */}
       <div className="relative z-10">
