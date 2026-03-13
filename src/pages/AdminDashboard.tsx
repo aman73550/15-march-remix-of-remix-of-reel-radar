@@ -7,7 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Menu, X, Star, Crown, Loader2, Download } from "lucide-react";
+import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Menu, X, Star, Crown, Loader2, Download, ArrowLeft } from "lucide-react";
+import MasterReportPDF from "@/components/MasterReportPDF";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ const AdminDashboard = () => {
   const [adminReelUrl, setAdminReelUrl] = useState("");
   const [adminGenerating, setAdminGenerating] = useState(false);
   const [adminReportData, setAdminReportData] = useState<{ analysis: any; premium: any } | null>(null);
+  const [adminShowPdfPreview, setAdminShowPdfPreview] = useState(false);
 
   useEffect(() => {
     checkAdminAndLoad();
@@ -200,7 +202,7 @@ const AdminDashboard = () => {
     try {
       // Step 1: Analyze the reel
       const { data: analysisData, error: analysisErr } = await supabase.functions.invoke("analyze-reel", {
-        body: { reelUrl: adminReelUrl.trim() },
+        body: { url: adminReelUrl.trim() },
       });
       if (analysisErr || !analysisData?.success) throw new Error(analysisData?.error || "Analysis failed");
 
@@ -208,7 +210,7 @@ const AdminDashboard = () => {
 
       // Step 2: Generate master report (no payment needed)
       const { data: reportData, error: reportErr } = await supabase.functions.invoke("generate-master-report", {
-        body: { reportId: "admin-" + Date.now(), analysisData: analysis, reelUrl: adminReelUrl.trim() },
+        body: { reportId: null, analysisData: analysis, reelUrl: adminReelUrl.trim() },
       });
       if (reportErr || !reportData?.success) throw new Error(reportData?.error || "Report generation failed");
 
@@ -684,12 +686,22 @@ const AdminDashboard = () => {
                       Score: {adminReportData.analysis.viralClassification?.score || adminReportData.analysis.viralScore || 0}/80
                     </span>
                   </div>
-                  <Button
-                    onClick={handleAdminDownloadTxt}
-                    className="w-full sm:w-auto gradient-primary-bg text-primary-foreground h-9 text-xs sm:text-sm"
-                  >
-                    <Download className="w-3.5 h-3.5 mr-1.5" /> Download Master Report (TXT)
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      onClick={handleAdminDownloadTxt}
+                      variant="outline"
+                      className="border-border/50 text-foreground h-9 text-xs sm:text-sm"
+                    >
+                      <Download className="w-3.5 h-3.5 mr-1.5" /> Download TXT
+                    </Button>
+                    <Button
+                      onClick={() => setAdminShowPdfPreview(true)}
+                      className="gradient-primary-bg text-primary-foreground h-9 text-xs sm:text-sm"
+                    >
+                      <FileText className="w-3.5 h-3.5 mr-1.5" /> View Full Report & PDF
+                    </Button>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground">Premium data sections: {Object.keys(adminReportData.premium).length} sections generated</p>
                 </div>
               )}
             </CardContent>
@@ -773,6 +785,22 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Full Report Preview Modal */}
+      {adminShowPdfPreview && adminReportData && (
+        <div className="fixed inset-0 z-[200] bg-background/95 backdrop-blur-md overflow-y-auto">
+          <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4">
+            <Button
+              onClick={() => setAdminShowPdfPreview(false)}
+              variant="outline"
+              className="border-border/50 text-foreground"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Admin
+            </Button>
+            <MasterReportPDF analysis={adminReportData.analysis} premiumData={adminReportData.premium} reelUrl={adminReelUrl} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
