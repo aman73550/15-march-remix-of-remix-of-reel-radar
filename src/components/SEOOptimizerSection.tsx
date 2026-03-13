@@ -1,72 +1,93 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Hash, FileText, TrendingUp, Sparkles, Lock } from "lucide-react";
+import { Search, Sparkles, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useLang } from "@/lib/LangContext";
+import LanguageToggle from "@/components/LanguageToggle";
+import UserReviews from "@/components/UserReviews";
 
 const SEOOptimizerSection = () => {
-  const features = [
-    { icon: Hash, title: "Hashtag Research", desc: "Find high-performing hashtags for maximum reach" },
-    { icon: FileText, title: "Caption Generator", desc: "AI-crafted captions optimized for engagement" },
-    { icon: TrendingUp, title: "Trend Keywords", desc: "Discover trending keywords in your niche" },
-    { icon: Search, title: "SEO Score Checker", desc: "Analyze your content's discoverability score" },
-  ];
+  const [input, setInput] = useState("");
+  const { lang } = useLang();
+
+  const handlePay = () => {
+    // Payment integration placeholder
+  };
 
   return (
-    <div className="relative z-10 max-w-xl lg:max-w-2xl mx-auto px-3 sm:px-4 py-10 pb-28">
+    <div className="relative z-10 max-w-xl lg:max-w-2xl mx-auto px-3 sm:px-4 py-6 pb-28">
+      {/* Language Toggle */}
+      <div className="flex justify-end mb-4">
+        <LanguageToggle />
+      </div>
+
+      {/* Header */}
       <motion.div
-        className="text-center mb-8"
+        className="text-center mb-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-muted/50 text-xs text-muted-foreground mb-4">
-          <Sparkles className="w-3 h-3" />
-          Coming Soon
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-muted/50 text-xs text-muted-foreground mb-3">
+          <Search className="w-3 h-3" />
+          {lang === "hi" ? "पेड टूल — SEO ऑप्टिमाइज़ेशन" : "Paid Tool — SEO Optimization"}
         </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
-          SEO Optimization <span className="gradient-primary">Engine</span>
-        </h2>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+          Reel <span className="text-primary">SEO Optimizer</span>
+        </h1>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          Optimize your Reels with AI-powered hashtags, captions, and trend keywords for maximum discoverability.
+          {lang === "hi"
+            ? "डीप AI रिसर्च से ट्रेंडिंग टाइटल, हैशटैग, म्यूज़िक सुझाव और कंटेंट सुधार टिप्स पाएं"
+            : "Get trending titles, hashtags, music suggestions & content improvement tips powered by deep AI research"}
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {features.map((feature, i) => (
-          <motion.div
-            key={feature.title}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + i * 0.1 }}
-          >
-            <Card className="glass p-4 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-muted/20 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                  <Lock className="w-3.5 h-3.5" />
-                  Coming Soon
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <feature.icon className="w-4.5 h-4.5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{feature.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{feature.desc}</p>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
+      {/* Input Card */}
       <motion.div
-        className="mt-8 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
       >
-        <p className="text-xs text-muted-foreground/60">
-          🚀 We're building something powerful. Stay tuned for updates.
-        </p>
+        <Card className="glass p-4 sm:p-5 mb-6">
+          <Textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={
+              lang === "hi"
+                ? "अपना रील कॉन्टेक्स्ट, कैप्शन, या टॉपिक यहाँ डालें... (जैसे, 'Morning routine for college students' या अपना कैप्शन पेस्ट करें)"
+                : "Enter your reel context, caption, or topic here... (e.g., 'Morning routine for college students' or paste your caption)"
+            }
+            className="min-h-[100px] bg-muted/30 border-border/50 text-foreground placeholder:text-muted-foreground/60 resize-none mb-4"
+          />
+
+          {/* Pricing */}
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-muted-foreground line-through text-sm">₹59</span>
+            <span className="text-2xl font-bold text-foreground">₹10</span>
+            <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-semibold">
+              83% OFF — Limited Time
+            </span>
+          </div>
+
+          {/* Pay Button */}
+          <Button
+            onClick={handlePay}
+            className="w-full py-5 text-base font-semibold gradient-primary-bg text-primary-foreground hover:opacity-90 transition-opacity"
+          >
+            <Lock className="w-4 h-4 mr-2" />
+            {lang === "hi" ? "₹10 दें और SEO एनालिसिस जेनरेट करें" : "Pay ₹10 & Generate SEO Analysis"}
+          </Button>
+        </Card>
+      </motion.div>
+
+      {/* Reviews */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <UserReviews sectionTitle={lang === "hi" ? "SEO टूल रिव्यू" : "SEO Tool Reviews"} />
       </motion.div>
     </div>
   );
