@@ -412,6 +412,8 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
         </Card>
       )}
 
+      <InlineAd slot="report-after-famous" />
+
       {/* Thumbnail & Hook */}
       {premiumData.thumbnailHookAnalysis && (
         <Card className="glass p-5 space-y-3">
