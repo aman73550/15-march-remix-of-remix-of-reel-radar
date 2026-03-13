@@ -40,6 +40,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import { useBehaviourTrigger, BehaviourTriggerDisplay } from "@/components/BehaviourTrigger";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import InternalLinks from "@/components/InternalLinks";
 import type { ReelAnalysis } from "@/lib/types";
 import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
 
