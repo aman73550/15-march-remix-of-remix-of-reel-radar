@@ -377,11 +377,38 @@ const AdminDashboard = () => {
             <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] sm:text-xs text-muted-foreground">Report Price (₹)</Label>
+                  <Label className="text-[10px] sm:text-xs text-muted-foreground">Master PDF Price (₹)</Label>
                   <Input
                     type="number"
                     value={config.report_price || "29"}
                     onChange={(e) => updateConfig("report_price", e.target.value)}
+                    className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] sm:text-xs text-muted-foreground">Master PDF Display Price (₹)</Label>
+                  <Input
+                    type="number"
+                    value={config.report_display_price || "99"}
+                    onChange={(e) => updateConfig("report_display_price", e.target.value)}
+                    className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] sm:text-xs text-muted-foreground">SEO Tool Price (₹)</Label>
+                  <Input
+                    type="number"
+                    value={config.seo_price || "10"}
+                    onChange={(e) => updateConfig("seo_price", e.target.value)}
+                    className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] sm:text-xs text-muted-foreground">SEO Display Price (₹)</Label>
+                  <Input
+                    type="number"
+                    value={config.seo_display_price || "59"}
+                    onChange={(e) => updateConfig("seo_display_price", e.target.value)}
                     className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm"
                   />
                 </div>
