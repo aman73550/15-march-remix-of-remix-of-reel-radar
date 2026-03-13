@@ -64,6 +64,11 @@ serve(async (req) => {
       throw new Error("Failed to update payment status");
     }
 
+    // Log usage
+    supabase.from("api_usage_logs").insert({
+      function_name: "verify-payment", is_ai_call: false, estimated_cost: 0, status_code: 200,
+    }).catch(() => {});
+
     return new Response(JSON.stringify({ success: true, reportId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
