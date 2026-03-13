@@ -316,7 +316,7 @@ const AdminDashboard = () => {
               <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-base sm:text-xl font-bold text-foreground truncate">Admin Panel</h1>
+              <h1 className="text-base sm:text-xl font-bold text-foreground truncate">Boss Panel</h1>
               <p className="text-[10px] sm:text-sm text-muted-foreground hidden sm:block">Analytics, Payments & Configuration</p>
             </div>
           </div>
