@@ -140,41 +140,67 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
       const html2canvas = (await import("html2canvas")).default;
       const { jsPDF } = await import("jspdf");
       const element = reportRef.current;
-      if (!element) return;
+      if (!element) {
+        console.error("Report ref not found");
+        setDownloading(false);
+        return;
+      }
 
+      // Make visible off-screen for rendering
       element.style.display = "block";
-      element.style.position = "absolute";
-      element.style.left = "-9999px";
+      element.style.position = "fixed";
+      element.style.left = "-10000px";
+      element.style.top = "0";
       element.style.width = "800px";
+      element.style.zIndex = "-1";
+
+      // Wait for rendering
+      await new Promise(r => setTimeout(r, 500));
 
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#0a0b14",
         logging: false,
+        width: 800,
+        windowWidth: 800,
       });
+
+      // Hide again
+      element.style.display = "none";
+      element.style.position = "";
+      element.style.left = "";
+      element.style.top = "";
+      element.style.zIndex = "";
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = pdfWidth / (imgWidth / 2);
-      const totalPages = Math.ceil((imgHeight / 2 * ratio) / pdfHeight);
+      
+      // Calculate proper scaling
+      const imgWidthPx = canvas.width;
+      const imgHeightPx = canvas.height;
+      const scaledHeight = (imgHeightPx * pdfWidth) / imgWidthPx;
+      const totalPages = Math.ceil(scaledHeight / pdfHeight);
 
       for (let page = 0; page < totalPages; page++) {
         if (page > 0) pdf.addPage();
-        const yOffset = -(page * pdfHeight / ratio) * 2;
-        pdf.addImage(imgData, "PNG", 0, yOffset * ratio / 2, pdfWidth, (imgHeight / 2) * ratio);
+        const yOffset = -(page * pdfHeight);
+        pdf.addImage(imgData, "PNG", 0, yOffset, pdfWidth, scaledHeight);
       }
 
       pdf.save(`master-report-${Date.now()}.pdf`);
-      element.style.display = "none";
     } catch (err) {
       console.error("PDF generation error:", err);
+      // Fallback: download as text
+      handleTextDownload();
     } finally {
       setDownloading(false);
+      // Ensure hidden
+      if (reportRef.current) {
+        reportRef.current.style.display = "none";
+      }
     }
   };
 
