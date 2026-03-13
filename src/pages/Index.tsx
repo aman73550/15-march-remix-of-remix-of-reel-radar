@@ -40,6 +40,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import { useBehaviourTrigger, BehaviourTriggerDisplay } from "@/components/BehaviourTrigger";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import InternalLinks from "@/components/InternalLinks";
 import type { ReelAnalysis } from "@/lib/types";
 import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
 
@@ -426,6 +427,26 @@ const Index = () => {
           <TrendingLeaderboard onScrollToInput={scrollToInput} />
           <InlineAd slot="before-reviews" />
           <UserReviews />
+
+          {/* SEO Content Block */}
+          <section className="relative z-10 max-w-2xl mx-auto px-4 py-6 space-y-4">
+            <h2 className="text-base font-bold text-foreground">Free Instagram Reel Analyzer & SEO Optimization Tool</h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              ReelAnalyzer is a free AI-powered tool that helps Instagram creators analyze their reel performance, predict viral potential, and optimize content for maximum reach. Paste any Instagram reel URL and get instant insights on hook strength, caption quality, hashtag effectiveness, engagement metrics, and trend alignment. Whether you're a beginner or a professional content creator, our reel analytics tool gives you data-driven recommendations to improve every reel you post.
+            </p>
+            <h3 className="text-sm font-semibold text-foreground">How Does Reel Analysis Help Your Growth?</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Creators who analyze their reels before posting see 2-3x better engagement rates. Our reel performance analyzer checks your hook timing, caption SEO, hashtag competition levels, and content classification to identify exactly what's working and what needs improvement. The viral score prediction uses AI pattern matching against thousands of high-performing reels to estimate your content's viral probability.
+            </p>
+            <h3 className="text-sm font-semibold text-foreground">Reel SEO Optimization & Hashtag Strategy</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Instagram has become a search engine — users search for topics, tutorials, and trends directly on the platform. Our reel SEO optimizer helps you generate keyword-rich titles, optimized captions, and strategic hashtag sets so Instagram's algorithm can properly categorize and distribute your content to the right audience.
+            </p>
+          </section>
+
+          {/* Internal Links */}
+          <InternalLinks currentPath="/" />
+
           <div className="py-8 space-y-4">
             <BannerAd slot="footer-above" />
             <div className="flex justify-center"><ShareToolPopup /></div>
