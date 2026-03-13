@@ -383,8 +383,10 @@ const Index = () => {
 
       {!analysis && (
         <div className="space-y-2">
+          <TrustBadges />
           <SampleAnalysisPreview />
           <TrendingLeaderboard onScrollToInput={scrollToInput} />
+          <UserReviews />
           <div className="py-8 space-y-4">
             <div className="flex justify-center"><ShareToolPopup /></div>
             <BannerAd slot="footer-banner" />
