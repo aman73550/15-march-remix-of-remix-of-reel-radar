@@ -27,6 +27,8 @@ import ShareUnlockScreen from "@/components/ShareUnlockScreen";
 import SocialProofSection, { SocialProofBadge } from "@/components/SocialProofSection";
 import SampleAnalysisPreview from "@/components/SampleAnalysisPreview";
 import TrendingLeaderboard from "@/components/TrendingLeaderboard";
+import UserReviews from "@/components/UserReviews";
+import TrustBadges from "@/components/TrustBadges";
 import { BannerAd, InlineAd, SidebarAds } from "@/components/AdSlots";
 import ProcessingOverlay from "@/components/ProcessingOverlay";
 import MasterReportButton from "@/components/MasterReportButton";
@@ -381,8 +383,10 @@ const Index = () => {
 
       {!analysis && (
         <div className="space-y-2">
+          <TrustBadges />
           <SampleAnalysisPreview />
           <TrendingLeaderboard onScrollToInput={scrollToInput} />
+          <UserReviews />
           <div className="py-8 space-y-4">
             <div className="flex justify-center"><ShareToolPopup /></div>
             <BannerAd slot="footer-banner" />
