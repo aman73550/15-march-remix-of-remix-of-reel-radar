@@ -6,7 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Cost estimates per model (USD per 1K tokens approx)
 const MODEL_COSTS: Record<string, number> = {
   "gemini-2.5-flash": 0.00015,
   "gemini-2.5-pro": 0.00125,
@@ -28,46 +27,32 @@ serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const { action } = await req.json();
+    // Parse body ONCE and reuse
+    const body = await req.json();
+    const { action, usageData } = body;
 
     if (action === "stats") {
-      // Aggregate usage stats from logs - pure SQL, no AI
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
       const weekStart = new Date(now.getTime() - 7 * 86400000).toISOString();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-      // Today's data
-      const { data: todayLogs } = await supabase
-        .from("api_usage_logs")
-        .select("*")
-        .gte("created_at", todayStart)
-        .order("created_at", { ascending: false });
+      const [todayRes, weekRes, monthRes] = await Promise.all([
+        supabase.from("api_usage_logs").select("*").gte("created_at", todayStart).order("created_at", { ascending: false }),
+        supabase.from("api_usage_logs").select("*").gte("created_at", weekStart),
+        supabase.from("api_usage_logs").select("*").gte("created_at", monthStart),
+      ]);
 
-      // Week data
-      const { data: weekLogs } = await supabase
-        .from("api_usage_logs")
-        .select("*")
-        .gte("created_at", weekStart);
+      const logs = todayRes.data || [];
+      const weekData = weekRes.data || [];
+      const monthData = monthRes.data || [];
 
-      // Month data
-      const { data: monthLogs } = await supabase
-        .from("api_usage_logs")
-        .select("*")
-        .gte("created_at", monthStart);
-
-      const logs = todayLogs || [];
-      const weekData = weekLogs || [];
-      const monthData = monthLogs || [];
-
-      // Calculate stats
       const totalApiToday = logs.length;
       const totalAiToday = logs.filter((l: any) => l.is_ai_call).length;
       const totalCostToday = logs.reduce((sum: number, l: any) => sum + (Number(l.estimated_cost) || 0), 0);
       const totalCostWeek = weekData.reduce((sum: number, l: any) => sum + (Number(l.estimated_cost) || 0), 0);
       const totalCostMonth = monthData.reduce((sum: number, l: any) => sum + (Number(l.estimated_cost) || 0), 0);
 
-      // Per-function breakdown
       const functionBreakdown: Record<string, { count: number; aiCalls: number; cost: number }> = {};
       for (const log of logs) {
         const fn = log.function_name;
@@ -77,7 +62,6 @@ serve(async (req) => {
         functionBreakdown[fn].cost += Number(log.estimated_cost) || 0;
       }
 
-      // Per-model breakdown
       const modelBreakdown: Record<string, { count: number; cost: number; tokens: number }> = {};
       for (const log of logs) {
         if (log.is_ai_call && log.ai_model) {
@@ -88,38 +72,30 @@ serve(async (req) => {
         }
       }
 
-      // Hourly distribution (today)
       const hourlyDistribution: Record<number, number> = {};
       for (const log of logs) {
         const hour = new Date(log.created_at).getHours();
         hourlyDistribution[hour] = (hourlyDistribution[hour] || 0) + 1;
       }
 
-      // Avg response time
       const avgDuration = logs.length > 0
         ? Math.round(logs.reduce((sum: number, l: any) => sum + (Number(l.duration_ms) || 0), 0) / logs.length)
         : 0;
 
-      // Error rate
       const errorCount = logs.filter((l: any) => l.status_code >= 400).length;
       const errorRate = logs.length > 0 ? Math.round((errorCount / logs.length) * 100) : 0;
 
       return new Response(JSON.stringify({
         success: true,
         stats: {
-          totalApiToday,
-          totalAiToday,
+          totalApiToday, totalAiToday,
           totalCostToday: Math.round(totalCostToday * 10000) / 10000,
           totalCostWeek: Math.round(totalCostWeek * 10000) / 10000,
           totalCostMonth: Math.round(totalCostMonth * 10000) / 10000,
           totalApiWeek: weekData.length,
           totalApiMonth: monthData.length,
-          functionBreakdown,
-          modelBreakdown,
-          hourlyDistribution,
-          avgDuration,
-          errorRate,
-          errorCount,
+          functionBreakdown, modelBreakdown, hourlyDistribution,
+          avgDuration, errorRate, errorCount,
           recentLogs: logs.slice(0, 20),
         }
       }), {
@@ -128,11 +104,8 @@ serve(async (req) => {
     }
 
     if (action === "ai-suggest") {
-      // AI analysis - only runs when button is clicked
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
       if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-
-      const { usageData } = await req.json();
 
       const startTime = Date.now();
 
@@ -181,7 +154,6 @@ Keep it short, clear, and actionable. Use specific numbers from the data. Reply 
       const tokensUsed = aiResult.usage?.total_tokens || 0;
       const duration = Date.now() - startTime;
 
-      // Log this AI call itself
       await supabase.from("api_usage_logs").insert({
         function_name: "usage-analyzer",
         ai_model: "google/gemini-3-flash-preview",
