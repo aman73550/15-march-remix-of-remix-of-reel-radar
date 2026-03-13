@@ -87,7 +87,7 @@ const SEOOptimizerSection = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <UserReviews sectionTitle={lang === "hi" ? "SEO टूल रिव्यू" : "SEO Tool Reviews"} />
+        <UserReviews title={lang === "hi" ? "SEO टूल रिव्यू" : "SEO Tool Reviews"} />
       </motion.div>
     </div>
   );
