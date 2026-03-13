@@ -389,7 +389,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { reportId, analysisData, reelUrl } = await req.json();
+    const { reportId, analysisData, reelUrl, adminFree } = await req.json();
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -398,19 +398,57 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Verify the report exists and is paid
-    if (reportId) {
+    // ===== SECURITY: Payment or Admin auth required =====
+    if (adminFree) {
+      // Admin free path: verify JWT + admin role
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ success: false, error: "Authorization required" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (!user) {
+        return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin");
+      if (!roles || roles.length === 0) {
+        return new Response(JSON.stringify({ success: false, error: "Admin access required" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      console.log("Admin free report generation authorized for user:", user.id);
+    } else {
+      // Paid path: reportId is REQUIRED and must be verified as paid
+      if (!reportId) {
+        return new Response(JSON.stringify({ success: false, error: "Report ID is required. Payment must be completed first." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const { data: report } = await supabase
         .from("paid_reports")
-        .select("*")
+        .select("id, status, reel_url")
         .eq("id", reportId)
         .eq("status", "paid")
         .single();
 
       if (!report) {
-        return new Response(JSON.stringify({ success: false, error: "Payment not verified" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ success: false, error: "Payment not verified. Please complete payment first." }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Extra security: verify the reel URL matches the paid report
+      if (reelUrl && report.reel_url && report.reel_url !== reelUrl) {
+        return new Response(JSON.stringify({ success: false, error: "Reel URL mismatch with payment record" }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
@@ -420,8 +458,8 @@ serve(async (req) => {
     const genStart = Date.now();
     const premiumData = await generatePremiumAnalysis(analysisData, reelUrl);
 
-    // Update report with analysis data
-    if (reportId) {
+    // Update report with analysis data (only for paid path)
+    if (!adminFree && reportId) {
       await supabase
         .from("paid_reports")
         .update({
