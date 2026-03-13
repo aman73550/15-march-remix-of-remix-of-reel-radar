@@ -1259,7 +1259,7 @@ Return ONLY valid JSON (no markdown, no code fences):
         estimated_cost: 0.002,
         tokens_used: 3000,
         status_code: 200,
-        duration_ms: Date.now() - (globalThis.__analyzeStartTime || Date.now()),
+        duration_ms: 0,
       }).then(() => {}).catch(e => console.error("Usage log failed:", e));
     }
 
