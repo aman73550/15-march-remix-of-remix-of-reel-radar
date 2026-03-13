@@ -294,6 +294,8 @@ const Index = () => {
               </motion.div>
             </div>
 
+            <InlineAd slot="after-score" />
+
             {/* Metrics Comparison */}
             {analysis.metricsComparison && Object.keys(analysis.metricsComparison).length > 0 && (
               <MetricsComparison metrics={analysis.metricsComparison} />
