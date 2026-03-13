@@ -12,10 +12,10 @@ serve(async (req) => {
   const startTime = Date.now();
 
   try {
-    const { topic, reportId } = await req.json();
+    const { topic, reportId, adminFree } = await req.json();
 
-    if (!topic || !reportId) {
-      return new Response(JSON.stringify({ success: false, error: "Topic and reportId are required" }), {
+    if (!topic) {
+      return new Response(JSON.stringify({ success: false, error: "Topic is required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
