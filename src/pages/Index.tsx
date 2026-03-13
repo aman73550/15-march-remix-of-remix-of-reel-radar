@@ -9,6 +9,8 @@ import ViralScoreCircle from "@/components/ViralScoreCircle";
 import AnalysisCard from "@/components/AnalysisCard";
 import CategoryPieChart from "@/components/CategoryPieChart";
 import ScoreBarChart from "@/components/ScoreBarChart";
+import ScoreRadarChart from "@/components/ScoreRadarChart";
+import EngagementDonutChart from "@/components/EngagementDonutChart";
 import ReelPreview from "@/components/ReelPreview";
 import MetricsComparison from "@/components/MetricsComparison";
 import CommentSentiment from "@/components/CommentSentiment";
