@@ -684,12 +684,22 @@ const AdminDashboard = () => {
                       Score: {adminReportData.analysis.viralClassification?.score || adminReportData.analysis.viralScore || 0}/80
                     </span>
                   </div>
-                  <Button
-                    onClick={handleAdminDownloadTxt}
-                    className="w-full sm:w-auto gradient-primary-bg text-primary-foreground h-9 text-xs sm:text-sm"
-                  >
-                    <Download className="w-3.5 h-3.5 mr-1.5" /> Download Master Report (TXT)
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      onClick={handleAdminDownloadTxt}
+                      variant="outline"
+                      className="border-border/50 text-foreground h-9 text-xs sm:text-sm"
+                    >
+                      <Download className="w-3.5 h-3.5 mr-1.5" /> Download TXT
+                    </Button>
+                    <Button
+                      onClick={() => setAdminShowPdfPreview(true)}
+                      className="gradient-primary-bg text-primary-foreground h-9 text-xs sm:text-sm"
+                    >
+                      <FileText className="w-3.5 h-3.5 mr-1.5" /> View Full Report & PDF
+                    </Button>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground">Premium data sections: {Object.keys(adminReportData.premium).length} sections generated</p>
                 </div>
               )}
             </CardContent>
