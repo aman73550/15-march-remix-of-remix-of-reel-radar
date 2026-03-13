@@ -59,7 +59,7 @@ interface BannerAdProps {
 }
 
 export const BannerAd = ({ slot = "banner", className = "" }: BannerAdProps) => {
-  const ad = useAdSlot(slot === "banner" ? "banner-top" : slot.startsWith("banner-") ? slot : `banner-${slot}`);
+  const ad = useAdSlot(slot);
 
   if (ad && !ad.enabled) return null;
 
