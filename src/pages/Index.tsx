@@ -391,7 +391,9 @@ const Index = () => {
 
       {!analysis && (
         <div className="space-y-2">
+          <BeforeAfterSection />
           <SampleAnalysisPreview />
+          <FakeReviewsSection />
           <TrendingLeaderboard onScrollToInput={scrollToInput} />
           <div className="py-8 space-y-4">
             <div className="flex justify-center"><ShareToolPopup /></div>
