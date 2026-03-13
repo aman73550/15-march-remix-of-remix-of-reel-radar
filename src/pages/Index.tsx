@@ -319,6 +319,8 @@ const Index = () => {
               </motion.div>
             </div>
 
+            <InlineAd slot="after-charts" />
+
             {analysis.patternComparison && (
               <ViralPatternCard data={analysis.patternComparison} />
             )}
