@@ -212,7 +212,6 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
   return (
     <motion.div className="space-y-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
       {/* Download CTA */}
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
       <Card className="glass p-4 flex flex-col sm:flex-row items-center gap-3 justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl gradient-primary-bg flex items-center justify-center shadow-glow">
