@@ -439,6 +439,8 @@ const Index = () => {
           </div>
         </div>
       )}
+      </>
+      )}
 
       <WhatsAppButton />
       <footer className="relative z-10 mt-12 sm:mt-16">
