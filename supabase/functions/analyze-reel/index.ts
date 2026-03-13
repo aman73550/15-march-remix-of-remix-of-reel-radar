@@ -582,6 +582,7 @@ serve(async (req) => {
     let sampleComments = userComments || "";
     let authorName = "";
     let thumbnailUrl = "";
+    let screenshotUrls: string[] = [];
     let screenshotUrl = "";
     let postDate: string | null = null;
 
