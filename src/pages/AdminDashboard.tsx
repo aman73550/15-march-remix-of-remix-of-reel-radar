@@ -298,12 +298,23 @@ const AdminDashboard = () => {
   ];
 
   const slotLabels: Record<string, string> = {
-    "banner-top": "🔝 Top Banner",
+    "banner-top": "🔝 Top Banner (Homepage)",
     "banner-mid": "📍 Mid Banner",
-    "banner-bottom": "⬇️ Bottom Banner",
-    "sidebar-left": "◀️ Left Sidebar",
-    "sidebar-right": "▶️ Right Sidebar",
-    "processing-overlay": "⏳ Processing",
+    "banner-bottom": "⬇️ Bottom Banner (Results End)",
+    "sidebar-left": "◀️ Left Sidebar (Desktop)",
+    "sidebar-right": "▶️ Right Sidebar (Desktop)",
+    "processing-overlay": "⏳ Processing Overlay",
+    "below-progress": "📊 Below Progress Bar",
+    "after-score": "🎯 After Viral Score",
+    "after-charts": "📈 After Charts Section",
+    "after-hooks": "🪝 After Hook/Caption/Hashtag",
+    "after-recommendations": "💡 After Recommendations",
+    "master-report-below": "👑 Below Master Report",
+    "before-leaderboard": "🏆 Before Leaderboard",
+    "before-reviews": "💬 Before Reviews",
+    "footer-above": "📌 Above Footer",
+    "share-gate-below": "🔒 Below Share Gate",
+    "footer-banner": "🔻 Footer Banner",
   };
 
   return (
