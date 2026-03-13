@@ -193,7 +193,6 @@ const Index = () => {
         </SheetContent>
       </Sheet>
 
-      <>
       {/* Hero */}
       <div className="relative z-10">
         <motion.div className="max-w-2xl mx-auto px-3 sm:px-4 pt-10 sm:pt-14 pb-6 sm:pb-8 text-center" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
