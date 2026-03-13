@@ -719,9 +719,17 @@ Language: ${heuristics.languageHint}
     // ==============================
     console.log("STEP 4: Single AI analysis call...");
 
-    // Determine image source for vision (prefer screenshot > thumbnail)
-    const imageForVision = screenshotUrl || thumbnailUrl;
-    const isScreenshot = !!screenshotUrl;
+    // Collect all available images for vision (screenshots + thumbnail)
+    const allImagesForVision: string[] = [...screenshotUrls];
+    if (thumbnailUrl && !allImagesForVision.includes(thumbnailUrl)) {
+      allImagesForVision.push(thumbnailUrl);
+    }
+    // Max 4 images for AI
+    const imagesForVision = allImagesForVision.slice(0, 4);
+    const imageForVision = imagesForVision.length > 0 ? imagesForVision[0] : "";
+    const isScreenshot = screenshotUrls.length > 0;
+    const hasMultipleImages = imagesForVision.length > 1;
+    console.log(`Images for AI vision: ${imagesForVision.length} (screenshots: ${screenshotUrls.length}, thumbnail: ${thumbnailUrl ? 1 : 0})`);
 
     const langInstruction = respondInHindi
       ? "\n\nCRITICAL: Write ALL text values in Hindi. Keep JSON keys in English."
