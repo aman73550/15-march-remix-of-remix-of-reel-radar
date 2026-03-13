@@ -39,6 +39,8 @@ import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import { useBehaviourTrigger, BehaviourTriggerDisplay } from "@/components/BehaviourTrigger";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import SEOOptimizerSection from "@/components/SEOOptimizerSection";
 import type { ReelAnalysis } from "@/lib/types";
 import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
 
@@ -64,6 +66,7 @@ const Index = () => {
   const { activeTrigger, checkTriggers, dismissTrigger } = useBehaviourTrigger();
   const inputRef = useRef<HTMLDivElement>(null);
   const masterReportRef = useRef<HTMLDivElement>(null);
+  const [activeTool, setActiveTool] = useState<"reel" | "seo">("reel");
 
   const scrollToMasterReport = () => {
     masterReportRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -155,9 +158,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden">
+    <div className="min-h-screen bg-background relative overflow-x-hidden pb-20 md:pb-0">
       <LanguageToggle />
       <SidebarAds />
+      <MobileBottomNav activeTool={activeTool} onToolChange={setActiveTool} />
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
 
       {/* Behaviour Trigger Overlay */}
@@ -178,6 +182,10 @@ const Index = () => {
         <motion.div className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full bg-accent/5 blur-[100px]" animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} />
       </div>
 
+      {activeTool === "seo" ? (
+        <SEOOptimizerSection />
+      ) : (
+      <>
       {/* Hero */}
       <div className="relative z-10">
         <motion.div className="max-w-2xl mx-auto px-3 sm:px-4 pt-10 sm:pt-14 pb-6 sm:pb-8 text-center" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
@@ -430,6 +438,8 @@ const Index = () => {
             <BannerAd slot="footer-banner" />
           </div>
         </div>
+      )}
+      </>
       )}
 
       <WhatsAppButton />
