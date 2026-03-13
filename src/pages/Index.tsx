@@ -61,6 +61,7 @@ const Index = () => {
   const [remaining, setRemaining] = useState(getRemainingAnalyses());
   const { toast } = useToast();
   const { lang, t } = useLang();
+  const { activeTrigger, checkTriggers, dismissTrigger } = useBehaviourTrigger();
   const inputRef = useRef<HTMLDivElement>(null);
   const masterReportRef = useRef<HTMLDivElement>(null);
 
