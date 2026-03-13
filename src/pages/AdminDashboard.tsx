@@ -27,6 +27,7 @@ const AdminDashboard = () => {
   const [adminReelUrl, setAdminReelUrl] = useState("");
   const [adminGenerating, setAdminGenerating] = useState(false);
   const [adminReportData, setAdminReportData] = useState<{ analysis: any; premium: any } | null>(null);
+  const [adminShowPdfPreview, setAdminShowPdfPreview] = useState(false);
 
   useEffect(() => {
     checkAdminAndLoad();
