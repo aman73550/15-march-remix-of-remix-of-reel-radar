@@ -4,9 +4,10 @@ import { TrendingUp, Search } from "lucide-react";
 interface MobileBottomNavProps {
   activeTool: "reel" | "seo";
   onToolChange: (tool: "reel" | "seo") => void;
+  onSEOOpen: () => void;
 }
 
-const MobileBottomNav = ({ activeTool, onToolChange }: MobileBottomNavProps) => {
+const MobileBottomNav = ({ activeTool, onToolChange, onSEOOpen }: MobileBottomNavProps) => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
       <div className="mx-3 mb-3">
@@ -35,20 +36,9 @@ const MobileBottomNav = ({ activeTool, onToolChange }: MobileBottomNavProps) => 
 
           {/* SEO Optimizer */}
           <button
-            onClick={() => onToolChange("seo")}
-            className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 ${
-              activeTool === "seo"
-                ? "text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            onClick={onSEOOpen}
+            className="relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 text-muted-foreground hover:text-foreground"
           >
-            {activeTool === "seo" && (
-              <motion.div
-                layoutId="activeTab"
-                className="absolute inset-0 rounded-xl gradient-primary-bg shadow-glow"
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              />
-            )}
             <span className="relative z-10 flex items-center gap-1.5">
               <Search className="w-4 h-4" />
               SEO Optimizer
