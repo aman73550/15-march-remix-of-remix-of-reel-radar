@@ -245,7 +245,7 @@ const Index = () => {
       {/* Social Proof Section */}
       {!analysis && !showShareGate && <SocialProofSection />}
 
-      <div className="py-4"><BannerAd slot="top-banner" /></div>
+      <div className="py-4"><BannerAd slot="banner-top" /></div>
 
       {/* Results */}
       <AnimatePresence>
