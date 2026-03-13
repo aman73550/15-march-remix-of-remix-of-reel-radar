@@ -217,7 +217,7 @@ const AdminDashboard = () => {
 
       // Step 2: Generate master report (no payment needed)
       const { data: reportData, error: reportErr } = await supabase.functions.invoke("generate-master-report", {
-        body: { reportId: null, analysisData: analysis, reelUrl: adminReelUrl.trim() },
+        body: { reportId: null, analysisData: analysis, reelUrl: adminReelUrl.trim(), adminFree: true },
       });
       if (reportErr || !reportData?.success) throw new Error(reportData?.error || "Report generation failed");
 
