@@ -182,6 +182,10 @@ const Index = () => {
         <motion.div className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full bg-accent/5 blur-[100px]" animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} />
       </div>
 
+      {activeTool === "seo" ? (
+        <SEOOptimizerSection />
+      ) : (
+      <>
       {/* Hero */}
       <div className="relative z-10">
         <motion.div className="max-w-2xl mx-auto px-3 sm:px-4 pt-10 sm:pt-14 pb-6 sm:pb-8 text-center" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
