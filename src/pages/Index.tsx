@@ -244,8 +244,14 @@ const Index = () => {
         </div>
       )}
 
-      {/* Social Proof Section */}
-      {!analysis && !showShareGate && <SocialProofSection />}
+      {/* Social Proof & Homepage Sections */}
+      {!analysis && !showShareGate && (
+        <>
+          <SocialProofSection />
+          <HomepageBadges />
+          <TodaysFakeLinks />
+        </>
+      )}
 
       <div className="py-4"><BannerAd slot="top-banner" /></div>
 
