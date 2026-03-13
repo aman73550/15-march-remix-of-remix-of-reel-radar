@@ -38,7 +38,7 @@ const AdminLogin = () => {
       }
 
       toast.success("Welcome, Admin!");
-      navigate("/bosspage");
+      navigate("/admin");
     } catch (err: any) {
       toast.error(err.message || "Login failed");
     } finally {
