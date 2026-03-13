@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   const [recentReports, setRecentReports] = useState<any[]>([]);
   const [config, setConfig] = useState<Record<string, string>>({});
   const [savingConfig, setSavingConfig] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   const [feedbackStats, setFeedbackStats] = useState({ total: 0, avg: 0, distribution: [0, 0, 0, 0, 0] });
   const [recentFeedback, setRecentFeedback] = useState<any[]>([]);
   const [adminReelUrl, setAdminReelUrl] = useState("");
