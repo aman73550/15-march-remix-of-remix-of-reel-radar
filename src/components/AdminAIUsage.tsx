@@ -44,7 +44,7 @@ export default function AdminAIUsage() {
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiCost, setAiCost] = useState<number>(0);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   const loadStats = async () => {
     setLoading(true);
