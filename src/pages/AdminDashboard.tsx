@@ -572,7 +572,7 @@ const AdminDashboard = () => {
               {Object.entries(groupedSlots).map(([group, slots]) => (
                 <div key={group}>
                   <h4 className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                    {group === "Homepage" ? "🏠" : group === "Processing" ? "⏳" : group === "Results" ? "📊" : group === "SEO" ? "🔍" : "📌"} {group}
+                    {group === "Homepage" ? "🏠" : group === "Processing" ? "⏳" : group === "Report Processing" ? "👑" : group === "Results" ? "📊" : group === "Master Report" ? "📄" : group === "SEO" ? "🔍" : group === "Footer" ? "📌" : "📦"} {group}
                   </h4>
                   <div className="space-y-1.5">
                     {slots.map((slot) => {
