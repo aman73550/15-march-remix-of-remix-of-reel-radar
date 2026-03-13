@@ -417,6 +417,7 @@ serve(async (req) => {
 
     // Generate premium analysis
     console.log("Generating premium analysis...");
+    const genStart = Date.now();
     const premiumData = await generatePremiumAnalysis(analysisData, reelUrl);
 
     // Update report with analysis data
@@ -430,6 +431,18 @@ serve(async (req) => {
         })
         .eq("id", reportId);
     }
+
+    // Log usage
+    await supabase.from("api_usage_logs").insert({
+      function_name: "generate-master-report",
+      ai_model: "gemini-2.5-flash",
+      ai_provider: "google",
+      is_ai_call: true,
+      estimated_cost: 0.004,
+      tokens_used: 5000,
+      status_code: 200,
+      duration_ms: Date.now() - genStart,
+    }).catch(e => console.error("Usage log failed:", e));
 
     return new Response(
       JSON.stringify({ success: true, premiumAnalysis: premiumData }),

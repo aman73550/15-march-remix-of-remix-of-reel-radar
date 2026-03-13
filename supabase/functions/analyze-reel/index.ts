@@ -1248,6 +1248,19 @@ Return ONLY valid JSON (no markdown, no code fences):
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       storePattern(analysis, url, metrics, caption || "", hashtags || "", SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
         .catch(e => console.error("Background pattern store failed:", e));
+
+      // Log API usage
+      const logSupabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      logSupabase.from("api_usage_logs").insert({
+        function_name: "analyze-reel",
+        ai_model: "gemini-2.5-flash",
+        ai_provider: "google",
+        is_ai_call: true,
+        estimated_cost: 0.002,
+        tokens_used: 3000,
+        status_code: 200,
+        duration_ms: Date.now() - (globalThis.__analyzeStartTime || Date.now()),
+      }).then(() => {}).catch(e => console.error("Usage log failed:", e));
     }
 
     return new Response(JSON.stringify({ success: true, analysis }), {
