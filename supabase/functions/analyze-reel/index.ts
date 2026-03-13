@@ -746,9 +746,14 @@ ${heuristicsSection}
 
 === ANALYSIS INSTRUCTIONS ===
 
-${imageForVision ? `IMPORTANT: You have been provided ${isScreenshot ? "a full page screenshot of the Instagram reel page (includes UI with metrics)" : "the reel's thumbnail image"}. Use this as a PRIMARY visual signal to understand what the reel is actually about. Extract any visible text, objects, people, and setting from the image.` : "No visual content available — analyze based on caption, hashtags, and metrics only."}
+${imagesForVision.length > 0 ? `IMPORTANT: You have been provided ${imagesForVision.length} image(s) of this reel:
+${hasMultipleImages ? `- Multiple screenshots captured at different time intervals showing the reel content, UI metrics (likes, comments, views, username, caption), and comments section.
+- Analyze ALL images carefully to extract maximum information about the content, visual elements, on-screen text, people, objects, and engagement metrics.
+- If metrics are visible in screenshots that differ from extracted data above, use the SCREENSHOT values as they are more reliable.
+- Look for: username, like count, comment count, view count, caption text, hashtags, share button, save button, profile picture, any on-screen text/overlays.` : `- ${isScreenshot ? "A full page screenshot of the Instagram reel page (includes UI with metrics)" : "The reel's thumbnail image"}. Use this as a PRIMARY visual signal.`}
+Extract any visible text, objects, people, and setting from the image(s).` : "No visual content available — analyze based on caption, hashtags, and metrics only."}
 
-${isScreenshot ? `CRITICAL: If you can see engagement metrics (likes, comments, views) in the screenshot that differ from the extracted data above, use the SCREENSHOT values as they are more reliable.` : ""}
+${isScreenshot ? `CRITICAL: If you can see engagement metrics (likes, comments, views) in the screenshots that differ from the extracted data above, use the SCREENSHOT values as they are more reliable.` : ""}
 
 IMPORTANT SCORING RULES:
 - ALL individual scores (hook, caption, hashtag, engagement, trend, video quality, audio quality) must be between 1-8. NEVER give any score above 8 out of 10.
