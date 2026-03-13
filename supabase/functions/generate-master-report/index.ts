@@ -471,7 +471,7 @@ serve(async (req) => {
     }
 
     // Log usage
-    await supabase.from("api_usage_logs").insert({
+    const { error: logErr } = await supabase.from("api_usage_logs").insert({
       function_name: "generate-master-report",
       ai_model: "gemini-2.5-flash",
       ai_provider: "google",
@@ -480,7 +480,8 @@ serve(async (req) => {
       tokens_used: 5000,
       status_code: 200,
       duration_ms: Date.now() - genStart,
-    }).catch(e => console.error("Usage log failed:", e));
+    });
+    if (logErr) console.error("Usage log failed:", logErr);
 
     return new Response(
       JSON.stringify({ success: true, premiumAnalysis: premiumData }),
