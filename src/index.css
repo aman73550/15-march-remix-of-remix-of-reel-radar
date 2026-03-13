@@ -40,6 +40,19 @@
 
     --gradient-primary: linear-gradient(135deg, hsl(340, 82%, 55%), hsl(260, 60%, 55%));
     --gradient-accent: linear-gradient(135deg, hsl(30, 90%, 55%), hsl(340, 82%, 55%));
+    --instagram-yellow: 48 99% 73%;
+    --instagram-orange: 27 96% 55%;
+    --instagram-pink: 331 73% 50%;
+    --instagram-purple: 272 53% 47%;
+    --instagram-blue: 230 62% 57%;
+    --gradient-instagram: linear-gradient(
+      90deg,
+      hsl(var(--instagram-yellow)) 0%,
+      hsl(var(--instagram-orange)) 22%,
+      hsl(var(--instagram-pink)) 48%,
+      hsl(var(--instagram-purple)) 74%,
+      hsl(var(--instagram-blue)) 100%
+    );
     --shadow-glow: 0 0 40px -10px hsl(340 82% 55% / 0.4);
   }
 }
@@ -55,6 +68,18 @@
   }
 }
 
+@keyframes instagram-gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 @layer utilities {
   .gradient-primary {
     background: var(--gradient-primary);
@@ -64,6 +89,13 @@
   }
   .gradient-primary-bg {
     background: var(--gradient-primary);
+  }
+  .instagram-progress-bg {
+    background: var(--gradient-instagram);
+    background-size: 200% 100%;
+    animation: instagram-gradient-shift 2.8s linear infinite;
+    box-shadow: 0 0 20px -8px hsl(var(--instagram-pink) / 0.65);
+    will-change: background-position;
   }
   .gradient-accent {
     background: var(--gradient-accent);
