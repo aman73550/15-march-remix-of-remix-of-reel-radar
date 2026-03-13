@@ -200,7 +200,7 @@ const AdminDashboard = () => {
     try {
       // Step 1: Analyze the reel
       const { data: analysisData, error: analysisErr } = await supabase.functions.invoke("analyze-reel", {
-        body: { reelUrl: adminReelUrl.trim() },
+        body: { url: adminReelUrl.trim() },
       });
       if (analysisErr || !analysisData?.success) throw new Error(analysisData?.error || "Analysis failed");
 
