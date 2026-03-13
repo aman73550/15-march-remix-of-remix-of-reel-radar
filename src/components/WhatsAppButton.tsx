@@ -11,7 +11,7 @@ const WhatsAppButton = () => {
         .from("site_config" as any)
         .select("config_value")
         .eq("config_key", "whatsapp_number")
-        .single();
+        .maybeSingle();
       if (data && (data as any).config_value) {
         setWhatsappNumber((data as any).config_value);
       }
