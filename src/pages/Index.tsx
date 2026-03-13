@@ -386,7 +386,7 @@ const Index = () => {
               <ShareToolPopup />
             </motion.div>
 
-            <BannerAd slot="bottom-banner" />
+            <BannerAd slot="banner-bottom" />
           </motion.div>
         )}
       </AnimatePresence>
