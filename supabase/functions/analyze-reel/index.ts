@@ -846,18 +846,27 @@ Return ONLY valid JSON (no markdown, no code fences):
 }`;
 
     // Build message content — include image inline if available
-    const userContent: any[] = [{ type: "text", text: prompt }];
-    if (imageForVision) {
-      userContent.push({ type: "image_url", image_url: { url: imageForVision } });
+    const systemMsg = { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from screenshots and thumbnails. Return only valid JSON. Be specific and actionable." };
+
+    async function tryAICall(includeImage: boolean): Promise<Response> {
+      const userContent: any[] = [{ type: "text", text: prompt }];
+      if (includeImage && imageForVision) {
+        userContent.push({ type: "image_url", image_url: { url: imageForVision } });
+      }
+      return await callGemini({
+        model: "gemini-2.5-flash",
+        messages: [systemMsg, { role: "user", content: userContent }],
+      });
     }
 
-    const response = await callGemini({
-      model: "gemini-2.5-flash",
-      messages: [
-        { role: "system", content: "You are an expert Instagram viral content analyst with deep knowledge of trends, algorithms, and engagement patterns. You can analyze visual content from screenshots and thumbnails. Return only valid JSON. Be specific and actionable." },
-        { role: "user", content: userContent },
-      ],
-    });
+    let response = await tryAICall(!!imageForVision);
+
+    // If image URL caused a 400 error, retry without image
+    if (!response.ok && imageForVision) {
+      const errText = await response.text();
+      console.warn("AI call failed with image, retrying without image:", response.status, errText);
+      response = await tryAICall(false);
+    }
 
     if (!response.ok) {
       const errText = await response.text();
