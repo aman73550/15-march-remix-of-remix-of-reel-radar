@@ -176,8 +176,16 @@ const Index = () => {
         />
       )}
 
-      {/* Animated Background */}
+      {/* Hero Background with Instagram Collage */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* Collage background image */}
+        <div 
+          className="absolute inset-0 hero-bg-collage"
+          style={{ backgroundImage: "url('/images/hero-bg.png')" }}
+        />
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
+        {/* Animated gradient orbs on top */}
         <motion.div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-primary/10 blur-[120px]" animate={{ x: [0, 50, 0], y: [0, -30, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} />
         <motion.div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-secondary/10 blur-[120px]" animate={{ x: [0, -40, 0], y: [0, 40, 0] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} />
         <motion.div className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full bg-accent/5 blur-[100px]" animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} />

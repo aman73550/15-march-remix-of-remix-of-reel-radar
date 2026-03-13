@@ -108,4 +108,11 @@
     backdrop-filter: blur(20px);
     border: 1px solid hsl(225 15% 16% / 0.5);
   }
+  .hero-bg-collage {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: brightness(0.35) saturate(0.6) blur(3px);
+    transform: scale(1.05); /* prevent blur edge artifacts */
+  }
 }
