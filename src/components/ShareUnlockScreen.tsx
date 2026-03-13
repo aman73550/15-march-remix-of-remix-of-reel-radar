@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { BannerAd } from "./AdSlots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Lock, MessageCircle, Copy, Check, Gift, Share2 } from "lucide-react";
