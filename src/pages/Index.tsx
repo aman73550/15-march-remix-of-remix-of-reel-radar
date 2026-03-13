@@ -183,9 +183,16 @@ const Index = () => {
         <motion.div className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full bg-accent/5 blur-[100px]" animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} />
       </div>
 
-      {activeTool === "seo" ? (
-        <SEOOptimizerSection />
-      ) : (
+      {/* SEO Optimizer Sheet */}
+      <Sheet open={seoSheetOpen} onOpenChange={setSeoSheetOpen}>
+        <SheetContent side="bottom" className="h-[85vh] overflow-y-auto rounded-t-2xl">
+          <SheetHeader>
+            <SheetTitle className="sr-only">SEO Optimizer</SheetTitle>
+          </SheetHeader>
+          <SEOOptimizerSection />
+        </SheetContent>
+      </Sheet>
+
       <>
       {/* Hero */}
       <div className="relative z-10">
