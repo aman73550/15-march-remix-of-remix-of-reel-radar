@@ -330,22 +330,70 @@ async function scrapeMetaTags(url: string): Promise<{
   }
 }
 
-async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshot: string; markdown: string } | null> {
+async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshots: string[]; markdown: string } | null> {
   const apiKey = Deno.env.get("FIRECRAWL_API_KEY");
   if (!apiKey) return null;
 
   try {
-    console.log("Scraping reel with Firecrawl:", url);
+    console.log("Scraping reel with Firecrawl (multi-screenshot):", url);
     const response = await fetch("https://api.firecrawl.dev/v1/scrape", {
       method: "POST",
       headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ url, formats: ["screenshot", "markdown"], waitFor: 5000 }),
+      body: JSON.stringify({
+        url,
+        formats: ["screenshot", "markdown"],
+        waitFor: 5000,
+        actions: [
+          { type: "wait", milliseconds: 3000 },
+          { type: "screenshot", fullPage: false },
+          { type: "wait", milliseconds: 10000 },
+          { type: "screenshot", fullPage: false },
+          { type: "scroll", direction: "down", amount: 600 },
+          { type: "wait", milliseconds: 3000 },
+          { type: "screenshot", fullPage: false },
+          { type: "scroll", direction: "down", amount: 600 },
+          { type: "wait", milliseconds: 3000 },
+          { type: "screenshot", fullPage: false },
+        ],
+      }),
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn("Firecrawl actions failed, trying simple scrape...");
+      // Fallback to simple scrape without actions
+      const fallbackResp = await fetch("https://api.firecrawl.dev/v1/scrape", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ url, formats: ["screenshot", "markdown"], waitFor: 5000 }),
+      });
+      if (!fallbackResp.ok) return null;
+      const fallbackData = await fallbackResp.json();
+      const mainScreenshot = fallbackData.data?.screenshot || fallbackData.screenshot || "";
+      return {
+        screenshots: mainScreenshot ? [mainScreenshot] : [],
+        markdown: fallbackData.data?.markdown || fallbackData.markdown || "",
+      };
+    }
+
     const data = await response.json();
+    const allScreenshots: string[] = [];
+
+    // Main screenshot
+    const mainShot = data.data?.screenshot || data.screenshot || "";
+    if (mainShot) allScreenshots.push(mainShot);
+
+    // Action screenshots
+    const actionScreenshots = data.data?.actions?.screenshots || [];
+    for (const shot of actionScreenshots) {
+      if (shot && !allScreenshots.includes(shot)) {
+        allScreenshots.push(shot);
+      }
+    }
+
+    console.log(`Captured ${allScreenshots.length} screenshots from Firecrawl`);
+
     return {
-      screenshot: data.data?.screenshot || data.screenshot || "",
+      screenshots: allScreenshots.slice(0, 4), // Max 4 screenshots
       markdown: data.data?.markdown || data.markdown || "",
     };
   } catch (e) {
