@@ -41,6 +41,45 @@ export type Database = {
         }
         Relationships: []
       }
+      api_usage_logs: {
+        Row: {
+          ai_model: string | null
+          ai_provider: string | null
+          created_at: string
+          duration_ms: number | null
+          estimated_cost: number
+          function_name: string
+          id: string
+          is_ai_call: boolean
+          status_code: number | null
+          tokens_used: number | null
+        }
+        Insert: {
+          ai_model?: string | null
+          ai_provider?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          estimated_cost?: number
+          function_name: string
+          id?: string
+          is_ai_call?: boolean
+          status_code?: number | null
+          tokens_used?: number | null
+        }
+        Update: {
+          ai_model?: string | null
+          ai_provider?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          estimated_cost?: number
+          function_name?: string
+          id?: string
+          is_ai_call?: boolean
+          status_code?: number | null
+          tokens_used?: number | null
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           comment: string | null
