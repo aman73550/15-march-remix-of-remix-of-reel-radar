@@ -31,93 +31,231 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
 
     if (premiumData.reportIntro) {
       lines.push("── INTRODUCTION ──");
-      lines.push(premiumData.reportIntro.purpose || "");
+      lines.push(premiumData.reportIntro.title || "");
+      lines.push(premiumData.reportIntro.whatIsThis || "");
+      lines.push("");
+      lines.push("⚠️ Disclaimer:");
       lines.push(premiumData.reportIntro.disclaimer || "");
+      lines.push("");
+      lines.push("📊 Baseline Scoring:");
+      lines.push(premiumData.reportIntro.baselineExplanation || "");
+      lines.push("");
+    }
+
+    if (premiumData.executiveSummary) {
+      lines.push("── EXECUTIVE SUMMARY ──");
+      lines.push(premiumData.executiveSummary);
       lines.push("");
     }
 
     if (premiumData.scoreBreakdown) {
       lines.push("── SCORE BREAKDOWN ──");
       const sb = premiumData.scoreBreakdown;
-      Object.entries(sb).forEach(([key, val]) => {
-        lines.push(`  ${key}: ${val}/8`);
-      });
-      lines.push("");
-    }
-
-    if (premiumData.viralityInsights) {
-      lines.push("── VIRALITY FACTOR ANALYSIS ──");
-      const vi = premiumData.viralityInsights;
-      Object.entries(vi).forEach(([key, val]: [string, any]) => {
-        lines.push(`\n▸ ${key.toUpperCase()}`);
-        lines.push(`  Impact: ${val.impact || "N/A"}`);
-        lines.push(`  Reason: ${val.reason || "N/A"}`);
-        lines.push(`  Solution: ${val.solution || "N/A"}`);
-      });
+      lines.push(`  Overall: ${sb.overall || 0}/80`);
+      lines.push(`  Hook: ${sb.hook || 0}/8`);
+      lines.push(`  Caption: ${sb.caption || 0}/8`);
+      lines.push(`  Hashtag: ${sb.hashtag || 0}/8`);
+      lines.push(`  Engagement: ${sb.engagement || 0}/8`);
+      lines.push(`  Trend: ${sb.trend || 0}/8`);
+      lines.push(`  Video Quality: ${sb.videoQuality || 0}/8`);
+      lines.push(`  Audio Quality: ${sb.audioQuality || 0}/8`);
       lines.push("");
     }
 
     if (premiumData.categoryInfluence) {
       lines.push("── CATEGORY INFLUENCE ──");
-      lines.push(`  Detected: ${premiumData.categoryInfluence.detected || "N/A"}`);
-      lines.push(`  Impact: ${premiumData.categoryInfluence.impact || "N/A"}`);
-      lines.push(`  Explanation: ${premiumData.categoryInfluence.explanation || "N/A"}`);
+      lines.push(premiumData.categoryInfluence.explanation || "");
+      if (premiumData.categoryInfluence.highViralCategories) {
+        lines.push("\n  🔥 High Viral Categories:");
+        premiumData.categoryInfluence.highViralCategories.forEach((c: any) => {
+          lines.push(`    ${c.category} — ${c.viralChance} (${c.examples})`);
+        });
+      }
+      if (premiumData.categoryInfluence.lowViralCategories) {
+        lines.push("\n  📉 Lower Viral Categories:");
+        premiumData.categoryInfluence.lowViralCategories.forEach((c: any) => {
+          lines.push(`    ${c.category} — ${c.viralChance} (${c.examples})`);
+        });
+      }
+      lines.push(`\n  📌 Your Reel: ${premiumData.categoryInfluence.yourCategory || "N/A"}`);
       lines.push("");
     }
 
     if (premiumData.reelAgeFactor) {
       lines.push("── REEL AGE FACTOR ──");
-      lines.push(`  Age: ${premiumData.reelAgeFactor.age || "N/A"}`);
-      lines.push(`  Impact: ${premiumData.reelAgeFactor.impact || "N/A"}`);
-      lines.push(`  Explanation: ${premiumData.reelAgeFactor.explanation || "N/A"}`);
+      lines.push(premiumData.reelAgeFactor.explanation || "");
+      if (premiumData.reelAgeFactor.decayData) {
+        premiumData.reelAgeFactor.decayData.forEach((d: any) => {
+          lines.push(`    ${d.period}: ${d.viralProbability} — ${d.description}`);
+        });
+      }
+      lines.push(`  Peak Window: ${premiumData.reelAgeFactor.peakWindow || "N/A"}`);
+      lines.push(`  Your Reel: ${premiumData.reelAgeFactor.yourReelAge || "N/A"}`);
       lines.push("");
     }
 
     if (premiumData.famousElementsAnalysis) {
       lines.push("── FAMOUS ELEMENTS ──");
-      const fe = premiumData.famousElementsAnalysis;
-      if (fe.detected?.length) lines.push(`  Detected: ${fe.detected.join(", ")}`);
-      lines.push(`  Impact: ${fe.impact || "N/A"}`);
+      lines.push(premiumData.famousElementsAnalysis.explanation || "");
+      if (premiumData.famousElementsAnalysis.celebrityImpact) {
+        lines.push(`  Celebrity: ${premiumData.famousElementsAnalysis.celebrityImpact.description || ""}`);
+        lines.push(`  Your Reel: ${premiumData.famousElementsAnalysis.celebrityImpact.yourReel || ""}`);
+      }
+      if (premiumData.famousElementsAnalysis.landmarkImpact) {
+        lines.push(`  Landmarks: ${premiumData.famousElementsAnalysis.landmarkImpact.description || ""}`);
+        lines.push(`  Your Reel: ${premiumData.famousElementsAnalysis.landmarkImpact.yourReel || ""}`);
+      }
+      if (premiumData.famousElementsAnalysis.trendingIncidents) {
+        lines.push(`  Trending: ${premiumData.famousElementsAnalysis.trendingIncidents.description || ""}`);
+        lines.push(`  Your Reel: ${premiumData.famousElementsAnalysis.trendingIncidents.yourReel || ""}`);
+      }
       lines.push("");
     }
 
-    if (premiumData.nicheViralityTable?.length) {
+    if (premiumData.thumbnailHookAnalysis) {
+      lines.push("── THUMBNAIL & HOOK ANALYSIS ──");
+      lines.push(premiumData.thumbnailHookAnalysis.whyFirst3SecondsMatter || "");
+      if (premiumData.thumbnailHookAnalysis.hookTypes) {
+        lines.push("\n  Hook Types:");
+        premiumData.thumbnailHookAnalysis.hookTypes.forEach((h: any) => {
+          lines.push(`    ${h.type}: "${h.example}" — ${h.effectiveness}`);
+        });
+      }
+      lines.push(`\n  Your Reel: ${premiumData.thumbnailHookAnalysis.yourReel || ""}`);
+      lines.push("");
+    }
+
+    if (premiumData.audioVoiceAnalysis) {
+      lines.push("── AUDIO & VOICE ANALYSIS ──");
+      lines.push(premiumData.audioVoiceAnalysis.explanation || "");
+      if (premiumData.audioVoiceAnalysis.voiceImpact?.yourReel) {
+        lines.push(`  Voice: ${premiumData.audioVoiceAnalysis.voiceImpact.yourReel}`);
+      }
+      if (premiumData.audioVoiceAnalysis.musicImpact?.yourReel) {
+        lines.push(`  Music: ${premiumData.audioVoiceAnalysis.musicImpact.yourReel}`);
+      }
+      lines.push("");
+    }
+
+    if (premiumData.hashtagCaptionStrategy) {
+      lines.push("── HASHTAG & CAPTION STRATEGY ──");
+      if (premiumData.hashtagCaptionStrategy.hashtagTips) {
+        lines.push(premiumData.hashtagCaptionStrategy.hashtagTips.explanation || "");
+        premiumData.hashtagCaptionStrategy.hashtagTips.strategy?.forEach((s: any) => {
+          lines.push(`    ${s.type}: ${s.description} (${s.examples})`);
+        });
+      }
+      if (premiumData.hashtagCaptionStrategy.captionTips) {
+        lines.push(`\n  Caption: ${premiumData.hashtagCaptionStrategy.captionTips.explanation || ""}`);
+        lines.push(`  Your Caption: ${premiumData.hashtagCaptionStrategy.captionTips.yourCaption || ""}`);
+      }
+      lines.push("");
+    }
+
+    if (premiumData.nicheViralityTable?.niches) {
       lines.push("── NICHE VIRALITY TABLE ──");
-      premiumData.nicheViralityTable.forEach((n: any) => {
-        lines.push(`  ${n.niche}: ${"★".repeat(n.viralPotential || 0)}${"☆".repeat(5 - (n.viralPotential || 0))}`);
+      premiumData.nicheViralityTable.niches.forEach((n: any) => {
+        lines.push(`  ${n.niche}: ${n.viralFriendliness} | ${n.bestFormat}`);
       });
       lines.push("");
     }
 
-    if (premiumData.creatorChecklist?.length) {
+    if (premiumData.creatorChecklist?.length > 0) {
       lines.push("── CREATOR PRE-POST CHECKLIST ──");
-      premiumData.creatorChecklist.forEach((item: string, i: number) => {
-        lines.push(`  ${i + 1}. ${item}`);
+      premiumData.creatorChecklist.forEach((item: any, i: number) => {
+        const text = typeof item === "string" ? item : `${item.item} (${item.category} • ${item.priority})`;
+        lines.push(`  ${i + 1}. ${text}`);
       });
       lines.push("");
     }
 
-    if (premiumData.commonMistakes?.length) {
+    if (premiumData.commonMistakes?.length > 0) {
       lines.push("── COMMON MISTAKES TO AVOID ──");
-      premiumData.commonMistakes.forEach((m: string, i: number) => {
-        lines.push(`  ${i + 1}. ${m}`);
+      premiumData.commonMistakes.forEach((m: any, i: number) => {
+        if (typeof m === "string") {
+          lines.push(`  ${i + 1}. ${m}`);
+        } else {
+          lines.push(`  ${i + 1}. ❌ ${m.mistake}`);
+          lines.push(`     Why: ${m.why}`);
+          lines.push(`     Fix: ${m.fix}`);
+        }
       });
       lines.push("");
     }
 
-    if (premiumData.quickTips?.length) {
+    if (premiumData.quickTips) {
       lines.push("── QUICK TIPS ──");
-      premiumData.quickTips.forEach((t: string, i: number) => {
-        lines.push(`  ${i + 1}. ${t}`);
+      if (typeof premiumData.quickTips === "object" && !Array.isArray(premiumData.quickTips)) {
+        Object.entries(premiumData.quickTips).forEach(([key, tips]: [string, any]) => {
+          lines.push(`  ${key.toUpperCase()}:`);
+          if (Array.isArray(tips)) {
+            tips.forEach((t: string) => lines.push(`    • ${t}`));
+          }
+        });
+      } else if (Array.isArray(premiumData.quickTips)) {
+        premiumData.quickTips.forEach((t: string, i: number) => {
+          lines.push(`  ${i + 1}. ${t}`);
+        });
+      }
+      lines.push("");
+    }
+
+    if (premiumData.competitorComparison) {
+      lines.push("── COMPETITOR COMPARISON ──");
+      lines.push(premiumData.competitorComparison.summary || "");
+      premiumData.competitorComparison.topPerformers?.forEach((p: any) => {
+        lines.push(`  #${p.rank} ${p.trait} — Your Score: ${p.yourScore} → ${p.recommendation}`);
       });
       lines.push("");
     }
 
-    if (premiumData.improvementRoadmap?.length) {
+    if (premiumData.contentCalendar) {
+      lines.push("── CONTENT CALENDAR ──");
+      premiumData.contentCalendar.bestPostingTimes?.forEach((t: any) => {
+        lines.push(`  ${t.day}: ${t.time} — ${t.reason}`);
+      });
+      if (premiumData.contentCalendar.postingFrequency) {
+        lines.push(`  Posting Frequency: ${premiumData.contentCalendar.postingFrequency}`);
+      }
+      lines.push("");
+    }
+
+    if (premiumData.improvementRoadmap?.steps) {
       lines.push("── 5-STEP IMPROVEMENT ROADMAP ──");
-      premiumData.improvementRoadmap.forEach((step: any, i: number) => {
-        lines.push(`  Step ${i + 1}: ${step.title || step}`);
-        if (step.description) lines.push(`    → ${step.description}`);
+      premiumData.improvementRoadmap.steps.forEach((step: any) => {
+        lines.push(`  Step ${step.step}: ${step.title} [${step.impact} impact, ${step.effort}]`);
+        lines.push(`    → ${step.description}`);
+        if (step.timeline) lines.push(`    Timeline: ${step.timeline}`);
+      });
+      lines.push("");
+    }
+
+    if (premiumData.aiRecommendations) {
+      lines.push("── AI RECOMMENDATIONS ──");
+      if (premiumData.aiRecommendations.hookAlternatives?.length) {
+        lines.push("  🎣 Alternative Hooks:");
+        premiumData.aiRecommendations.hookAlternatives.forEach((h: string) => lines.push(`    • ${h}`));
+      }
+      if (premiumData.aiRecommendations.captionRewrite) {
+        lines.push(`\n  ✍️ Improved Caption: ${premiumData.aiRecommendations.captionRewrite}`);
+      }
+      if (premiumData.aiRecommendations.hashtagStrategy?.length) {
+        lines.push(`\n  # Hashtags: ${premiumData.aiRecommendations.hashtagStrategy.join(", ")}`);
+      }
+      if (premiumData.aiRecommendations.engagementBoostTips?.length) {
+        lines.push("\n  🚀 Engagement Boost:");
+        premiumData.aiRecommendations.engagementBoostTips.forEach((t: string) => lines.push(`    • ${t}`));
+      }
+      lines.push("");
+    }
+
+    if (premiumData.viralityInsights?.length > 0) {
+      lines.push("── VIRALITY FACTORS DEEP ANALYSIS ──");
+      premiumData.viralityInsights.forEach((insight: any) => {
+        const arrow = insight.impact === "positive" ? "↑" : insight.impact === "negative" ? "↓" : "—";
+        lines.push(`\n  ${arrow} ${insight.factor} (${insight.score > 0 ? "+" : ""}${insight.score} pts)`);
+        lines.push(`    ${insight.reason}`);
+        lines.push(`    💡 ${insight.solution}`);
       });
       lines.push("");
     }
