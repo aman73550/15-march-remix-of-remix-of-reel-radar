@@ -454,7 +454,7 @@ const Index = () => {
       </AnimatePresence>
 
       {!analysis && (
-        <div className="space-y-2">
+        <div className="relative z-10 space-y-2">
           <TrustBadges />
           <ViralReelsShowcase onAnalyzeClick={scrollToInput} />
           <SampleAnalysisPreview />
