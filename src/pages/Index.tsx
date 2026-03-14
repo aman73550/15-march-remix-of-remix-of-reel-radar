@@ -490,43 +490,6 @@ const Index = () => {
         </div>
       )}
 
-      {/* TEMP: Test buttons for edge functions */}
-      <div className="fixed bottom-20 right-4 z-50 flex flex-col gap-2">
-        <button
-          className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground opacity-80 hover:opacity-100"
-          onClick={async () => {
-            toast({ title: "Testing SEO Analysis..." });
-            try {
-              const { data, error } = await supabase.functions.invoke("seo-analyze", {
-                body: { reelUrl: "https://www.instagram.com/reel/test123", keywords: ["test"], title: "Test Title", description: "Test desc" },
-              });
-              if (error) toast({ title: "SEO Error", description: String(error.message || error), variant: "destructive" });
-              else toast({ title: "SEO Success", description: JSON.stringify(data).slice(0, 200) });
-            } catch (e: any) {
-              toast({ title: "SEO Catch Error", description: e.message, variant: "destructive" });
-            }
-          }}
-        >
-          🧪 Test SEO Analysis
-        </button>
-        <button
-          className="px-3 py-1.5 text-xs rounded bg-accent text-accent-foreground opacity-80 hover:opacity-100"
-          onClick={async () => {
-            toast({ title: "Testing Master Report..." });
-            try {
-              const { data, error } = await supabase.functions.invoke("generate-master-report", {
-                body: { reelUrl: "https://www.instagram.com/reel/test123" },
-              });
-              if (error) toast({ title: "Report Error", description: String(error.message || error), variant: "destructive" });
-              else toast({ title: "Report Success", description: JSON.stringify(data).slice(0, 200) });
-            } catch (e: any) {
-              toast({ title: "Report Catch Error", description: e.message, variant: "destructive" });
-            }
-          }}
-        >
-          🧪 Test Master Report PDF
-        </button>
-      </div>
       <WhatsAppButton />
       <footer className="relative z-10 mt-12 sm:mt-16">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
