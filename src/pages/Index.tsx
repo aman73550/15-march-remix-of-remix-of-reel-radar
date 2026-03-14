@@ -282,9 +282,9 @@ const Index = () => {
       )}
 
       {/* Social Proof Section */}
-      {!analysis && !showShareGate && <SocialProofSection />}
+      {!analysis && !showShareGate && <div className="relative z-10"><SocialProofSection /></div>}
 
-      <div className="py-4"><BannerAd slot="banner-top" /></div>
+      <div className="relative z-10 py-4"><BannerAd slot="banner-top" /></div>
 
       {/* Results */}
       <AnimatePresence>
