@@ -176,6 +176,36 @@ export type Database = {
         }
         Relationships: []
       }
+      share_events: {
+        Row: {
+          clicks_generated: number | null
+          created_at: string
+          id: string
+          platform: string
+          referrer_session_id: string | null
+          share_id: string
+          shared_url: string | null
+        }
+        Insert: {
+          clicks_generated?: number | null
+          created_at?: string
+          id?: string
+          platform: string
+          referrer_session_id?: string | null
+          share_id: string
+          shared_url?: string | null
+        }
+        Update: {
+          clicks_generated?: number | null
+          created_at?: string
+          id?: string
+          platform?: string
+          referrer_session_id?: string | null
+          share_id?: string
+          shared_url?: string | null
+        }
+        Relationships: []
+      }
       site_config: {
         Row: {
           config_key: string
@@ -194,6 +224,114 @@ export type Database = {
           config_value?: string
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      traffic_sessions: {
+        Row: {
+          bot_flags: string[] | null
+          bot_score: number | null
+          browser: string | null
+          city: string | null
+          click_count: number | null
+          country: string | null
+          created_at: string
+          device_type: string | null
+          duration_seconds: number | null
+          has_click: boolean | null
+          has_input_interaction: boolean | null
+          has_mouse_movement: boolean | null
+          has_scroll: boolean | null
+          id: string
+          ip_hash: string | null
+          is_bot: boolean | null
+          is_real_user: boolean | null
+          language: string | null
+          navigation_variation: number | null
+          os: string | null
+          page_views: number | null
+          referrer_source: string | null
+          referrer_url: string | null
+          screen_size: string | null
+          scroll_depth: number | null
+          session_end: string | null
+          session_id: string
+          session_start: string
+          share_id: string | null
+          timezone: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          bot_flags?: string[] | null
+          bot_score?: number | null
+          browser?: string | null
+          city?: string | null
+          click_count?: number | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          duration_seconds?: number | null
+          has_click?: boolean | null
+          has_input_interaction?: boolean | null
+          has_mouse_movement?: boolean | null
+          has_scroll?: boolean | null
+          id?: string
+          ip_hash?: string | null
+          is_bot?: boolean | null
+          is_real_user?: boolean | null
+          language?: string | null
+          navigation_variation?: number | null
+          os?: string | null
+          page_views?: number | null
+          referrer_source?: string | null
+          referrer_url?: string | null
+          screen_size?: string | null
+          scroll_depth?: number | null
+          session_end?: string | null
+          session_id: string
+          session_start?: string
+          share_id?: string | null
+          timezone?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          bot_flags?: string[] | null
+          bot_score?: number | null
+          browser?: string | null
+          city?: string | null
+          click_count?: number | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          duration_seconds?: number | null
+          has_click?: boolean | null
+          has_input_interaction?: boolean | null
+          has_mouse_movement?: boolean | null
+          has_scroll?: boolean | null
+          id?: string
+          ip_hash?: string | null
+          is_bot?: boolean | null
+          is_real_user?: boolean | null
+          language?: string | null
+          navigation_variation?: number | null
+          os?: string | null
+          page_views?: number | null
+          referrer_source?: string | null
+          referrer_url?: string | null
+          screen_size?: string | null
+          scroll_depth?: number | null
+          session_end?: string | null
+          session_id?: string
+          session_start?: string
+          share_id?: string | null
+          timezone?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }

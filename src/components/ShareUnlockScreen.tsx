@@ -5,12 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Lock, MessageCircle, Copy, Check, Gift, Share2 } from "lucide-react";
 import { recordShare, getShareCount, SHARE_REQUIRED, hasUnlockedBonus, BONUS_ANALYSES } from "@/lib/usageTracker";
+import { getShareUrl } from "@/lib/trafficTracker";
 
 interface Props {
   onUnlocked: () => void;
 }
 
-const SHARE_URL = typeof window !== "undefined" ? window.location.origin : "";
 const SHARE_TEXT = "I just tested my Instagram reel here.\nCheck if your reel can go viral with this Reel Viral Analyzer.\nPaste your reel link and get a viral probability score instantly.\n\n";
 
 const ShareUnlockScreen = ({ onUnlocked }: Props) => {
@@ -19,20 +19,21 @@ const ShareUnlockScreen = ({ onUnlocked }: Props) => {
   const [unlocked, setUnlocked] = useState(false);
 
   const handleShare = (platform: string) => {
-    const msg = encodeURIComponent(SHARE_TEXT + SHARE_URL);
+    const shareUrl = getShareUrl(platform);
+    const msg = encodeURIComponent(SHARE_TEXT + shareUrl);
 
     switch (platform) {
       case "whatsapp":
         window.open(`https://wa.me/?text=${msg}`, "_blank");
         break;
       case "twitter":
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(SHARE_URL)}`, "_blank");
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(shareUrl)}`, "_blank");
         break;
       case "facebook":
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}`, "_blank");
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank");
         break;
       case "copy":
-        navigator.clipboard.writeText(SHARE_URL).catch(() => {});
+        navigator.clipboard.writeText(shareUrl).catch(() => {});
         setCopied(true);
         setTimeout(() => setCopied(false), 2500);
         break;

@@ -18,6 +18,7 @@ import AdminAIUsage from "@/components/AdminAIUsage";
 import AdminApiKeysManager from "@/components/AdminApiKeysManager";
 import SEOResultsDisplay from "@/components/SEOResultsDisplay";
 import AdminAIChat from "@/components/AdminAIChat";
+import AdminTrafficIntelligence from "@/components/AdminTrafficIntelligence";
 import { Textarea } from "@/components/ui/textarea";
 
 type AdminSection =
@@ -27,6 +28,7 @@ type AdminSection =
   | "ads"
   | "reports"
   | "usage"
+  | "traffic"
   | "generator"
   | "seo"
   | "behaviour"
@@ -39,6 +41,7 @@ const SIDEBAR_ITEMS: { id: AdminSection; label: string; icon: any; emoji: string
   { id: "ads", label: "Ad Slots", icon: Megaphone, emoji: "📢" },
   { id: "reports", label: "Reports & Logs", icon: FileText, emoji: "📄" },
   { id: "usage", label: "API Usage", icon: Activity, emoji: "📈" },
+  { id: "traffic", label: "Traffic Intel", icon: Eye, emoji: "🌐" },
   { id: "generator", label: "Report Generator", icon: Crown, emoji: "👑" },
   { id: "seo", label: "SEO Optimizer", icon: Search, emoji: "🔍" },
   { id: "behaviour", label: "Behaviour", icon: Target, emoji: "🎯" },
@@ -785,6 +788,7 @@ const AdminDashboard = () => {
       case "ads": return renderAds();
       case "reports": return renderReports();
       case "usage": return <AdminAIUsage />;
+      case "traffic": return <AdminTrafficIntelligence />;
       case "generator": return renderGenerator();
       case "seo": return renderSeo();
       case "behaviour": return <AdminBehaviourSettings />;

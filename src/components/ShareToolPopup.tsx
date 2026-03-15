@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Share2, X, Copy, Check, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { getShareUrl } from "@/lib/trafficTracker";
 
-const SHARE_URL = typeof window !== "undefined" ? window.location.origin : "";
 const SHARE_TEXT = "Check if your Instagram Reel can go viral with this Reel Viral Analyzer.\nPaste your reel link and get a viral probability score instantly.\n\n";
 
 const ShareToolPopup = () => {
@@ -16,31 +16,31 @@ const ShareToolPopup = () => {
       name: "WhatsApp",
       icon: <MessageCircle className="w-5 h-5" />,
       color: "bg-[#25D366]/10 text-[#25D366] border-[#25D366]/20 hover:bg-[#25D366]/20",
-      action: () => window.open(`https://wa.me/?text=${encodeURIComponent(SHARE_TEXT + SHARE_URL)}`, "_blank"),
+      action: () => { const url = getShareUrl("whatsapp"); window.open(`https://wa.me/?text=${encodeURIComponent(SHARE_TEXT + url)}`, "_blank"); },
     },
     {
       name: "Twitter / X",
       icon: <span className="text-base font-bold">𝕏</span>,
       color: "bg-foreground/5 text-foreground border-foreground/10 hover:bg-foreground/10",
-      action: () => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(SHARE_URL)}`, "_blank"),
+      action: () => { const url = getShareUrl("twitter"); window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(url)}`, "_blank"); },
     },
     {
       name: "Facebook",
       icon: <span className="text-base font-bold">f</span>,
       color: "bg-[#1877F2]/10 text-[#1877F2] border-[#1877F2]/20 hover:bg-[#1877F2]/20",
-      action: () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}`, "_blank"),
+      action: () => { const url = getShareUrl("facebook"); window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, "_blank"); },
     },
   ];
 
   const handleCopy = async () => {
+    const url = getShareUrl("copy");
     try {
-      await navigator.clipboard.writeText(SHARE_URL);
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // fallback
       const ta = document.createElement("textarea");
-      ta.value = SHARE_URL;
+      ta.value = url;
       document.body.appendChild(ta);
       ta.select();
       document.execCommand("copy");
