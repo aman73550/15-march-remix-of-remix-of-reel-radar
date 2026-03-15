@@ -413,6 +413,19 @@ const AdminDashboard = () => {
           ))}
         </div>
       </div>
+      {/* Analysis Pricing Status */}
+      <div className="p-3 rounded-xl border border-border bg-card">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <IndianRupee className="w-4 h-4 text-primary" />
+            <span className="text-xs sm:text-sm font-semibold text-foreground">Analysis Mode</span>
+          </div>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${config.analysis_pricing_mode === "paid" ? "bg-primary/10 text-primary" : "bg-[hsl(var(--viral-high))]/10 text-[hsl(var(--viral-high))]"}`}>
+            {config.analysis_pricing_mode === "paid" ? `PAID — ₹${config.analysis_price || "10"}` : "FREE"}
+          </span>
+        </div>
+        <p className="text-[9px] text-muted-foreground mt-1">Change in Payment & Config section</p>
+      </div>
     </div>
   );
 
