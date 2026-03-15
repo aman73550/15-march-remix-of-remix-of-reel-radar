@@ -206,7 +206,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     ],
     howItWorks: [
       { step: "Paste Reel Link", desc: "Copy your Instagram reel URL and paste it into the viral checker." },
-      { step: "AI Predicts Virality", desc: "Our AI analyzes all viral signals — hook strength, caption quality, hashtag relevance, engagement patterns." },
+      { step: "Smart Virality Prediction", desc: "Our system analyzes all viral signals — hook strength, caption quality, hashtag relevance, engagement patterns." },
       { step: "Get Viral Score", desc: "Receive a 0-100 viral score with specific recommendations to improve your chances." },
     ],
     contentBlocks: [
