@@ -52,9 +52,9 @@ const App = () => (
               <Route path="/blog" element={<BlogIndex />} />
               <Route path="/blog/:slug" element={<BlogArticle />} />
 
-              {/* Admin */}
-              <Route path="/admin-login" element={<AdminLogin />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              {/* Admin — hidden route */}
+              <Route path="/bosspage-login" element={<AdminLogin />} />
+              <Route path="/bosspage" element={<AdminDashboard />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
