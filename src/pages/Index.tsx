@@ -297,10 +297,36 @@ const Index = () => {
         </Card>
       </motion.div>
 
-      {/* Share Unlock Gate */}
-      {showShareGate && (
-        <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
-      )}
+      {/* Share Unlock Gate - Full screen modal with blur */}
+      <AnimatePresence>
+        {showShareGate && (
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Blurred backdrop */}
+            <motion.div
+              className="absolute inset-0 bg-background/70 backdrop-blur-md"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowShareGate(false)}
+            />
+            {/* Modal content */}
+            <motion.div
+              className="relative z-10 w-full max-w-xl"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Social Proof Section */}
       {!analysis && !showShareGate && <div className="relative z-10"><SocialProofSection /></div>}
