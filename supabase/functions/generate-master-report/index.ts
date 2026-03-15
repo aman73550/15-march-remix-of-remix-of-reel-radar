@@ -51,9 +51,9 @@ function getApiKeysFromEnv(): string[] {
 
 let currentKeyIndex = 0;
 
-async function callGemini(body: Record<string, unknown>): Promise<Response> {
-  const keys = getApiKeys();
-  if (keys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
+async function callGemini(body: Record<string, unknown>, supabase?: any): Promise<Response> {
+  const keys = supabase ? await getApiKeysFromDb(supabase) : getApiKeysFromEnv();
+  if (keys.length === 0) throw new Error("No Gemini API keys configured. Add keys in Admin Panel → API Keys Manager.");
 
   const startIndex = currentKeyIndex % keys.length;
   let lastError: Error | null = null;
