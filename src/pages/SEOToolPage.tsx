@@ -152,7 +152,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     ],
     howItWorks: [
       { step: "Enter Reel Topic", desc: "Describe what your reel is about — topic, key message, target audience." },
-      { step: "AI Writes Captions", desc: "Get multiple caption variations with different tones and hook styles." },
+      { step: "Smart Caption Writing", desc: "Get multiple caption variations with different tones and hook styles." },
       { step: "Customize & Post", desc: "Pick your favorite, tweak it to match your voice, and publish." },
     ],
     contentBlocks: [
