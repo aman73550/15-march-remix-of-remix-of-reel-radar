@@ -50,6 +50,7 @@
    npx supabase functions deploy create-admin
    npx supabase functions deploy usage-analyzer
    npx supabase functions deploy admin-ai-chat
+   npx supabase functions deploy traffic-analytics
    ```
 
 7. **Create Admin User**
@@ -133,6 +134,35 @@ These are set from the Admin Panel UI at `/bosspage-login`, NOT in env files:
 | `razorpay_key_secret` | Secret key | Same Razorpay dashboard |
 | `stripe_key` | `sk_live_...` | [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API Keys |
 | `whatsapp_number` | `919876543210` (no +) | Your WhatsApp business number |
+
+---
+
+## All Pages & Routes
+
+| Route | Description |
+|---|---|
+| `/` | Main Reel Analyzer tool (homepage) |
+| `/seo-optimizer` | SEO optimization tool |
+| `/reel-analyzer` | Reel Analyzer SEO landing page |
+| `/instagram-reel-analyzer` | Instagram Reel Analyzer landing |
+| `/reel-seo-optimizer` | Reel SEO Optimizer landing |
+| `/reel-hashtag-generator` | Hashtag Generator tool page |
+| `/reel-caption-generator` | Caption Generator tool page |
+| `/reel-title-generator` | Title Generator tool page |
+| `/reel-viral-checker` | Viral Checker tool page |
+| `/reel-engagement-calculator` | Engagement Calculator tool page |
+| `/blog` | Blog articles listing |
+| `/blog/:slug` | Individual blog post |
+| `/about` | About the platform |
+| `/contact` | Contact form |
+| `/partnership` | Partnership opportunities |
+| `/collaboration` | Creator collaboration |
+| `/promotion` | Advertising/promotion info |
+| `/privacy-policy` | Privacy policy |
+| `/terms` | Terms & conditions |
+| `/sitemap-page` | HTML sitemap |
+| `/bosspage-login` | Admin login (hidden) |
+| `/bosspage` | Admin dashboard (hidden) |
 
 ---
 
@@ -230,7 +260,7 @@ Just upload the `dist/` folder contents. Ensure SPA routing redirects all paths 
 
 The admin panel includes a powerful AI assistant with **full system access**:
 
-### Data Operations (All 9 Tables)
+### Data Operations (All Tables)
 - **Read** any table with filters, ordering, pagination
 - **Write/Update/Delete** rows in any table
 - **Aggregate** data (sum, avg, min, max) with filters
@@ -258,6 +288,12 @@ The admin panel includes a powerful AI assistant with **full system access**:
 - Top viral content rankings
 - Payment order tracking (completed/pending/failed)
 
+### Traffic Intelligence
+- Real user vs bot detection
+- Geographic distribution
+- Device & browser analytics
+- Referrer source tracking
+
 ### User Feedback
 - Rating distribution analysis
 - Recent comment review
@@ -276,3 +312,4 @@ Access via the ⚡ floating button on the admin dashboard. Supports Hindi/Hingli
 - Admin credentials are stored as edge function secrets, never in frontend code
 - Admin route is hidden at `/bosspage-login` (not `/admin`)
 - Report price is dynamic — fetched from database and displayed in real-time
+- WhatsApp button appears on About, Contact, Partnership, Collaboration, and Promotion pages
