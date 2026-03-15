@@ -86,6 +86,10 @@ const SEOOptimizerSection = () => {
 
         const razorpay = new window.Razorpay(options);
         razorpay.open();
+      } else if (data.gateway === "stripe" && data.sessionUrl) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.sessionUrl;
+        return;
       } else {
         // Manual/fallback — mark as paid for demo
         setReportId(data.reportId);

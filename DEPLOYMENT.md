@@ -96,8 +96,6 @@ npm run build
 | `GEMINI_API_KEYS` | Optional | Comma-separated Gemini keys (fallback) |
 | `FIRECRAWL_API_KEY` | Optional | Web scraping (fallback) |
 
-> 💡 **Recommended**: Use the Admin Panel to manage API keys instead of environment variables. Admin Panel keys take priority over env vars.
-
 ---
 
 ## API Keys Integration
@@ -127,19 +125,6 @@ The system supports **up to 10 API keys per service** with automatic failover:
 4. Click **"Save Keys"** for each group
 5. Keys are immediately available to all edge functions
 
-### Setting Keys via Environment Variables (Fallback)
-
-```bash
-# Single key
-GEMINI_API_KEY=AIzaSy...
-
-# Multiple keys (comma-separated)
-GEMINI_API_KEYS=AIzaSy_key1,AIzaSy_key2,AIzaSy_key3
-
-# Firecrawl
-FIRECRAWL_API_KEY=fc-...
-```
-
 ### Key Priority Order
 1. Database keys (Admin Panel) — **checked first**
 2. `GEMINI_API_KEYS` env var (multi-key)
@@ -150,34 +135,47 @@ FIRECRAWL_API_KEY=fc-...
 ## Payment Integration
 
 ### Supported Gateways
-- **Razorpay** (default, recommended for India)
-- **Stripe** (international)
-- **Manual/WhatsApp** (fallback)
+- **Razorpay** (default, recommended for India) — Inline checkout
+- **Stripe** (international) — Redirect to Stripe Checkout
+- **Manual/WhatsApp** (fallback when no gateway configured)
 
 ### Setup via Admin Panel
 
-1. Go to Admin Panel → **Payment & Config**
-2. Set **Gateway**: Razorpay or Stripe
+1. Go to Admin Panel (`/bosspage-login`) → **Payment & Config**
+2. Set **Gateway**: `razorpay` or `stripe`
 3. Enter your API keys:
    - **Razorpay**: Key ID (`rzp_live_...`) + Secret
    - **Stripe**: Secret Key (`sk_live_...`)
-4. Set **Report Price** (default: ₹29)
-5. Click **Save Configuration**
+4. Set **Report Price** (default: 29) — shown dynamically in UI
+5. Set **Currency** (INR, USD, etc.)
+6. Click **Save Configuration**
 
 ### Where to Get Keys
 
 | Gateway | Dashboard URL | Keys Needed |
 |---|---|---|
 | Razorpay | [dashboard.razorpay.com](https://dashboard.razorpay.com) | Key ID + Secret |
-| Stripe | [dashboard.stripe.com](https://dashboard.stripe.com) | Secret Key |
+| Stripe | [dashboard.stripe.com](https://dashboard.stripe.com) | Secret Key (`sk_live_...` or `sk_test_...`) |
 
 ### Payment Flow
-1. User requests a paid report → `create-payment` creates an order
-2. User completes payment on gateway → `verify-payment` validates
-3. Report is generated → `generate-master-report` creates premium analysis
-4. User gets the full report
 
-> 🔒 **Security**: Payment keys are stored in the `site_config` database table (admin-only access via RLS), never in frontend code or .env files.
+#### Razorpay
+1. User clicks "Unlock Report" → `create-payment` creates Razorpay order
+2. Razorpay inline checkout opens on page
+3. User pays → `verify-payment` verifies HMAC-SHA256 signature
+4. Report generated → `generate-master-report` creates premium PDF
+
+#### Stripe
+1. User clicks "Unlock Report" → `create-payment` creates Stripe Checkout Session
+2. User redirected to Stripe Checkout page
+3. After payment → Redirected back with `session_id`
+4. `verify-payment` checks session `payment_status === "paid"` via Stripe API
+5. Report generated → `generate-master-report` creates premium PDF
+
+### Dynamic Pricing
+Report price is fetched from the database and displayed dynamically in the button. Change it anytime from Admin Panel without code changes.
+
+> 🔒 **Security**: Payment keys are stored in the `site_config` database table (admin-only access via RLS), never in frontend code or .env files. Razorpay payments verified via HMAC signature. Stripe payments verified via session API.
 
 ---
 
@@ -216,10 +214,7 @@ FIRECRAWL_API_KEY=fc-...
 ### Creating First Admin
 
 1. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` as edge function secrets in Supabase Dashboard
-2. Deploy the `create-admin` edge function:
-   ```bash
-   npx supabase functions deploy create-admin
-   ```
+2. Deploy the `create-admin` edge function
 3. Call it to create the admin user:
    ```bash
    curl -X POST https://<project-id>.supabase.co/functions/v1/create-admin \
@@ -234,36 +229,32 @@ FIRECRAWL_API_KEY=fc-...
 
 | Section | What You Can Do |
 |---|---|
-| 📊 Analytics | View total analyses, daily/weekly/monthly stats |
-| 💰 Payments | Revenue stats, recent paid reports |
-| ⚙️ Config | Payment gateway, pricing, WhatsApp number |
+| 📊 Dashboard | View total analyses, daily/weekly/monthly stats, revenue |
+| 💰 Payment & Config | Payment gateway, pricing (dynamic), currency, WhatsApp number |
 | 🔑 API Keys | Add/remove up to 10 keys per service with auto-failover |
 | 📢 Ad Slots | Deploy/manage 30+ ad placements |
+| 📄 Reports & Logs | View recent reports, payment history |
+| 📈 API Usage | Track API calls, costs, AI model usage |
+| 👑 Report Generator | Generate free reports (admin only, no payment) |
+| 🔍 SEO Optimizer | Free SEO analysis (admin only) |
 | 🎯 Behaviour | Configure popups, triggers, CTAs |
-| 📈 Usage | Track API calls, costs, AI model usage |
 | ⭐ Feedback | View user ratings and comments |
-| 👑 Free Tools | Generate reports/SEO analysis without payment |
 | 🤖 AI Assistant | Natural language chatbot for admin tasks |
 
 ### AI Assistant Chatbot
 
-The admin panel includes a floating AI assistant that can:
-- **Check system status** — API health, key validity, usage stats
-- **Update configuration** — Change prices, toggle gateways, update WhatsApp number
-- **View analytics** — Revenue reports, usage trends, error rates
-- **Manage ads** — Toggle ad slots on/off
-- **Troubleshoot** — Diagnose issues and suggest fixes
-- **Run queries** — Execute read-only database queries
-
-Access via the floating chat button (💬) on the admin dashboard.
+Access via the floating chat button (💬). Can:
+- Check system status, API health, usage stats
+- Update configuration via natural language
+- View revenue reports and analytics
+- Toggle ad slots, manage settings
+- Troubleshoot issues
 
 ---
 
 ## Security Features
 
 ### Rate Limiting
-
-All edge functions enforce per-IP rate limits using the `rate_limits` database table and `check_rate_limit` PL/pgSQL function:
 
 | Function | Limit (per hour) |
 |---|---|
@@ -278,55 +269,42 @@ IPs are hashed (SHA-256) before storage for privacy.
 
 | Input | Validation |
 |---|---|
-| Reel URL | Must match Instagram Reel pattern (`instagram.com/reel/...`) |
+| Reel URL | Must match Instagram Reel pattern or `seo:` prefix |
 | URL length | Max 500 characters |
 | Caption | Max 5,000 characters |
 | Topic/keyword | Max 1,000 characters |
 | Engagement metrics | Must be positive numbers |
 
-### Other Security Measures
+### Payment Security
+- ✅ Razorpay: HMAC-SHA256 signature verification
+- ✅ Stripe: Server-side session verification via API
+- ✅ Report generation requires verified payment status
+- ✅ Payment keys stored in database (admin-only RLS)
+
+### Other Security
 - ✅ RLS policies on all database tables
-- ✅ Admin auth via `user_roles` table (server-side, not client-side)
-- ✅ Payment keys in database (admin-only RLS), not in env files
-- ✅ Service role key never exposed to client
+- ✅ Admin auth via `user_roles` table (server-side)
 - ✅ Hidden admin route (`/bosspage-login`)
-- ✅ Admin credentials stored as edge function secrets
+- ✅ Admin credentials in env secrets, not in code
+- ✅ Service role key never exposed to client
 
 ---
 
 ## Deployment Options
 
 ### Vercel (Recommended)
-
-```json
-// vercel.json (already included)
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "vite",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
-```
-
 1. Import GitHub repo in Vercel
-2. Add env vars in Vercel dashboard (only VITE_* vars needed)
-3. Deploy automatically
+2. Add env vars (only VITE_* vars needed)
+3. Deploy automatically — `vercel.json` included
 
 ### Netlify
-
 1. Import repo → Build: `npm run build` → Publish: `dist`
-2. `public/_redirects` already configured: `/* /index.html 200`
-3. Add env vars in Netlify dashboard
+2. `public/_redirects` already configured
 
 ### Cloudflare Pages
-
 1. Connect GitHub → Build: `npm run build` → Output: `dist`
-2. Add env vars in Cloudflare dashboard
 
 ### Docker
-
 ```dockerfile
 FROM node:18-alpine AS build
 WORKDIR /app
@@ -342,7 +320,7 @@ EXPOSE 80
 ```
 
 ### Any Static Host
-Upload `dist/` folder contents. Ensure SPA routing redirects all paths to `index.html`.
+Upload `dist/` folder. Ensure SPA routing redirects all paths to `index.html`.
 
 ---
 
@@ -350,22 +328,21 @@ Upload `dist/` folder contents. Ensure SPA routing redirects all paths to `index
 
 ### For End Users
 
-1. **Analyze a Reel**: Paste an Instagram Reel URL → Click "Analyze" → Get viral score & insights
+1. **Analyze a Reel**: Paste Instagram Reel URL → Click "Analyze" → Get viral score & insights
 2. **Optional Details**: Add caption, hashtags, engagement metrics for better accuracy
-3. **Master Report**: Pay ₹29 (or configured price) → Get detailed PDF report
-4. **SEO Optimizer**: Enter a topic → Get hashtags, titles, posting times
-5. **Language Toggle**: Switch between English & Hindi on homepage
+3. **Master Report**: Click "Unlock Master Report" → Pay configured price → Get detailed PDF
+4. **SEO Optimizer**: Enter topic → Pay → Get optimized hashtags, titles, posting times
+5. **Language Toggle**: Switch between English & Hindi
 
 ### For Admins
 
-1. Login at **`/bosspage-login`** with your admin credentials
-2. **Dashboard**: View analytics, revenue, and user engagement
-3. **API Keys**: Add multiple keys for uninterrupted service
-4. **Payment Config**: Set gateway, pricing, currency
-5. **Ad Management**: Deploy ads to 30+ slots across the site
-6. **Behaviour Settings**: Configure user engagement triggers
-7. **AI Assistant**: Use the chatbot (💬) for quick admin tasks
-8. **Free Tools**: Generate reports without payment for testing
+1. Login at **`/bosspage-login`** with admin credentials
+2. **Dashboard**: View analytics, revenue, user engagement
+3. **Payment & Config**: Set gateway (Razorpay/Stripe), pricing, currency
+4. **API Keys**: Add multiple keys for uninterrupted service
+5. **Ad Management**: Deploy ads to 30+ slots
+6. **AI Assistant**: Use chatbot (💬) for quick admin tasks
+7. **Free Tools**: Generate reports/SEO analysis without payment
 
 ---
 
@@ -375,49 +352,36 @@ Upload `dist/` folder contents. Ensure SPA routing redirects all paths to `index
 
 | Issue | Solution |
 |---|---|
-| "No API keys configured" | Add Gemini keys in Admin Panel → API Keys Manager |
+| "No API keys configured" | Add Gemini keys in Admin Panel → API Keys |
 | "Payment gateway not configured" | Set Razorpay/Stripe keys in Admin Panel → Config |
 | "Invalid Instagram Reel URL" | Ensure URL matches `instagram.com/reel/...` pattern |
-| "Rate limit exceeded" | Wait 1 hour or add more API keys for auto-failover |
-| Rate limiting errors | Add more API keys (up to 10) for auto-failover |
-| Analysis stuck | Check edge function logs in Supabase dashboard |
-| Admin can't login | Verify `ADMIN_EMAIL`/`ADMIN_PASSWORD` secrets and redeploy `create-admin` |
-| Blank analysis | Verify Gemini API key is valid and has quota |
+| "Rate limit exceeded" | Wait 1 hour or add more API keys |
+| Stripe redirect not working | Verify `stripe_key` is set and valid in Admin Config |
+| Razorpay checkout not opening | Check `razorpay_key_id` and `razorpay_key_secret` in Config |
+| Admin can't login | Verify `ADMIN_EMAIL`/`ADMIN_PASSWORD` secrets |
 | Old `/admin` URL not working | Use `/bosspage-login` instead |
+| Price shows ₹29 even after change | Refresh the page — price is fetched on load |
 
 ### Edge Function Logs
 
 ```bash
 npx supabase functions logs analyze-reel --follow
+npx supabase functions logs create-payment --follow
+npx supabase functions logs verify-payment --follow
 npx supabase functions logs generate-master-report --follow
-npx supabase functions logs seo-analyze --follow
 npx supabase functions logs admin-ai-chat --follow
 ```
 
 ### Edge Functions Reference
 
-| Function | Purpose |
-|---|---|
-| `analyze-reel` | Core reel analysis (rate limit: 20/hr) |
-| `generate-master-report` | Premium PDF report generation (rate limit: 5/hr) |
-| `seo-analyze` | SEO optimization analysis (rate limit: 15/hr) |
-| `create-payment` | Payment order creation (rate limit: 10/hr) |
-| `verify-payment` | Payment verification |
-| `check-reel-date` | Reel date validation |
-| `create-admin` | Admin user setup |
-| `usage-analyzer` | API usage tracking |
-| `admin-ai-chat` | AI assistant for admin panel |
-
-### Security Checklist
-
-- ✅ No private keys in frontend code
-- ✅ Payment keys stored in DB (admin-only RLS)
-- ✅ API keys stored in DB with admin-only access
-- ✅ Admin routes protected by role-based auth
-- ✅ Edge functions validate authorization
-- ✅ Rate limiting on all public edge functions
-- ✅ Input validation with strict URL patterns
-- ✅ CORS headers configured
-- ✅ Service role key never exposed to client
-- ✅ Admin credentials in env secrets, not in code
-- ✅ Hidden admin route path
+| Function | Purpose | Rate Limit |
+|---|---|---|
+| `analyze-reel` | Core reel analysis | 20/hr |
+| `generate-master-report` | Premium PDF report | 5/hr |
+| `seo-analyze` | SEO optimization | 15/hr |
+| `create-payment` | Payment order (Razorpay/Stripe) | 10/hr |
+| `verify-payment` | Payment verification (signature/session) | — |
+| `check-reel-date` | Reel date validation | — |
+| `create-admin` | Admin user setup | — |
+| `usage-analyzer` | API usage tracking | — |
+| `admin-ai-chat` | AI assistant for admin | — |
