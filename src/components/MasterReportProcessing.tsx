@@ -75,7 +75,7 @@ const MasterReportProcessing = ({ show, reportReady, onDownload }: Props) => {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-background/90 backdrop-blur-md"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-background/90 backdrop-blur-md overflow-y-auto py-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
