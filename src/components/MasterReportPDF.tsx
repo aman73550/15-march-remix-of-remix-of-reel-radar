@@ -231,7 +231,7 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
     }
 
     if (premiumData.aiRecommendations) {
-      lines.push("── AI RECOMMENDATIONS ──");
+      lines.push("── RECOMMENDATIONS ──");
       if (premiumData.aiRecommendations.hookAlternatives?.length) {
         lines.push("  🎣 Alternative Hooks:");
         premiumData.aiRecommendations.hookAlternatives.forEach((h: string) => lines.push(`    • ${h}`));
