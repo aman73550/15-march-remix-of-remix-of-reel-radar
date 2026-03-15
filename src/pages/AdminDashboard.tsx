@@ -879,25 +879,25 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <main className="flex-1 lg:ml-56 min-h-screen">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-lg border-b border-border px-3 sm:px-6 py-3">
+        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-lg border-b border-border px-3 sm:px-6 py-2.5 sm:py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="lg:hidden h-8 w-8 p-0">
-                <Menu className="w-4 h-4" />
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="lg:hidden h-9 w-9 p-0 flex-shrink-0">
+                <Menu className="w-5 h-5" />
               </Button>
-              <div className="flex items-center gap-2">
-                {activeItem && <activeItem.icon className="w-4 h-4 text-primary" />}
-                <h2 className="text-sm sm:text-lg font-semibold text-foreground">{activeItem?.label || "Dashboard"}</h2>
+              <div className="flex items-center gap-2 min-w-0">
+                {activeItem && <activeItem.icon className="w-4 h-4 text-primary flex-shrink-0" />}
+                <h2 className="text-sm sm:text-lg font-semibold text-foreground truncate">{activeItem?.label || "Dashboard"}</h2>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="lg:hidden text-xs h-8 px-2">
+            <Button variant="outline" size="sm" onClick={handleLogout} className="lg:hidden text-xs h-8 px-2 flex-shrink-0">
               <LogOut className="w-3.5 h-3.5" />
             </Button>
           </div>
         </header>
 
         {/* Content Area */}
-        <div className="p-3 sm:p-6 max-w-5xl">
+        <div className="p-3 sm:p-6 max-w-5xl pb-20 sm:pb-6 overflow-x-hidden">
           {renderActiveSection()}
         </div>
       </main>
