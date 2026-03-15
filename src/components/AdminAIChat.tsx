@@ -21,13 +21,35 @@ const QUICK_ACTIONS = [
   { label: "🚦 Rate Limit Status", prompt: "Check rate limits — any blocked IPs? Current usage vs limits for all functions", icon: Shield },
 ];
 
+const STORAGE_KEY = "admin-ai-chat-history";
+
+const loadHistory = (): Msg[] => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch { return []; }
+};
+
+const saveHistory = (msgs: Msg[]) => {
+  try {
+    // Keep last 100 messages to avoid storage limits
+    const trimmed = msgs.slice(-100);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
+  } catch { /* storage full */ }
+};
+
 const AdminAIChat = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const [messages, setMessages] = useState<Msg[]>(loadHistory);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Save to localStorage whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) saveHistory(messages);
+  }, [messages]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -185,7 +207,7 @@ const AdminAIChat = () => {
         </div>
         <div className="flex items-center gap-1">
           {messages.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={() => setMessages([])} className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive">
+            <Button variant="ghost" size="sm" onClick={() => { setMessages([]); localStorage.removeItem(STORAGE_KEY); }} className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive">
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
           )}
