@@ -106,10 +106,6 @@ const Index = () => {
       });
 
       if (error) {
-        // Check if it's a payment required error
-        if (error.message?.includes("402") || error.message?.includes("payment")) {
-          throw new Error("payment_required");
-        }
         throw error;
       }
 
@@ -122,6 +118,7 @@ const Index = () => {
       }
       if (!data?.success && data?.error === "payment_invalid") {
         toast({ title: "Payment Invalid", description: data.message || "Please complete payment first", variant: "destructive" });
+        setAnalysisPrice(data.price || 10);
         setShowPaymentPopup(true);
         setLoading(false);
         return;
