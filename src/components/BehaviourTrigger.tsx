@@ -44,7 +44,7 @@ const TRIGGER_MESSAGES: Record<string, string[]> = {
   ],
   retry_prompt: [
     "Analysis service temporarily unavailable. Please try again later.",
-    "Our AI models are being updated. Please retry in a moment.",
+    "Our analysis models are being updated. Please retry in a moment.",
     "Temporary processing delay. Service will resume shortly.",
     "System maintenance in progress. Please try again.",
   ],
