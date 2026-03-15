@@ -113,7 +113,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     metaDesc: "Generate the best hashtags for your Instagram reels. AI-powered hashtag generator finds trending, niche-specific tags to maximize reach and engagement. Free tool.",
     keywords: "reel hashtag generator, best hashtags for instagram reels, instagram reel hashtags, trending hashtags for reels, hashtag generator",
     h1: "Free Reel Hashtag Generator",
-    subtitle: "Generate the perfect hashtag mix for your Instagram reels. AI finds trending, mid-range, and niche-specific hashtags that maximize your reach.",
+    subtitle: "Generate the perfect hashtag mix for your Instagram reels. Smart analysis finds trending, mid-range, and niche-specific hashtags that maximize your reach.",
     ctaText: "Generate Hashtags Now",
     ctaRoute: "/",
     icon: Hash,
