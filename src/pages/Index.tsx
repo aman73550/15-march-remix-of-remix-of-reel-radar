@@ -371,7 +371,7 @@ const Index = () => {
           reelUrl={url.trim()}
           price={analysisPrice}
           onPaymentSuccess={handlePaymentSuccess}
-          onClose={() => setShowPaymentPopup(false)}
+          onClose={() => { setShowInterstitial(false); setShowPaymentPopup(false); }}
         />
       )}
 
