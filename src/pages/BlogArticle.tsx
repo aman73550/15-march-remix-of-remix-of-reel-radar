@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import SEOHead from "@/components/SEOHead";
 import InternalLinks from "@/components/InternalLinks";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import Footer from "@/components/Footer";
 import { ArrowLeft, Clock, TrendingUp } from "lucide-react";
 
 interface BlogContent {

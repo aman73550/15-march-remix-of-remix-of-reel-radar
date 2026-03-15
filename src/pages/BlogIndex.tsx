@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
 import InternalLinks from "@/components/InternalLinks";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import Footer from "@/components/Footer";
 import { BookOpen, ArrowRight, Clock } from "lucide-react";
 
 interface Article {
