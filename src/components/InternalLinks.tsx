@@ -7,7 +7,7 @@ const TOOL_LINKS = [
   { path: "/instagram-reel-analyzer", label: "Instagram Reel Analyzer", desc: "Full Instagram reel analysis" },
   { path: "/reel-seo-optimizer", label: "Reel SEO Optimizer", desc: "Optimize reel captions & titles" },
   { path: "/reel-hashtag-generator", label: "Reel Hashtag Generator", desc: "Generate trending hashtags" },
-  { path: "/reel-caption-generator", label: "Reel Caption Generator", desc: "AI-powered caption writing" },
+  { path: "/reel-caption-generator", label: "Reel Caption Generator", desc: "Smart caption writing" },
   { path: "/reel-title-generator", label: "Reel Title Generator", desc: "SEO optimized reel titles" },
   { path: "/reel-viral-checker", label: "Reel Viral Checker", desc: "Check viral probability score" },
   { path: "/reel-engagement-calculator", label: "Engagement Calculator", desc: "Calculate reel engagement rate" },

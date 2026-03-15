@@ -31,7 +31,7 @@ const BLOG_DATA: Record<string, BlogContent> = {
       { heading: "The Pattern Interrupt Hook", content: "Pattern interrupts break the viewer's scrolling rhythm with something unexpected — a sudden movement, an unusual visual, or an on-screen text that creates urgency. This technique works because our brains are wired to notice things that don't fit the pattern. Examples: starting with a fast zoom, sudden audio change, or text that says 'WAIT — watch this till the end'." },
       { heading: "The Before/After Hook", content: "Showing a dramatic transformation in the first second creates immediate curiosity about how the change happened. This works for fitness, beauty, room makeovers, editing tutorials, and any content with visible results. The viewer stays to see the process that led to the transformation." },
       { heading: "The Curiosity Gap Hook", content: "Revealing partial information upfront and promising the full picture later in the reel. Example: showing the result but not the method, or stating 'I tested this for 30 days and here's what happened'. The incomplete information creates a psychological need to keep watching." },
-      { heading: "How to Test Your Hook Strength", content: "Use ReelAnalyzer's hook analysis tool to score your reel's opening before posting. Our AI evaluates hook type, visual impact, text overlay effectiveness, and compares it against high-performing hooks in your niche. Reels with hook scores above 7/10 consistently outperform those scoring below 5." },
+      { heading: "How to Test Your Hook Strength", content: "Use ReelAnalyzer's hook analysis tool to score your reel's opening before posting. Our system evaluates hook type, visual impact, text overlay effectiveness, and compares it against high-performing hooks in your niche. Reels with hook scores above 7/10 consistently outperform those scoring below 5." },
     ],
     ctaText: "Test Your Reel's Hook Score",
     ctaRoute: "/",
@@ -49,7 +49,7 @@ const BLOG_DATA: Record<string, BlogContent> = {
       { heading: "How to Analyze Hook Performance", content: "Your hook determines whether people watch or scroll. To analyze hook effectiveness: check your reel's retention graph in Instagram Insights (if available), note where the biggest drop-off happens, and compare opening techniques across your best and worst performing reels. A strong hook keeps 60%+ viewers past the 3-second mark." },
       { heading: "Caption Analysis for Better Reach", content: "Your caption affects both engagement and discoverability. Analyze: Does it start with a hook? Does it include searchable keywords? Is there a clear CTA? Are you using emotional triggers? Instagram now indexes captions for search — keywords in your caption directly affect who sees your reel in search results." },
       { heading: "Hashtag Strategy Analysis", content: "Review your hashtag performance: Are you using too many (30) or too few (3)? Are they relevant to your content? What competition level are they? The optimal approach is 8-12 hashtags mixing trending (3-4), mid-range (4-5), and niche-specific (2-3). Analyze which hashtag sets correlated with your highest-reaching reels." },
-      { heading: "Using ReelAnalyzer for Automated Analysis", content: "Instead of manually tracking all these metrics, use ReelAnalyzer to get instant AI-powered analysis. Paste your reel URL and get a comprehensive breakdown of hook strength, caption quality, hashtag strategy, engagement predictions, trend matching, and specific improvement recommendations — all in seconds." },
+      { heading: "Using ReelAnalyzer for Automated Analysis", content: "Instead of manually tracking all these metrics, use ReelAnalyzer to get instant smart analysis. Paste your reel URL and get a comprehensive breakdown of hook strength, caption quality, hashtag strategy, engagement predictions, trend matching, and specific improvement recommendations — all in seconds." },
     ],
     ctaText: "Analyze Your Reel Now",
     ctaRoute: "/",
@@ -157,7 +157,7 @@ const BlogArticle = () => {
         <div className="max-w-2xl mx-auto px-4">
           <div className="border-t border-border/40" />
           <div className="py-6 text-center">
-            <p className="text-[10px] text-muted-foreground/50">ReelAnalyzer — Free AI-powered Instagram Reel Analysis Tools</p>
+            <p className="text-[10px] text-muted-foreground/50">ReelAnalyzer — Free Instagram Reel Analysis Tools</p>
           </div>
         </div>
       </footer>

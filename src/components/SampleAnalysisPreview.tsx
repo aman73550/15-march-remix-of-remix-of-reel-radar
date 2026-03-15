@@ -80,7 +80,7 @@ const SampleAnalysisPreview = () => {
           </span>
           <span className="text-[10px] font-medium text-viral-high uppercase tracking-wider">Live</span>
         </div>
-        <h2 className="text-base sm:text-lg font-bold text-foreground">AI Reel Activity Insights</h2>
+        <h2 className="text-base sm:text-lg font-bold text-foreground">Reel Activity Insights</h2>
         <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
           Automatically generated insights from recently analyzed reels
         </p>
@@ -138,7 +138,7 @@ const SampleAnalysisPreview = () => {
       </Card>
 
       <p className="text-[8px] sm:text-[9px] text-muted-foreground/40 text-center mt-2.5 px-2">
-        Usernames and reel links are partially masked for privacy. Insights are generated automatically by our AI analysis system.
+        Usernames and reel links are partially masked for privacy. Insights are generated automatically by our analysis system.
       </p>
     </motion.div>
   );

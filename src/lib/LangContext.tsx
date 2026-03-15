@@ -4,10 +4,10 @@ type Lang = "en" | "hi";
 
 const translations = {
   en: {
-    badge: "AI-Powered Reel Analysis",
+    badge: "Smart Reel Analysis",
     title1: "Reel Viral",
     title2: " Analyzer",
-    subtitle: "Paste your Instagram Reel link and get an AI-powered viral potential score with actionable insights",
+    subtitle: "Paste your Instagram Reel link and get a smart viral potential score with actionable insights",
     urlPlaceholder: "https://www.instagram.com/reel/...",
     captionPlaceholder: "Paste caption (optional)",
     hashtagPlaceholder: "Hashtags (optional, e.g. #viral #trending)",
@@ -31,7 +31,7 @@ const translations = {
     hookTitle: "Hook & Opening",
     captionTitle: "Caption Analysis",
     hashtagTitle: "Hashtag Strategy",
-    videoTitle: "Video Signals (AI Estimated)",
+    videoTitle: "Video Signals (Estimated)",
     trendTitle: "Trend Matching",
     engagementTitle: "Engagement Quality",
     metricsLabel: "Engagement Metrics (optional)",
@@ -57,10 +57,10 @@ const translations = {
     metric_views: "Views",
   },
   hi: {
-    badge: "AI-संचालित रील विश्लेषण",
+    badge: "स्मार्ट रील विश्लेषण",
     title1: "रील वायरल",
     title2: " एनालाइज़र",
-    subtitle: "अपनी Instagram रील लिंक पेस्ट करें और AI-संचालित वायरल संभावना स्कोर प्राप्त करें",
+    subtitle: "अपनी Instagram रील लिंक पेस्ट करें और स्मार्ट वायरल संभावना स्कोर प्राप्त करें",
     urlPlaceholder: "https://www.instagram.com/reel/...",
     captionPlaceholder: "कैप्शन पेस्ट करें (वैकल्पिक)",
     hashtagPlaceholder: "हैशटैग (वैकल्पिक, जैसे #viral #trending)",
@@ -84,7 +84,7 @@ const translations = {
     hookTitle: "हुक और ओपनिंग",
     captionTitle: "कैप्शन विश्लेषण",
     hashtagTitle: "हैशटैग रणनीति",
-    videoTitle: "वीडियो सिग्नल (AI अनुमानित)",
+    videoTitle: "वीडियो सिग्नल (अनुमानित)",
     trendTitle: "ट्रेंड मैचिंग",
     engagementTitle: "एंगेजमेंट गुणवत्ता",
     metricsLabel: "एंगेजमेंट मेट्रिक्स (वैकल्पिक)",

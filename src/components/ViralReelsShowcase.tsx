@@ -179,7 +179,7 @@ const ViralReelsShowcase = ({ onAnalyzeClick }: Props) => {
       </motion.div>
 
       <p className="text-[8px] sm:text-[9px] text-muted-foreground/40 text-center mt-2 px-2 select-none">
-        Usernames & reel links are masked for privacy. Scores are AI-generated estimates.
+        Usernames & reel links are masked for privacy. Scores are system-generated estimates.
       </p>
     </motion.section>
   );

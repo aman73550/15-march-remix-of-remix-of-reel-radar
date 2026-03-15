@@ -231,7 +231,7 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
     }
 
     if (premiumData.aiRecommendations) {
-      lines.push("── AI RECOMMENDATIONS ──");
+      lines.push("── RECOMMENDATIONS ──");
       if (premiumData.aiRecommendations.hookAlternatives?.length) {
         lines.push("  🎣 Alternative Hooks:");
         premiumData.aiRecommendations.hookAlternatives.forEach((h: string) => lines.push(`    • ${h}`));
@@ -770,7 +770,7 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
       {premiumData.aiRecommendations && (
         <Card className="glass p-5 space-y-3">
           <h3 className="font-bold text-foreground flex items-center gap-2">
-            <Lightbulb className="w-4 h-4 text-primary" /> AI Personalized Recommendations
+            <Lightbulb className="w-4 h-4 text-primary" /> Personalized Recommendations
           </h3>
 
           {premiumData.aiRecommendations.hookAlternatives?.length > 0 && (
@@ -1149,7 +1149,7 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
             </div>
           </div>
 
-          {/* PAGE 7: Roadmap + AI Recommendations */}
+          {/* PAGE 7: Roadmap + Recommendations */}
           <div style={{ minHeight: "1100px", paddingBottom: "40px" }}>
             <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#e5e7eb", marginBottom: "12px", paddingTop: "20px" }}>🎯 5-Step Improvement Roadmap</h2>
             {premiumData.improvementRoadmap?.steps?.map((s: any, i: number) => (
@@ -1163,7 +1163,7 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
               </div>
             ))}
 
-            <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#e5e7eb", marginBottom: "12px", marginTop: "28px" }}>💡 AI Recommendations</h2>
+            <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#e5e7eb", marginBottom: "12px", marginTop: "28px" }}>💡 Recommendations</h2>
             {premiumData.aiRecommendations?.hookAlternatives?.map((h: string, i: number) => (
               <p key={i} style={{ fontSize: "11px", color: "#9ca3af", padding: "8px 12px", background: "#111827", borderRadius: "6px", marginBottom: "4px", borderLeft: "3px solid #e63976" }}>{h}</p>
             ))}

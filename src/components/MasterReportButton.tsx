@@ -149,7 +149,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
     { icon: BarChart3, text: "Top 10 Competitor Comparison" },
     { icon: Calendar, text: "Best Posting Times Calendar" },
     { icon: Target, text: "5-Step Improvement Roadmap" },
-    { icon: Lightbulb, text: "AI Personalized Tips" },
+    { icon: Lightbulb, text: "Personalized Tips" },
     { icon: FileText, text: "4-5 Page Professional PDF" },
   ];
 

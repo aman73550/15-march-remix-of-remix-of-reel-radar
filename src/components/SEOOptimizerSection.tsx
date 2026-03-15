@@ -59,7 +59,7 @@ const SEOOptimizerSection = () => {
           amount: data.amount * 100,
           currency: data.currency,
           name: "Reel SEO Optimizer",
-          description: "Deep AI SEO Analysis",
+          description: "Deep SEO Analysis",
           order_id: data.orderId,
           handler: async (response: any) => {
             // Verify payment

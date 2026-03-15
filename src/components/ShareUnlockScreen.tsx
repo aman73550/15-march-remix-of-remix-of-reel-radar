@@ -11,7 +11,7 @@ interface Props {
 }
 
 const SHARE_URL = typeof window !== "undefined" ? window.location.origin : "";
-const SHARE_TEXT = "I just tested my Instagram reel here.\nCheck if your reel can go viral with this AI Reel Viral Analyzer.\nPaste your reel link and get a viral probability score instantly.\n\n";
+const SHARE_TEXT = "I just tested my Instagram reel here.\nCheck if your reel can go viral with this Reel Viral Analyzer.\nPaste your reel link and get a viral probability score instantly.\n\n";
 
 const ShareUnlockScreen = ({ onUnlocked }: Props) => {
   const [shareCount, setShareCount] = useState(getShareCount());

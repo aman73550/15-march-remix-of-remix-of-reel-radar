@@ -14,7 +14,7 @@ const STEPS = [
   { label: "Validating reel link", icon: Link, duration: 8 },
   { label: "Preparing video analysis", icon: Video, duration: 10 },
   { label: "Extracting frames", icon: ScanSearch, duration: 12 },
-  { label: "Running AI analysis", icon: Brain, duration: 18 },
+  { label: "Running smart analysis", icon: Brain, duration: 18 },
   { label: "Generating final report", icon: FileText, duration: 12 },
 ];
 
