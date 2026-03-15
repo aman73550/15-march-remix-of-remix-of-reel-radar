@@ -914,6 +914,8 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+      {/* AI Chat Assistant */}
+      <AdminAIChat />
     </div>
   );
 };
