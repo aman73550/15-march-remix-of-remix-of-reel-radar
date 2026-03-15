@@ -59,7 +59,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     metaDesc: "Free Instagram reel analyzer tool. Check your reel's viral potential, analyze engagement metrics, get hook score, caption tips & hashtag optimization. No login required.",
     keywords: "instagram reel analyzer, instagram reel checker, instagram reel analysis, reel performance checker, check reel engagement",
     h1: "Instagram Reel Analyzer — Check Your Reel's Viral Potential",
-    subtitle: "The most comprehensive free Instagram reel analysis tool. Get AI-powered insights on hook strength, caption quality, hashtag strategy, and viral probability.",
+    subtitle: "The most comprehensive free Instagram reel analysis tool. Get smart insights on hook strength, caption quality, hashtag strategy, and viral probability.",
     ctaText: "Check Your Instagram Reel",
     ctaRoute: "/",
     icon: Search,
