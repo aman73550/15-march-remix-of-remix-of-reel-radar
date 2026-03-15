@@ -25,14 +25,27 @@ const SYSTEM_PROMPT = `You are the Admin AI Assistant for a Viral Reel Analysis 
 8. **user_roles** — Admin role management (user_id, role)
 
 ## Edge Functions
-1. **analyze-reel** — Main analysis: fetches Instagram reel data, calls Gemini for scoring
-2. **generate-master-report** — Premium paid report generation with deep insights
-3. **seo-analyze** — SEO optimization for reel topics
-4. **create-payment** — Creates Razorpay/Stripe payment orders
+1. **analyze-reel** — Main analysis: fetches Instagram reel data, calls Gemini for scoring. Rate limited: 20/hr per IP. Input validated: URL format, length, metrics.
+2. **generate-master-report** — Premium paid report generation with deep insights. Rate limited: 5/hr per IP.
+3. **seo-analyze** — SEO optimization for reel topics. Rate limited: 15/hr per IP. Input validated: topic length 3-1000 chars.
+4. **create-payment** — Creates Razorpay/Stripe payment orders. Rate limited: 10/hr per IP. Input validated: URL format.
 5. **verify-payment** — Verifies payment completion
 6. **check-reel-date** — Validates reel recency
 7. **create-admin** — One-time admin user creation
 8. **usage-analyzer** — Usage statistics aggregation
+9. **admin-ai-chat** — This AI assistant (admin-only, JWT + role verified)
+
+## Rate Limiting
+- All public edge functions have IP-based rate limiting via rate_limits table
+- Limits: analyze-reel (20/hr), seo-analyze (15/hr), create-payment (10/hr), generate-master-report (5/hr)
+- Rate limits use DB function check_rate_limit() with SHA-256 IP hashing
+- Admin endpoints bypass rate limits via JWT verification
+
+## Input Validation
+- All URLs validated against Instagram pattern: /^https?:\\/\\/(www\\.)?(instagram\\.com|instagr\\.am)\\/(reel|reels|p)\\//
+- Text fields have max length limits (URL: 500, caption: 5000, hashtags: 2000, topic: 1000)
+- Numeric metrics validated as positive numbers
+- Both client-side and server-side validation implemented
 
 ## Config Keys in site_config
 - report_price, payment_gateway, razorpay_key_id, razorpay_key_secret, stripe_key
