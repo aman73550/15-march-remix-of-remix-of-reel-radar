@@ -836,34 +836,39 @@ const AdminDashboard = () => {
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <aside className="absolute left-0 inset-y-0 w-64 bg-card border-r border-border flex flex-col animate-in slide-in-from-left duration-200">
+          <aside className="absolute left-0 inset-y-0 w-[75vw] max-w-72 bg-card border-r border-border flex flex-col animate-in slide-in-from-left duration-200 safe-area-inset">
             <div className="p-4 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-primary" />
-                <h1 className="text-sm font-bold text-foreground">Admin Panel</h1>
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-sm font-bold text-foreground">Admin Panel</h1>
+                  <p className="text-[9px] text-muted-foreground">Control Center</p>
+                </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(false)} className="h-7 w-7 p-0">
-                <X className="w-4 h-4" />
+              <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(false)} className="h-9 w-9 p-0">
+                <X className="w-5 h-5" />
               </Button>
             </div>
-            <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+            <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto overscroll-contain">
               {SIDEBAR_ITEMS.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleSectionChange(item.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition-all active:scale-[0.97] ${
                     activeSection === item.id
                       ? "bg-primary/10 text-primary font-medium border border-primary/20"
                       : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   }`}
                 >
-                  <span className="text-base">{item.emoji}</span>
+                  <span className="text-lg">{item.emoji}</span>
                   <span>{item.label}</span>
                 </button>
               ))}
             </nav>
-            <div className="p-3 border-t border-border">
-              <Button variant="outline" size="sm" onClick={handleLogout} className="w-full text-xs h-9">
+            <div className="p-3 border-t border-border pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <Button variant="outline" size="sm" onClick={handleLogout} className="w-full text-xs h-10">
                 <LogOut className="w-3.5 h-3.5 mr-1.5" /> Logout
               </Button>
             </div>
@@ -874,25 +879,25 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <main className="flex-1 lg:ml-56 min-h-screen">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-lg border-b border-border px-3 sm:px-6 py-3">
+        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-lg border-b border-border px-3 sm:px-6 py-2.5 sm:py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="lg:hidden h-8 w-8 p-0">
-                <Menu className="w-4 h-4" />
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="lg:hidden h-9 w-9 p-0 flex-shrink-0">
+                <Menu className="w-5 h-5" />
               </Button>
-              <div className="flex items-center gap-2">
-                {activeItem && <activeItem.icon className="w-4 h-4 text-primary" />}
-                <h2 className="text-sm sm:text-lg font-semibold text-foreground">{activeItem?.label || "Dashboard"}</h2>
+              <div className="flex items-center gap-2 min-w-0">
+                {activeItem && <activeItem.icon className="w-4 h-4 text-primary flex-shrink-0" />}
+                <h2 className="text-sm sm:text-lg font-semibold text-foreground truncate">{activeItem?.label || "Dashboard"}</h2>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="lg:hidden text-xs h-8 px-2">
+            <Button variant="outline" size="sm" onClick={handleLogout} className="lg:hidden text-xs h-8 px-2 flex-shrink-0">
               <LogOut className="w-3.5 h-3.5" />
             </Button>
           </div>
         </header>
 
         {/* Content Area */}
-        <div className="p-3 sm:p-6 max-w-5xl">
+        <div className="p-3 sm:p-6 max-w-5xl pb-20 sm:pb-6 overflow-x-hidden">
           {renderActiveSection()}
         </div>
       </main>
