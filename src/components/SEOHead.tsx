@@ -38,7 +38,7 @@ const SEOHead = ({ title, description, canonical, keywords }: SEOHeadProps) => {
     }
 
     return () => {
-      document.title = "Instagram Reel Analyzer – Viral Score Checker & Reel SEO Tool";
+      document.title = "Free Reel Analyzer & Instagram Reel SEO Optimization Tool | ReelAnalyzer";
     };
   }, [title, description, canonical, keywords]);
 
