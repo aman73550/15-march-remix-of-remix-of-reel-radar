@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -30,6 +30,27 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
   const [showProcessing, setShowProcessing] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [reportPrice, setReportPrice] = useState(29);
+  const [currency, setCurrency] = useState("INR");
+
+  useEffect(() => {
+    // Fetch price from site_config (admin-configurable)
+    const fetchPrice = async () => {
+      try {
+        const { data } = await supabase
+          .from("site_config")
+          .select("config_key, config_value")
+          .in("config_key", ["report_price", "currency"]);
+        if (data) {
+          for (const row of data) {
+            if (row.config_key === "report_price") setReportPrice(parseInt(row.config_value) || 29);
+            if (row.config_key === "currency") setCurrency(row.config_value || "INR");
+          }
+        }
+      } catch { /* use defaults */ }
+    };
+    fetchPrice();
+  }, []);
 
   const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -60,6 +81,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
         throw new Error(paymentData?.error || "Payment creation failed");
       }
 
+      // ===== RAZORPAY =====
       if (paymentData.gateway === "razorpay") {
         const loaded = await loadRazorpayScript();
         if (!loaded) throw new Error("Payment gateway failed to load");
@@ -86,7 +108,6 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
                 throw new Error("Payment verification failed");
               }
 
-              // Show receipt briefly then processing overlay
               setReceiptData({
                 reportId: paymentData.reportId,
                 paymentId: response.razorpay_payment_id,
@@ -96,7 +117,6 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
               setShowReceipt(true);
               toast.success("Payment successful! 🎉");
 
-              // Generate report in background and show processing
               setTimeout(() => {
                 setShowReceipt(false);
                 setShowProcessing(true);
@@ -114,6 +134,13 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
 
         const rzp = new window.Razorpay(options);
         rzp.open();
+        return;
+      }
+
+      // ===== STRIPE =====
+      if (paymentData.gateway === "stripe" && paymentData.sessionUrl) {
+        // Redirect to Stripe Checkout
+        window.location.href = paymentData.sessionUrl;
         return;
       }
 
@@ -145,6 +172,41 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
     }
   };
 
+  // Handle Stripe redirect back
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get("payment");
+    const stripeReportId = params.get("report_id");
+    const sessionId = params.get("session_id");
+
+    if (paymentStatus === "success" && stripeReportId && sessionId) {
+      // Clear URL params
+      window.history.replaceState({}, "", window.location.pathname);
+      
+      // Verify and generate report
+      setLoading(true);
+      setShowProcessing(true);
+      
+      (async () => {
+        try {
+          const { data: verifyData, error: verifyErr } = await supabase.functions.invoke("verify-payment", {
+            body: { reportId: stripeReportId, stripeSessionId: sessionId },
+          });
+
+          if (verifyErr || !verifyData?.success) {
+            throw new Error("Payment verification failed");
+          }
+
+          toast.success("Payment successful! 🎉");
+          await generateReport(stripeReportId);
+        } catch (err: any) {
+          handleError("Payment verification failed: " + (err.message || "Unknown error"));
+          setShowProcessing(false);
+        }
+      })();
+    }
+  }, []);
+
   const features = [
     { icon: BarChart3, text: "Top 10 Competitor Comparison" },
     { icon: Calendar, text: "Best Posting Times Calendar" },
@@ -153,12 +215,10 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
     { icon: FileText, text: "4-5 Page Professional PDF" },
   ];
 
-  // Show full report
   if (showReport && premiumData) {
     return <MasterReportPDF analysis={analysis} premiumData={premiumData} reelUrl={reelUrl} />;
   }
 
-  // Show processing overlay for report generation
   if (showProcessing) {
     return (
       <MasterReportProcessing
@@ -172,7 +232,6 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
     );
   }
 
-  // Show receipt after payment (briefly)
   if (showReceipt && receiptData) {
     return (
       <PaymentReceipt
@@ -188,6 +247,8 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
       />
     );
   }
+
+  const currencySymbol = currency === "INR" ? "₹" : currency === "USD" ? "$" : currency;
 
   return (
     <motion.div
@@ -242,19 +303,18 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
               ) : (
                 <>
                   <Crown className="w-4 h-4 mr-2" />
-                  Unlock Master Report — ₹29 Only
+                  Unlock Master Report — {currencySymbol}{reportPrice} Only
                 </>
               )}
             </Button>
           </motion.div>
 
           <p className="text-center text-[10px] text-muted-foreground/60">
-            Secure payment via Razorpay • Instant PDF delivery • No login required
+            Secure payment • Instant PDF delivery • No login required
           </p>
         </div>
       </Card>
 
-      {/* Error message */}
       {errorMsg && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -265,7 +325,6 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
         </motion.div>
       )}
 
-      {/* WhatsApp support - always visible */}
       <div className="flex justify-center">
         <WhatsAppErrorButton errorMessage={errorMsg || "I need help with the Master Report"} className="w-full sm:w-auto" />
       </div>
