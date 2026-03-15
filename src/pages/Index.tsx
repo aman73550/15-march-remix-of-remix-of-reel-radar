@@ -302,7 +302,7 @@ const Index = () => {
                 className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full gradient-primary-bg text-primary-foreground font-semibold text-xs sm:text-sm shadow-glow hover:opacity-90 transition-opacity"
               >
                 <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                Get Master AI Report
+                Get Master Report
                 <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </motion.div>
@@ -310,7 +310,7 @@ const Index = () => {
             {/* Auto-extracted badge */}
             <motion.div className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full bg-[hsl(var(--viral-high))]/10 border border-[hsl(var(--viral-high))]/20 mx-auto w-fit" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
               <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[hsl(var(--viral-high))] flex-shrink-0" />
-              <span className="text-[10px] sm:text-xs font-medium text-[hsl(var(--viral-high))] text-center">AI Auto-Analyzed • Data Extracted Automatically</span>
+              <span className="text-[10px] sm:text-xs font-medium text-[hsl(var(--viral-high))] text-center">Auto-Analyzed • Data Extracted Automatically</span>
             </motion.div>
 
             {/* Viral Status Badge */}

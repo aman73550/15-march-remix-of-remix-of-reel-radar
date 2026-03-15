@@ -1225,19 +1225,41 @@ Return ONLY valid JSON (no markdown, no code fences):
       viralScore = Math.min(80, Math.max(5, Math.round((hookS * 25 + capS * 15 + hashS * 10 + engS * 20 + comS * 10) + totalBonus)));
       viralLabel = "Viral Potential";
     } else {
-      viralStatus = hasMetrics ? "Low Viral Potential" : (analysis.viralScore >= 50 ? "Growing" : "Low Viral Potential");
+      // Low metrics or no metrics — weight content quality much higher
       const hookS = (analysis.hookAnalysis?.score ?? 5) / 8;
       const capS = (analysis.captionAnalysis?.score ?? 5) / 8;
       const hashS = (analysis.hashtagAnalysis?.score ?? 5) / 8;
-      const engS = hasMetrics ? Math.min(1, engRate / 0.07) : (analysis.engagementScore ?? 5) / 8;
-      const comS = hasMetrics ? Math.min(1, commentsVal / 500) : 0.4;
-      viralScore = Math.min(80, Math.max(5, Math.round((hookS * 25 + capS * 15 + hashS * 10 + engS * 20 + comS * 10) + totalBonus)));
-      viralLabel = "Viral Potential";
-      if (!hasMetrics && reasons.length === 0) {
-        if (analysis.hookAnalysis?.score >= 5) reasons.push("Decent hook potential");
-        if (analysis.captionAnalysis?.score >= 5) reasons.push("Caption has engagement potential");
-        reasons.push("Metrics could not be extracted — score based on content analysis only");
+      const trendS = (analysis.trendMatching?.score ?? 5) / 8;
+
+      if (hasMetrics) {
+        // Has metrics but low — blend content quality with actual metrics
+        const engS = Math.min(1, engRate / 0.05);
+        const viewS = Math.min(1, viewsVal / 5000);
+        const comS = Math.min(1, commentsVal / 100);
+        // Content quality weighted 60%, metrics 40%
+        viralScore = Math.min(80, Math.max(5, Math.round(
+          (hookS * 18 + capS * 14 + hashS * 10 + trendS * 8 + engS * 12 + viewS * 10 + comS * 8) + totalBonus
+        )));
+        viralStatus = viralScore >= 40 ? "Growing" : "Low Viral Potential";
+        if (viewsVal > 0 && viewsVal < 1000) {
+          reasons.push("Low view count — reel may still be in early distribution phase");
+        }
+        if (likesVal > 0 && likesVal < 100) {
+          reasons.push("Low likes — content needs stronger hook or wider reach");
+        }
+      } else {
+        // No metrics at all — pure content quality analysis
+        viralScore = Math.min(80, Math.max(10, Math.round(
+          (hookS * 25 + capS * 20 + hashS * 15 + trendS * 20) + totalBonus
+        )));
+        viralStatus = viralScore >= 45 ? "Growing" : "Low Viral Potential";
+        if (reasons.length === 0) {
+          if (analysis.hookAnalysis?.score >= 5) reasons.push("Decent hook potential");
+          if (analysis.captionAnalysis?.score >= 5) reasons.push("Caption has engagement potential");
+          reasons.push("Metrics could not be extracted — score based on content analysis only");
+        }
       }
+      viralLabel = "Viral Potential";
     }
 
     viralScore = Math.min(80, viralScore);

@@ -13,7 +13,7 @@ const STEPS = [
   { label: "Validating input & payment", icon: Search, duration: 8 },
   { label: "Researching trending keywords", icon: TrendingUp, duration: 12 },
   { label: "Analyzing hashtag performance", icon: Hash, duration: 10 },
-  { label: "Running deep AI SEO analysis", icon: Brain, duration: 18 },
+  { label: "Running deep SEO analysis", icon: Brain, duration: 18 },
   { label: "Generating optimized report", icon: FileText, duration: 12 },
 ];
 
@@ -167,7 +167,7 @@ const SEOProcessingOverlay = ({ show, analysisComplete, onComplete }: SEOProcess
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <p className="text-sm font-semibold text-primary leading-relaxed">
-                ⏳ Please wait while our AI performs deep SEO research.
+                ⏳ Please wait while deep SEO research is being performed.
               </p>
               <p className="text-xs font-medium text-foreground/70 mt-1">
                 ⚠️ Do not close this page until the progress bar completes.

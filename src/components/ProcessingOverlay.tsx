@@ -191,8 +191,8 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <div className="absolute inset-0 gradient-primary-bg opacity-[0.04]" />
-              <p className="relative text-sm font-semibold text-primary leading-relaxed">
-                ⏳ Please wait while our AI analyzes your reel.
+               <p className="relative text-sm font-semibold text-primary leading-relaxed">
+                 ⏳ Please wait while your reel is being analyzed.
               </p>
               <p className="relative text-xs font-medium text-foreground/70 mt-1">
                 ⚠️ Do not close this page until the progress bar completes.

@@ -103,7 +103,7 @@ const MasterReportProcessing = ({ show, reportReady, onDownload }: Props) => {
             {completed ? "Master Report Ready! 🎉" : "Generating Master Report"}
           </h2>
           {!completed && (
-            <p className="text-xs text-muted-foreground">Our AI is crafting your premium analysis...</p>
+            <p className="text-xs text-muted-foreground">Crafting your premium analysis...</p>
           )}
         </div>
 
