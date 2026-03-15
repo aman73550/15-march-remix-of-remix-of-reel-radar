@@ -75,7 +75,7 @@ const PAGES: Record<string, ToolPageConfig> = {
       { step: "Review Results", desc: "Get viral score, hook analysis, caption tips, hashtag optimization, and growth recommendations." },
     ],
     contentBlocks: [
-      { heading: "What Does an Instagram Reel Analyzer Do?", text: "An Instagram reel analyzer examines every element of your reel — from the opening hook to the caption, hashtags, and engagement metrics. It uses AI to predict viral potential by comparing your content against patterns of high-performing reels in your niche. Think of it as a pre-posting quality check that tells you exactly what to fix before hitting publish." },
+      { heading: "What Does an Instagram Reel Analyzer Do?", text: "An Instagram reel analyzer examines every element of your reel — from the opening hook to the caption, hashtags, and engagement metrics. It predicts viral potential by comparing your content against patterns of high-performing reels in your niche. Think of it as a pre-posting quality check that tells you exactly what to fix before hitting publish." },
       { heading: "Instagram Reel SEO and Discoverability", text: "Instagram uses signals like watch time, caption keywords, and hashtag relevance to decide which reels to push to the Explore page and Reels tab. By optimizing these elements based on data — not guesswork — you significantly increase your chances of getting organic reach. Our analyzer identifies exactly which SEO signals your reel is missing." },
     ],
   },
