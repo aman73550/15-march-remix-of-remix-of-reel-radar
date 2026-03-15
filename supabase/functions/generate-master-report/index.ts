@@ -8,7 +8,37 @@ const corsHeaders = {
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
-function getApiKeys(): string[] {
+// DB-first multi-key rotation: reads from site_config table, falls back to env vars
+let _cachedDbKeys: string[] | null = null;
+let _cacheTs = 0;
+
+async function getApiKeysFromDb(supabase: any): Promise<string[]> {
+  if (_cachedDbKeys && Date.now() - _cacheTs < 60000) return _cachedDbKeys;
+  try {
+    const { data } = await supabase
+      .from("site_config")
+      .select("config_key, config_value")
+      .eq("config_key", "gemini_api_keys");
+    if (data) {
+      for (const row of data) {
+        if (row.config_value) {
+          const keys = row.config_value.split(",").map((k: string) => k.trim()).filter(Boolean);
+          if (keys.length > 0) {
+            _cachedDbKeys = keys;
+            _cacheTs = Date.now();
+            console.log(`Loaded ${keys.length} Gemini keys from DB`);
+            return keys;
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to load keys from DB:", e);
+  }
+  return getApiKeysFromEnv();
+}
+
+function getApiKeysFromEnv(): string[] {
   const multiKeys = Deno.env.get("GEMINI_API_KEYS");
   if (multiKeys) {
     const keys = multiKeys.split(",").map(k => k.trim()).filter(Boolean);

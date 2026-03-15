@@ -986,7 +986,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       return await callGemini({
         model: "gemini-2.5-flash",
         messages: [systemMsg, { role: "user", content: userContent }],
-      });
+      }, supabaseClient || undefined);
     }
 
     let response = await tryAICall(imagesForVision.length > 0);
