@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
 import InternalLinks from "@/components/InternalLinks";
+import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import UserReviews from "@/components/UserReviews";
 import { TrendingUp, Sparkles, Hash, FileText, Target, BarChart3, Search, Zap } from "lucide-react";
