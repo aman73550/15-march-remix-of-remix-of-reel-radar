@@ -66,7 +66,7 @@ const ContactPage = () => {
 
         {sent ? (
           <div className="text-center py-12 space-y-3">
-            <CheckCircle className="w-12 h-12 text-green-500 mx-auto" />
+            <CheckCircle className="w-12 h-12 text-primary mx-auto" />
             <h2 className="text-lg font-bold text-foreground">Message Sent!</h2>
             <p className="text-sm text-muted-foreground">Thank you for reaching out. We'll get back to you soon.</p>
             <Button variant="outline" size="sm" onClick={() => setSent(false)}>Send Another Message</Button>
