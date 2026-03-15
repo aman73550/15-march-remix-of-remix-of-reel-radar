@@ -233,7 +233,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     ],
     howItWorks: [
       { step: "Enter Reel Data", desc: "Paste your reel link or manually enter views, likes, comments, shares, and saves." },
-      { step: "AI Calculates", desc: "Engagement rate computed and compared against 10,000+ reels in your niche." },
+      { step: "Smart Calculation", desc: "Engagement rate computed and compared against 10,000+ reels in your niche." },
       { step: "Get Insights", desc: "See your performance level, metric breakdown, and specific improvement recommendations." },
     ],
     contentBlocks: [
