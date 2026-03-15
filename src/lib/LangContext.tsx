@@ -31,7 +31,7 @@ const translations = {
     hookTitle: "Hook & Opening",
     captionTitle: "Caption Analysis",
     hashtagTitle: "Hashtag Strategy",
-    videoTitle: "Video Signals (AI Estimated)",
+    videoTitle: "Video Signals (Estimated)",
     trendTitle: "Trend Matching",
     engagementTitle: "Engagement Quality",
     metricsLabel: "Engagement Metrics (optional)",
