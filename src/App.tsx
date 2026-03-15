@@ -16,6 +16,14 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SEOToolPage = lazy(() => import("./pages/SEOToolPage.tsx"));
 const BlogIndex = lazy(() => import("./pages/BlogIndex.tsx"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));
+const AboutPage = lazy(() => import("./pages/AboutPage.tsx"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage.tsx"));
+const TermsPage = lazy(() => import("./pages/TermsPage.tsx"));
+const ContactPage = lazy(() => import("./pages/ContactPage.tsx"));
+const SitemapPage = lazy(() => import("./pages/SitemapPage.tsx"));
+const PartnershipPage = lazy(() => import("./pages/PartnershipPage.tsx"));
+const CollaborationPage = lazy(() => import("./pages/CollaborationPage.tsx"));
+const PromotionPage = lazy(() => import("./pages/PromotionPage.tsx"));
 
 const queryClient = new QueryClient();
 
