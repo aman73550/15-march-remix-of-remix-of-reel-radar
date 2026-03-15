@@ -104,62 +104,74 @@ serve(async (req) => {
     }
 
     if (action === "ai-suggest") {
-      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-      if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+      // Fetch Gemini API keys from database
+      const { data: geminiConfig } = await supabase
+        .from("site_config")
+        .select("config_value")
+        .eq("config_key", "gemini_api_keys")
+        .single();
+
+      let geminiKeys: string[] = [];
+      if (geminiConfig?.config_value) {
+        geminiKeys = geminiConfig.config_value.split(",").map((k: string) => k.trim()).filter(Boolean);
+      }
+      if (geminiKeys.length === 0) {
+        const singleKey = Deno.env.get("GEMINI_API_KEY");
+        if (singleKey) geminiKeys = [singleKey];
+      }
+      if (geminiKeys.length === 0) throw new Error("No Gemini API keys configured");
 
       const startTime = Date.now();
-
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            {
-              role: "system",
-              content: `You are an API usage cost optimizer. Analyze the provided usage data and return exactly 2 sections:
+      const systemPrompt = `You are an API usage cost optimizer. Analyze the provided usage data and return exactly 2 sections:
 
 1. **Usage Insight** (2-3 lines): Which API/AI model is consuming the most credits and why.
 2. **Optimization Suggestion** (2-3 lines): Actionable steps to reduce cost or improve efficiency.
 
-Keep it short, clear, and actionable. Use specific numbers from the data. Reply in English.`
-            },
-            {
-              role: "user",
-              content: `Here is today's API usage data:\n\n${JSON.stringify(usageData, null, 2)}`
-            }
-          ],
-        }),
-      });
+Keep it short, clear, and actionable. Use specific numbers from the data. Reply in English.`;
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          return new Response(JSON.stringify({ success: false, error: "Rate limit exceeded. Try again later." }), {
-            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      let aiContent = "No analysis available.";
+      let tokensUsed = 0;
+      let lastError = "";
+
+      for (const apiKey of geminiKeys) {
+        try {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+          const response = await fetch(geminiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              system_instruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ role: "user", parts: [{ text: `Here is today's API usage data:\n\n${JSON.stringify(usageData, null, 2)}` }] }],
+            }),
           });
+
+          if (!response.ok) {
+            if (response.status === 429 || response.status === 403) {
+              lastError = `Key ...${apiKey.slice(-4)}: ${response.status}`;
+              continue;
+            }
+            throw new Error(`Gemini error: ${response.status}`);
+          }
+
+          const aiResult = await response.json();
+          aiContent = aiResult.candidates?.[0]?.content?.parts?.[0]?.text || "No analysis available.";
+          tokensUsed = (aiResult.usageMetadata?.totalTokenCount) || 0;
+          break;
+        } catch (e) {
+          lastError = e instanceof Error ? e.message : "Unknown";
+          continue;
         }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ success: false, error: "Credits exhausted. Please add funds." }), {
-            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        throw new Error(`AI gateway error: ${response.status}`);
       }
 
-      const aiResult = await response.json();
-      const aiContent = aiResult.choices?.[0]?.message?.content || "No analysis available.";
-      const tokensUsed = aiResult.usage?.total_tokens || 0;
       const duration = Date.now() - startTime;
+      const cost = (tokensUsed / 1000) * (MODEL_COSTS["gemini-2.5-flash"] || MODEL_COSTS.default);
 
       await supabase.from("api_usage_logs").insert({
         function_name: "usage-analyzer",
-        ai_model: "google/gemini-3-flash-preview",
-        ai_provider: "lovable-ai",
+        ai_model: "gemini-2.5-flash",
+        ai_provider: "google-direct",
         is_ai_call: true,
-        estimated_cost: (tokensUsed / 1000) * (MODEL_COSTS["google/gemini-3-flash-preview"] || MODEL_COSTS.default),
+        estimated_cost: cost,
         tokens_used: tokensUsed,
         status_code: 200,
         duration_ms: duration,
@@ -169,7 +181,7 @@ Keep it short, clear, and actionable. Use specific numbers from the data. Reply 
         success: true,
         analysis: aiContent,
         tokensUsed,
-        cost: Math.round((tokensUsed / 1000) * (MODEL_COSTS["google/gemini-3-flash-preview"] || MODEL_COSTS.default) * 10000) / 10000,
+        cost: Math.round(cost * 10000) / 10000,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
