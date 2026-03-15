@@ -138,7 +138,7 @@ const SampleAnalysisPreview = () => {
       </Card>
 
       <p className="text-[8px] sm:text-[9px] text-muted-foreground/40 text-center mt-2.5 px-2">
-        Usernames and reel links are partially masked for privacy. Insights are generated automatically by our AI analysis system.
+        Usernames and reel links are partially masked for privacy. Insights are generated automatically by our analysis system.
       </p>
     </motion.div>
   );

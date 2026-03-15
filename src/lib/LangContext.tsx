@@ -84,7 +84,7 @@ const translations = {
     hookTitle: "हुक और ओपनिंग",
     captionTitle: "कैप्शन विश्लेषण",
     hashtagTitle: "हैशटैग रणनीति",
-    videoTitle: "वीडियो सिग्नल (AI अनुमानित)",
+    videoTitle: "वीडियो सिग्नल (अनुमानित)",
     trendTitle: "ट्रेंड मैचिंग",
     engagementTitle: "एंगेजमेंट गुणवत्ता",
     metricsLabel: "एंगेजमेंट मेट्रिक्स (वैकल्पिक)",
