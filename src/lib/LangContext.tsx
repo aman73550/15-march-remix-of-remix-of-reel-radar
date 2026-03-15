@@ -57,10 +57,10 @@ const translations = {
     metric_views: "Views",
   },
   hi: {
-    badge: "AI-संचालित रील विश्लेषण",
+    badge: "स्मार्ट रील विश्लेषण",
     title1: "रील वायरल",
     title2: " एनालाइज़र",
-    subtitle: "अपनी Instagram रील लिंक पेस्ट करें और AI-संचालित वायरल संभावना स्कोर प्राप्त करें",
+    subtitle: "अपनी Instagram रील लिंक पेस्ट करें और स्मार्ट वायरल संभावना स्कोर प्राप्त करें",
     urlPlaceholder: "https://www.instagram.com/reel/...",
     captionPlaceholder: "कैप्शन पेस्ट करें (वैकल्पिक)",
     hashtagPlaceholder: "हैशटैग (वैकल्पिक, जैसे #viral #trending)",
