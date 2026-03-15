@@ -48,7 +48,13 @@ Admin role management. Columns: id, user_id (uuid), role (admin/moderator/user)
 ### rate_limits
 IP-based rate limiting. Columns: id, ip_hash, function_name, window_start, request_count
 
-## Edge Functions (9 Active)
+### traffic_sessions
+Visitor traffic tracking with bot detection. Columns: id, session_id, referrer_source, referrer_url, utm_source, utm_medium, utm_campaign, share_id, device_type, browser, os, screen_size, language, timezone, ip_hash, country, city, session_start, session_end, page_views, scroll_depth, click_count, duration_seconds, has_mouse_movement, has_scroll, has_click, has_input_interaction, navigation_variation, is_bot, bot_score, bot_flags (text[]), is_real_user, created_at
+
+### share_events
+Share button click tracking. Columns: id, platform, share_id, shared_url, referrer_session_id, clicks_generated, created_at
+
+## Edge Functions (11 Active)
 1. **analyze-reel** — Main analysis engine. Fetches Instagram data, calls Gemini AI. Rate: 20/hr per IP
 2. **generate-master-report** — Premium paid report with deep insights. Rate: 5/hr per IP
 3. **seo-analyze** — SEO optimization for topics. Rate: 15/hr per IP
@@ -58,6 +64,7 @@ IP-based rate limiting. Columns: id, ip_hash, function_name, window_start, reque
 7. **create-admin** — One-time admin user setup (requires secret_key)
 8. **usage-analyzer** — Usage statistics aggregation
 9. **admin-ai-chat** — This assistant (admin-only)
+10. **traffic-analytics** — Traffic intelligence: real vs bot detection, viral spikes, share tracking
 
 ## Scoring System
 - ALL scores capped at 80 max (nothing is 100% perfect)
