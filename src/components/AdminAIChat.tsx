@@ -207,8 +207,10 @@ const AdminAIChat = () => {
         </div>
         <div className="flex items-center gap-1">
           {messages.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={() => setMessages([])} className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive">
+            <Button variant="ghost" size="sm" onClick={() => { setMessages([]); localStorage.removeItem(STORAGE_KEY); }} className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive">
               <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          )}
             </Button>
           )}
           <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)} className="h-8 w-8 p-0">
