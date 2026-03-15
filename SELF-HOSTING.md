@@ -151,7 +151,7 @@ Just upload the `dist/` folder contents. Ensure SPA routing redirects all paths 
 
 1. Deploy the `create-admin` edge function
 2. Call it with your email to create admin user
-3. Login at `/admin-login`
+3. Login at `/bosspage-login`
 4. Configure payment keys, WhatsApp number, ad slots from the dashboard
 
 ## Notes

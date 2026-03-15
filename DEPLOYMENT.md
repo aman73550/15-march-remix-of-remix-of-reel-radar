@@ -298,7 +298,7 @@ Upload `dist/` folder contents. Ensure SPA routing redirects all paths to `index
 
 ### For Admins
 
-1. Login at `/admin-login` with your admin credentials
+1. Login at `/bosspage-login` with your admin credentials
 2. **Dashboard**: View analytics, revenue, and user engagement
 3. **API Keys**: Add multiple keys for uninterrupted service
 4. **Payment Config**: Set gateway, pricing, currency
