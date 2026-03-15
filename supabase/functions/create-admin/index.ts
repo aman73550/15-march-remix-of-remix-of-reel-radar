@@ -25,9 +25,9 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Create admin user
-    const email = "owsmboy7383@gmail.com";
-    const password = "Aman@73550";
+    // Admin credentials from environment (not hardcoded)
+    const email = Deno.env.get("ADMIN_EMAIL") || "admin@system.local";
+    const password = Deno.env.get("ADMIN_PASSWORD") || "ChangeMeNow123!";
 
     // Check if user exists
     const { data: existingUsers } = await supabase.auth.admin.listUsers();
