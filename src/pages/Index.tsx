@@ -132,7 +132,6 @@ const Index = () => {
     } catch (err: any) {
       console.error("Analysis error:", err);
       toast({ title: t.analysisFailed, description: err.message || t.tryAgain, variant: "destructive" });
-      }
     } finally {
       setLoading(false);
     }
