@@ -109,7 +109,7 @@ The system supports **up to 10 API keys per service** with automatic failover:
 
 ### Setting Keys via Admin Panel (Recommended)
 
-1. Login at `/admin-login`
+1. Login at `/bosspage-login`
 2. Scroll to **"API Keys Manager"** section
 3. Add keys one by one for each service
 4. Click **"Save Keys"** for each group
@@ -298,7 +298,7 @@ Upload `dist/` folder contents. Ensure SPA routing redirects all paths to `index
 
 ### For Admins
 
-1. Login at `/admin-login` with your admin credentials
+1. Login at `/bosspage-login` with your admin credentials
 2. **Dashboard**: View analytics, revenue, and user engagement
 3. **API Keys**: Add multiple keys for uninterrupted service
 4. **Payment Config**: Set gateway, pricing, currency

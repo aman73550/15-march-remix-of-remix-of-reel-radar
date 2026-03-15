@@ -75,12 +75,12 @@ const AdminDashboard = () => {
 
   const checkAdminAndLoad = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { navigate("/admin-login"); return; }
+    if (!user) { navigate("/bosspage-login"); return; }
     const { data: roles } = await supabase
       .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin");
     if (!roles || roles.length === 0) {
       await supabase.auth.signOut();
-      navigate("/admin-login");
+      navigate("/bosspage-login");
       return;
     }
     await Promise.all([loadStats(), loadAdConfig(), loadRecentUsage(), loadConfig(), loadPaidStats(), loadRecentReports(), loadFeedback()]);
@@ -183,7 +183,7 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/admin-login");
+    navigate("/bosspage-login");
   };
 
   const loadFeedback = async () => {
