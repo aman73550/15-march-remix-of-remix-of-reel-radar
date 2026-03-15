@@ -5,12 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Lock, MessageCircle, Copy, Check, Gift, Share2 } from "lucide-react";
 import { recordShare, getShareCount, SHARE_REQUIRED, hasUnlockedBonus, BONUS_ANALYSES } from "@/lib/usageTracker";
+import { getShareUrl } from "@/lib/trafficTracker";
 
 interface Props {
   onUnlocked: () => void;
 }
 
-const SHARE_URL = typeof window !== "undefined" ? window.location.origin : "";
 const SHARE_TEXT = "I just tested my Instagram reel here.\nCheck if your reel can go viral with this Reel Viral Analyzer.\nPaste your reel link and get a viral probability score instantly.\n\n";
 
 const ShareUnlockScreen = ({ onUnlocked }: Props) => {
