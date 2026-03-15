@@ -4,10 +4,10 @@ type Lang = "en" | "hi";
 
 const translations = {
   en: {
-    badge: "AI-Powered Reel Analysis",
+    badge: "Smart Reel Analysis",
     title1: "Reel Viral",
     title2: " Analyzer",
-    subtitle: "Paste your Instagram Reel link and get an AI-powered viral potential score with actionable insights",
+    subtitle: "Paste your Instagram Reel link and get a smart viral potential score with actionable insights",
     urlPlaceholder: "https://www.instagram.com/reel/...",
     captionPlaceholder: "Paste caption (optional)",
     hashtagPlaceholder: "Hashtags (optional, e.g. #viral #trending)",
