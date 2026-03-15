@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Star, Crown, Loader2, Download, ArrowLeft, Search } from "lucide-react";
+import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Star, Crown, Loader2, Download, ArrowLeft, Search, Key, Plus, Trash2, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import MasterReportPDF from "@/components/MasterReportPDF";
 import AdminBehaviourSettings from "@/components/AdminBehaviourSettings";
 import AdminAIUsage from "@/components/AdminAIUsage";
