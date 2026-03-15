@@ -544,6 +544,12 @@ const AdminDashboard = () => {
           </Card>
 
           {/* Ad Management - Grouped */}
+          {/* API Keys Manager - Full Width */}
+        </div>
+        
+        <AdminApiKeysManager />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <Card className="border-border bg-card">
             <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
               <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">
