@@ -657,6 +657,99 @@ serve(async (req) => {
       }
     }
 
+    // === ANALYSIS PRICING MODE CHECK ===
+    let analysisPricingMode = "free";
+    let analysisPrice = 0;
+    if (supabaseClient) {
+      try {
+        const { data: pricingConfig } = await supabaseClient
+          .from("site_config")
+          .select("config_key, config_value")
+          .in("config_key", ["analysis_pricing_mode", "analysis_price"]);
+        if (pricingConfig) {
+          for (const row of pricingConfig) {
+            if (row.config_key === "analysis_pricing_mode") analysisPricingMode = row.config_value || "free";
+            if (row.config_key === "analysis_price") analysisPrice = parseFloat(row.config_value) || 0;
+          }
+        }
+      } catch (e) { console.warn("Pricing config read error:", e); }
+
+      if (analysisPricingMode === "paid" && analysisPrice > 0) {
+        // Check for payment token in request
+        const paymentToken = body.paymentToken;
+        const adminBypass = body.adminFree === true;
+
+        // Admin bypass: verify JWT and admin role
+        if (adminBypass) {
+          const authHeader = req.headers.get("Authorization");
+          if (authHeader?.startsWith("Bearer ")) {
+            try {
+              const anonClient = createClient(
+                Deno.env.get("SUPABASE_URL")!,
+                Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+                { global: { headers: { Authorization: authHeader } } }
+              );
+              const { data: userData } = await anonClient.auth.getUser();
+              if (userData?.user) {
+                const { data: roleData } = await supabaseClient
+                  .from("user_roles")
+                  .select("role")
+                  .eq("user_id", userData.user.id)
+                  .eq("role", "admin");
+                if (!roleData || roleData.length === 0) {
+                  return new Response(JSON.stringify({ success: false, error: "Admin verification failed" }), {
+                    status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+                  });
+                }
+                // Admin verified — proceed without payment
+              }
+            } catch (e) {
+              console.error("Admin bypass verification error:", e);
+              return new Response(JSON.stringify({ success: false, error: "Authentication failed" }), {
+                status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+              });
+            }
+          }
+        } else if (!paymentToken) {
+          // No payment token — return pricing info so frontend can show payment popup
+          return new Response(JSON.stringify({
+            success: false,
+            error: "payment_required",
+            pricingMode: "paid",
+            price: analysisPrice,
+            currency: "INR",
+            message: `Analysis requires payment of ₹${analysisPrice}`,
+          }), {
+            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } else {
+          // Verify payment token against paid_reports table
+          const { data: paymentRecord } = await supabaseClient
+            .from("paid_reports")
+            .select("id, status, reel_url")
+            .eq("id", paymentToken)
+            .in("status", ["paid", "completed"])
+            .single();
+
+          if (!paymentRecord) {
+            return new Response(JSON.stringify({
+              success: false,
+              error: "payment_invalid",
+              message: "Payment verification failed. Please complete payment first.",
+            }), {
+              status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+
+          // Mark payment as used for analysis
+          await supabaseClient
+            .from("paid_reports")
+            .update({ status: "completed", completed_at: new Date().toISOString() })
+            .eq("id", paymentToken);
+        }
+      }
+    }
+
     // Validate API keys (from DB or env)
     const apiKeys = supabaseClient ? await getApiKeysFromDb(supabaseClient) : getApiKeysFromEnv();
     if (apiKeys.length === 0) throw new Error("No Gemini API keys configured. Add keys in Admin Panel → API Keys Manager.");
@@ -664,7 +757,10 @@ serve(async (req) => {
     // Log usage
     try {
       if (supabaseClient) {
-        await supabaseClient.from("usage_logs").insert({ reel_url: trimmedUrl, user_agent: req.headers.get("user-agent") || null });
+        await supabaseClient.from("usage_logs").insert({
+          reel_url: trimmedUrl,
+          user_agent: req.headers.get("user-agent") || null,
+        });
       }
     } catch (e) { console.error("Usage log error:", e); }
 
