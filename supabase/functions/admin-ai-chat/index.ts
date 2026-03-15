@@ -180,47 +180,134 @@ serve(async (req) => {
     // Gather comprehensive live system context
     const systemContext = await gatherSystemContext(supabase);
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "AI gateway not configured" }), {
+    // Fetch Gemini API keys from database (multi-key rotation)
+    const { data: geminiConfig } = await supabase
+      .from("site_config")
+      .select("config_value")
+      .eq("config_key", "gemini_api_keys")
+      .single();
+
+    let geminiKeys: string[] = [];
+    if (geminiConfig?.config_value) {
+      geminiKeys = geminiConfig.config_value.split(",").map((k: string) => k.trim()).filter(Boolean);
+    }
+
+    // Fallback to single key env var
+    if (geminiKeys.length === 0) {
+      const singleKey = Deno.env.get("GEMINI_API_KEY");
+      if (singleKey) geminiKeys = [singleKey];
+    }
+
+    if (geminiKeys.length === 0) {
+      return new Response(JSON.stringify({ error: "No Gemini API keys configured. Add keys in Admin Panel → site_config → gemini_api_keys" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT + "\n\n## LIVE SYSTEM STATUS (Real-time Data)\n" + systemContext },
-          ...messages,
-        ],
-        stream: true,
-      }),
-    });
+    // Try keys with rotation
+    let response: Response | null = null;
+    let lastError = "";
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please wait." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    for (const apiKey of geminiKeys) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
+
+        const systemAndContext = SYSTEM_PROMPT + "\n\n## LIVE SYSTEM STATUS (Real-time Data)\n" + systemContext;
+
+        // Convert OpenAI-style messages to Gemini format
+        const geminiContents = messages.map((m: any) => ({
+          role: m.role === "assistant" ? "model" : "user",
+          parts: [{ text: m.content }],
+        }));
+
+        const resp = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemAndContext }] },
+            contents: geminiContents,
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 4096,
+            },
+          }),
         });
+
+        if (resp.ok) {
+          response = resp;
+          break;
+        }
+
+        // Retry on rate limit / quota errors
+        if (resp.status === 429 || resp.status === 403 || resp.status === 402) {
+          lastError = `Key ending ...${apiKey.slice(-4)}: ${resp.status}`;
+          continue;
+        }
+
+        const errText = await resp.text();
+        lastError = `Gemini error ${resp.status}: ${errText.slice(0, 200)}`;
+        console.error("Gemini API error:", resp.status, errText);
+        continue;
+      } catch (e) {
+        lastError = e instanceof Error ? e.message : "Unknown error";
+        continue;
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      return new Response(JSON.stringify({ error: "AI service unavailable" }), {
+    }
+
+    if (!response) {
+      return new Response(JSON.stringify({ error: `All Gemini keys failed. Last error: ${lastError}` }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Transform Gemini SSE stream to OpenAI-compatible SSE stream for frontend
+    const { readable, writable } = new TransformStream();
+    const writer = writable.getWriter();
+    const encoder = new TextEncoder();
+
+    (async () => {
+      try {
+        const reader = response!.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          let newlineIdx: number;
+          while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
+            let line = buffer.slice(0, newlineIdx);
+            buffer = buffer.slice(newlineIdx + 1);
+            if (line.endsWith("\r")) line = line.slice(0, -1);
+            if (!line.startsWith("data: ") || line.trim() === "") continue;
+
+            const jsonStr = line.slice(6).trim();
+            if (!jsonStr || jsonStr === "[DONE]") continue;
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (text) {
+                // Convert to OpenAI-compatible SSE format
+                const openAIChunk = JSON.stringify({
+                  choices: [{ delta: { content: text } }],
+                });
+                await writer.write(encoder.encode(`data: ${openAIChunk}\n\n`));
+              }
+            } catch { /* skip malformed */ }
+          }
+        }
+
+        await writer.write(encoder.encode("data: [DONE]\n\n"));
+      } catch (e) {
+        console.error("Stream transform error:", e);
+      } finally {
+        await writer.close();
+      }
+    })();
 
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
