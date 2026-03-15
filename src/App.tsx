@@ -60,6 +60,16 @@ const App = () => (
               <Route path="/blog" element={<BlogIndex />} />
               <Route path="/blog/:slug" element={<BlogArticle />} />
 
+              {/* Info Pages */}
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/sitemap-page" element={<SitemapPage />} />
+              <Route path="/partnership" element={<PartnershipPage />} />
+              <Route path="/collaboration" element={<CollaborationPage />} />
+              <Route path="/promotion" element={<PromotionPage />} />
+
               {/* Admin — hidden route */}
               <Route path="/bosspage-login" element={<AdminLogin />} />
               <Route path="/bosspage" element={<AdminDashboard />} />
