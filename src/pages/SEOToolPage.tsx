@@ -44,7 +44,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     ],
     howItWorks: [
       { step: "Paste Reel URL", desc: "Copy your Instagram reel link and paste it into the analyzer input field." },
-      { step: "AI Analysis Runs", desc: "Our AI extracts reel data, analyzes hook, caption, hashtags, and engagement signals." },
+      { step: "Smart Analysis Runs", desc: "Our system extracts reel data, analyzes hook, caption, hashtags, and engagement signals." },
       { step: "Get Your Report", desc: "Receive a detailed breakdown with viral score, weak spots, and actionable recommendations." },
     ],
     contentBlocks: [
