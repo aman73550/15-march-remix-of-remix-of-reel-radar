@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Share2, X, Copy, Check, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { getShareUrl } from "@/lib/trafficTracker";
 
-const SHARE_URL = typeof window !== "undefined" ? window.location.origin : "";
 const SHARE_TEXT = "Check if your Instagram Reel can go viral with this Reel Viral Analyzer.\nPaste your reel link and get a viral probability score instantly.\n\n";
 
 const ShareToolPopup = () => {
