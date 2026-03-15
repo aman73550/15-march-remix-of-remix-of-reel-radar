@@ -13,7 +13,7 @@ const STEPS = [
   { label: "Validating input & payment", icon: Search, duration: 8 },
   { label: "Researching trending keywords", icon: TrendingUp, duration: 12 },
   { label: "Analyzing hashtag performance", icon: Hash, duration: 10 },
-  { label: "Running deep AI SEO analysis", icon: Brain, duration: 18 },
+  { label: "Running deep SEO analysis", icon: Brain, duration: 18 },
   { label: "Generating optimized report", icon: FileText, duration: 12 },
 ];
 
