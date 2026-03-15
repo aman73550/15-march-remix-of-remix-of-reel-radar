@@ -425,6 +425,40 @@ const AdminDashboard = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
+        {/* Analysis Pricing Control */}
+        <div className="p-3 rounded-xl border-2 border-primary/20 bg-primary/5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <IndianRupee className="w-3.5 h-3.5 text-primary" />
+                Analysis Pricing Control
+              </Label>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5">
+                {config.analysis_pricing_mode === "paid" ? "🔴 PAID MODE — Users must pay to analyze" : "🟢 FREE MODE — Analysis is free for users"}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground">{config.analysis_pricing_mode === "paid" ? "Paid" : "Free"}</span>
+              <Switch
+                checked={config.analysis_pricing_mode === "paid"}
+                onCheckedChange={(checked) => updateConfig("analysis_pricing_mode", checked ? "paid" : "free")}
+              />
+            </div>
+          </div>
+          {config.analysis_pricing_mode === "paid" && (
+            <div className="space-y-1.5">
+              <Label className="text-[10px] sm:text-xs text-muted-foreground">Analysis Price (₹)</Label>
+              <Input
+                type="number"
+                value={config.analysis_price || "10"}
+                onChange={(e) => updateConfig("analysis_price", e.target.value)}
+                className="bg-background border-border h-8 sm:h-10 text-xs sm:text-sm"
+                min="1"
+              />
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label className="text-[10px] sm:text-xs text-muted-foreground">Report Price (₹)</Label>
