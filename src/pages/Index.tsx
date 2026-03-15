@@ -378,6 +378,16 @@ const Index = () => {
         )}
       </AnimatePresence>
 
+      {/* Payment Popup */}
+      {showPaymentPopup && (
+        <AnalysisPaymentPopup
+          reelUrl={url.trim()}
+          price={analysisPrice}
+          onPaymentSuccess={handlePaymentSuccess}
+          onClose={() => setShowPaymentPopup(false)}
+        />
+      )}
+
       {/* Social Proof Section */}
       {!analysis && !showShareGate && <div className="relative z-10"><SocialProofSection /></div>}
 
