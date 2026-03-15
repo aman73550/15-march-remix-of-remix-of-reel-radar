@@ -211,7 +211,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     ],
     contentBlocks: [
       { heading: "What Makes a Reel Go Viral?", text: "Viral reels share common traits: a hook that grabs attention in under 2 seconds, high watch-through rate (most viewers watch till the end), emotional triggers that drive shares and saves, and alignment with trending formats or audio. Our viral checker analyzes all these signals to predict your reel's probability of breaking out." },
-      { heading: "Can You Predict if a Reel Will Go Viral?", text: "While no tool can guarantee virality, AI analysis can identify the presence or absence of viral signals. Reels scoring above 70 on our viral checker consistently outperform reels scoring below 50. The prediction isn't perfect, but it gives you data-driven confidence about whether to post or improve first." },
+      { heading: "Can You Predict if a Reel Will Go Viral?", text: "While no tool can guarantee virality, data analysis can identify the presence or absence of viral signals. Reels scoring above 70 on our viral checker consistently outperform reels scoring below 50. The prediction isn't perfect, but it gives you data-driven confidence about whether to post or improve first." },
     ],
   },
   "reel-engagement-calculator": {
