@@ -44,8 +44,8 @@ function getPricingForTool(tool: ToolType, config: Record<string, string>) {
 
   if (tool === "seo") {
     return {
-      mode: config.seo_pricing_mode || "paid",
-      amount: toPositiveNumber(config.seo_price, 10),
+      mode: config.seo_pricing_mode || config.report_pricing_mode || "paid",
+      amount: toPositiveNumber(config.seo_price ?? config.report_price, 10),
       label: "SEO Analysis Report",
     };
   }
