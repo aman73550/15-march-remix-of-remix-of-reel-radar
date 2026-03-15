@@ -575,13 +575,54 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { url, lang = "en", caption: userCaption, hashtags: userHashtags, metrics: userMetrics, sampleComments: userComments } = await req.json();
+    const body = await req.json();
+    const { url, lang = "en", caption: userCaption, hashtags: userHashtags, metrics: userMetrics, sampleComments: userComments } = body;
     const respondInHindi = lang === "hi";
 
-    if (!url) {
+    // === INPUT VALIDATION ===
+    if (!url || typeof url !== "string") {
       return new Response(JSON.stringify({ success: false, error: "URL is required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    const trimmedUrl = url.trim();
+    if (trimmedUrl.length > 500) {
+      return new Response(JSON.stringify({ success: false, error: "URL too long" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Validate URL format (must be Instagram reel or similar)
+    const urlPattern = /^https?:\/\/(www\.)?(instagram\.com|instagr\.am)\/(reel|reels|p)\//i;
+    if (!urlPattern.test(trimmedUrl)) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid Instagram Reel URL. Please provide a valid Instagram reel link." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Validate optional text fields
+    if (userCaption && (typeof userCaption !== "string" || userCaption.length > 5000)) {
+      return new Response(JSON.stringify({ success: false, error: "Caption too long (max 5000 chars)" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (userHashtags && (typeof userHashtags !== "string" || userHashtags.length > 2000)) {
+      return new Response(JSON.stringify({ success: false, error: "Hashtags too long (max 2000 chars)" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (userComments && (typeof userComments !== "string" || userComments.length > 5000)) {
+      return new Response(JSON.stringify({ success: false, error: "Sample comments too long (max 5000 chars)" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Validate metrics are numbers if provided
+    if (userMetrics && typeof userMetrics === "object") {
+      for (const [key, val] of Object.entries(userMetrics)) {
+        if (val !== undefined && val !== null && (typeof val !== "number" || val < 0 || val > 999999999999)) {
+          return new Response(JSON.stringify({ success: false, error: `Invalid metric: ${key}` }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
     }
 
     // Create supabase client for DB access (keys, logging)
@@ -591,6 +632,23 @@ serve(async (req) => {
       ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) 
       : null;
 
+    // === RATE LIMITING ===
+    if (supabaseClient) {
+      const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("cf-connecting-ip") || "unknown";
+      const ipHash = await hashString(clientIp);
+      const { data: allowed } = await supabaseClient.rpc("check_rate_limit", {
+        p_ip_hash: ipHash,
+        p_function_name: "analyze-reel",
+        p_max_requests: 20,
+        p_window_minutes: 60,
+      });
+      if (allowed === false) {
+        return new Response(JSON.stringify({ success: false, error: "Rate limit exceeded. Please try again later." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Validate API keys (from DB or env)
     const apiKeys = supabaseClient ? await getApiKeysFromDb(supabaseClient) : getApiKeysFromEnv();
     if (apiKeys.length === 0) throw new Error("No Gemini API keys configured. Add keys in Admin Panel → API Keys Manager.");
@@ -598,7 +656,7 @@ serve(async (req) => {
     // Log usage
     try {
       if (supabaseClient) {
-        await supabaseClient.from("usage_logs").insert({ reel_url: url, user_agent: req.headers.get("user-agent") || null });
+        await supabaseClient.from("usage_logs").insert({ reel_url: trimmedUrl, user_agent: req.headers.get("user-agent") || null });
       }
     } catch (e) { console.error("Usage log error:", e); }
 
