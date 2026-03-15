@@ -153,14 +153,7 @@ const BlogArticle = () => {
 
       <InternalLinks currentPath={`/blog/${slug}`} />
 
-      <footer className="relative z-10 mt-8">
-        <div className="max-w-2xl mx-auto px-4">
-          <div className="border-t border-border/40" />
-          <div className="py-6 text-center">
-            <p className="text-[10px] text-muted-foreground/50">ReelAnalyzer — Free Instagram Reel Analysis Tools</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
       <MobileBottomNav />
     </div>
   );
