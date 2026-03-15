@@ -7,9 +7,10 @@
 4. [Payment Integration](#payment-integration)
 5. [Ads Integration](#ads-integration)
 6. [Admin Panel Setup](#admin-panel-setup)
-7. [Deployment Options](#deployment-options)
-8. [User Manual](#user-manual)
-9. [Troubleshooting](#troubleshooting)
+7. [Security Features](#security-features)
+8. [Deployment Options](#deployment-options)
+9. [User Manual](#user-manual)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -34,7 +35,10 @@ cp .env.example .env
 # 3. Run database migrations
 # Import database-setup.sql into your Supabase project
 
-# 4. Deploy Edge Functions
+# 4. Set Edge Function Secrets (in Supabase Dashboard)
+# ADMIN_EMAIL, ADMIN_PASSWORD, GEMINI_API_KEY (or GEMINI_API_KEYS)
+
+# 5. Deploy Edge Functions
 npx supabase login
 npx supabase link --project-ref <your-project-id>
 npx supabase functions deploy analyze-reel
@@ -45,11 +49,17 @@ npx supabase functions deploy verify-payment
 npx supabase functions deploy check-reel-date
 npx supabase functions deploy create-admin
 npx supabase functions deploy usage-analyzer
+npx supabase functions deploy admin-ai-chat
 
-# 5. Start development
+# 6. Create admin user
+curl -X POST https://<project-id>.supabase.co/functions/v1/create-admin \
+  -H "Content-Type: application/json" \
+  -d '{"secret_key": "setup-admin-73550"}'
+
+# 7. Start development
 npm run dev
 
-# 6. Build for production
+# 8. Build for production
 npm run build
 ```
 
@@ -65,7 +75,7 @@ npm run build
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/public key | Supabase → Settings → API → anon key |
 | `VITE_SUPABASE_PROJECT_ID` | Supabase project ID | Supabase → Settings → General |
 
-> ⚠️ **IMPORTANT**: These are the ONLY keys stored in the .env file. All other secrets (API keys, payment keys) are stored securely in the database and managed via the Admin Panel.
+> ⚠️ **IMPORTANT**: These are the ONLY keys stored in the .env file. All other secrets are stored securely as edge function secrets or in the database via the Admin Panel.
 
 ### Backend Secrets (Auto-provided by Supabase)
 
@@ -76,15 +86,17 @@ npm run build
 | `SUPABASE_SERVICE_ROLE_KEY` | Auto-provided (⚠️ never expose) |
 | `SUPABASE_DB_URL` | Auto-provided |
 
-### Edge Function Secrets (set in Supabase Dashboard → Edge Functions → Secrets)
+### Edge Function Secrets (set in Supabase Dashboard → Settings → Edge Functions → Secrets)
 
 | Secret | Required? | Description |
 |---|---|---|
+| `ADMIN_EMAIL` | ✅ Required | Admin login email address |
+| `ADMIN_PASSWORD` | ✅ Required | Admin login password |
 | `GEMINI_API_KEY` | Optional | Single Gemini key (fallback if DB keys not set) |
 | `GEMINI_API_KEYS` | Optional | Comma-separated Gemini keys (fallback) |
 | `FIRECRAWL_API_KEY` | Optional | Web scraping (fallback) |
 
-> 💡 **Recommended**: Use the Admin Panel to manage all API keys instead of environment variables. Admin Panel keys take priority over env vars.
+> 💡 **Recommended**: Use the Admin Panel to manage API keys instead of environment variables. Admin Panel keys take priority over env vars.
 
 ---
 
@@ -103,7 +115,7 @@ The system supports **up to 10 API keys per service** with automatic failover:
 
 | Service | Config Key | Max Keys | Purpose |
 |---|---|---|---|
-| Google Gemini | `gemini_api_keys` | 10 | Reel analysis, report generation |
+| Google Gemini | `gemini_api_keys` | 10 | Reel analysis, report generation, AI assistant |
 | Firecrawl | `firecrawl_api_key` | 10 | Web scraping for SEO research |
 | OpenAI | `openai_api_keys` | 10 | Alternative to Gemini |
 
@@ -197,27 +209,26 @@ FIRECRAWL_API_KEY=fc-...
 5. Click **Deploy Ad** — it's live immediately!
 6. Use toggle to enable/disable any slot
 
-### AdSense Setup
-1. Get your AdSense publisher ID (`ca-pub-XXXXXXXX`)
-2. Create ad units in AdSense dashboard
-3. Copy the ad code
-4. Paste in any slot in Admin Panel
-
 ---
 
 ## Admin Panel Setup
 
 ### Creating First Admin
 
-```bash
-# Deploy the create-admin edge function
-npx supabase functions deploy create-admin
+1. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` as edge function secrets in Supabase Dashboard
+2. Deploy the `create-admin` edge function:
+   ```bash
+   npx supabase functions deploy create-admin
+   ```
+3. Call it to create the admin user:
+   ```bash
+   curl -X POST https://<project-id>.supabase.co/functions/v1/create-admin \
+     -H "Content-Type: application/json" \
+     -d '{"secret_key": "setup-admin-73550"}'
+   ```
+4. Login at **`/bosspage-login`** with your admin credentials
 
-# Call it with your email
-curl -X POST https://<project-id>.supabase.co/functions/v1/create-admin \
-  -H "Content-Type: application/json" \
-  -d '{"email": "your-email@example.com", "password": "your-secure-password"}'
-```
+> ⚠️ **IMPORTANT**: The old `/admin` and `/admin-login` routes are disabled. Only `/bosspage-login` and `/bosspage` work.
 
 ### Admin Panel Features
 
@@ -232,6 +243,54 @@ curl -X POST https://<project-id>.supabase.co/functions/v1/create-admin \
 | 📈 Usage | Track API calls, costs, AI model usage |
 | ⭐ Feedback | View user ratings and comments |
 | 👑 Free Tools | Generate reports/SEO analysis without payment |
+| 🤖 AI Assistant | Natural language chatbot for admin tasks |
+
+### AI Assistant Chatbot
+
+The admin panel includes a floating AI assistant that can:
+- **Check system status** — API health, key validity, usage stats
+- **Update configuration** — Change prices, toggle gateways, update WhatsApp number
+- **View analytics** — Revenue reports, usage trends, error rates
+- **Manage ads** — Toggle ad slots on/off
+- **Troubleshoot** — Diagnose issues and suggest fixes
+- **Run queries** — Execute read-only database queries
+
+Access via the floating chat button (💬) on the admin dashboard.
+
+---
+
+## Security Features
+
+### Rate Limiting
+
+All edge functions enforce per-IP rate limits using the `rate_limits` database table and `check_rate_limit` PL/pgSQL function:
+
+| Function | Limit (per hour) |
+|---|---|
+| `analyze-reel` | 20 requests |
+| `seo-analyze` | 15 requests |
+| `create-payment` | 10 requests |
+| `generate-master-report` | 5 requests |
+
+IPs are hashed (SHA-256) before storage for privacy.
+
+### Input Validation
+
+| Input | Validation |
+|---|---|
+| Reel URL | Must match Instagram Reel pattern (`instagram.com/reel/...`) |
+| URL length | Max 500 characters |
+| Caption | Max 5,000 characters |
+| Topic/keyword | Max 1,000 characters |
+| Engagement metrics | Must be positive numbers |
+
+### Other Security Measures
+- ✅ RLS policies on all database tables
+- ✅ Admin auth via `user_roles` table (server-side, not client-side)
+- ✅ Payment keys in database (admin-only RLS), not in env files
+- ✅ Service role key never exposed to client
+- ✅ Hidden admin route (`/bosspage-login`)
+- ✅ Admin credentials stored as edge function secrets
 
 ---
 
@@ -295,20 +354,18 @@ Upload `dist/` folder contents. Ensure SPA routing redirects all paths to `index
 2. **Optional Details**: Add caption, hashtags, engagement metrics for better accuracy
 3. **Master Report**: Pay ₹29 (or configured price) → Get detailed PDF report
 4. **SEO Optimizer**: Enter a topic → Get hashtags, titles, posting times
+5. **Language Toggle**: Switch between English & Hindi on homepage
 
 ### For Admins
 
-1. Login at `/bosspage-login` with your admin credentials
+1. Login at **`/bosspage-login`** with your admin credentials
 2. **Dashboard**: View analytics, revenue, and user engagement
 3. **API Keys**: Add multiple keys for uninterrupted service
 4. **Payment Config**: Set gateway, pricing, currency
 5. **Ad Management**: Deploy ads to 30+ slots across the site
 6. **Behaviour Settings**: Configure user engagement triggers
-7. **Free Tools**: Generate reports without payment for testing
-
-### Language Support
-- English & Hindi toggle available on homepage
-- All analysis results support both languages
+7. **AI Assistant**: Use the chatbot (💬) for quick admin tasks
+8. **Free Tools**: Generate reports without payment for testing
 
 ---
 
@@ -320,10 +377,13 @@ Upload `dist/` folder contents. Ensure SPA routing redirects all paths to `index
 |---|---|
 | "No API keys configured" | Add Gemini keys in Admin Panel → API Keys Manager |
 | "Payment gateway not configured" | Set Razorpay/Stripe keys in Admin Panel → Config |
+| "Invalid Instagram Reel URL" | Ensure URL matches `instagram.com/reel/...` pattern |
+| "Rate limit exceeded" | Wait 1 hour or add more API keys for auto-failover |
 | Rate limiting errors | Add more API keys (up to 10) for auto-failover |
 | Analysis stuck | Check edge function logs in Supabase dashboard |
-| Admin can't login | Ensure user has `admin` role in `user_roles` table |
+| Admin can't login | Verify `ADMIN_EMAIL`/`ADMIN_PASSWORD` secrets and redeploy `create-admin` |
 | Blank analysis | Verify Gemini API key is valid and has quota |
+| Old `/admin` URL not working | Use `/bosspage-login` instead |
 
 ### Edge Function Logs
 
@@ -331,7 +391,22 @@ Upload `dist/` folder contents. Ensure SPA routing redirects all paths to `index
 npx supabase functions logs analyze-reel --follow
 npx supabase functions logs generate-master-report --follow
 npx supabase functions logs seo-analyze --follow
+npx supabase functions logs admin-ai-chat --follow
 ```
+
+### Edge Functions Reference
+
+| Function | Purpose |
+|---|---|
+| `analyze-reel` | Core reel analysis (rate limit: 20/hr) |
+| `generate-master-report` | Premium PDF report generation (rate limit: 5/hr) |
+| `seo-analyze` | SEO optimization analysis (rate limit: 15/hr) |
+| `create-payment` | Payment order creation (rate limit: 10/hr) |
+| `verify-payment` | Payment verification |
+| `check-reel-date` | Reel date validation |
+| `create-admin` | Admin user setup |
+| `usage-analyzer` | API usage tracking |
+| `admin-ai-chat` | AI assistant for admin panel |
 
 ### Security Checklist
 
@@ -340,5 +415,9 @@ npx supabase functions logs seo-analyze --follow
 - ✅ API keys stored in DB with admin-only access
 - ✅ Admin routes protected by role-based auth
 - ✅ Edge functions validate authorization
+- ✅ Rate limiting on all public edge functions
+- ✅ Input validation with strict URL patterns
 - ✅ CORS headers configured
 - ✅ Service role key never exposed to client
+- ✅ Admin credentials in env secrets, not in code
+- ✅ Hidden admin route path

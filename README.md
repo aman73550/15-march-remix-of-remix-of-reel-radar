@@ -1,73 +1,94 @@
-# Welcome to your Lovable project
+# 🎯 Viral Reel Analyzer — Instagram Reel Viral Score & SEO Optimizer
 
-## Project info
+> AI-powered Instagram Reel analysis tool that scores your content for virality, provides actionable insights, and generates premium master reports.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Features
 
-## How can I edit this code?
+- **Viral Score Analysis** — Paste any Instagram Reel URL and get a comprehensive viral score (0-100) with detailed breakdowns
+- **Hook Analysis** — AI evaluates your opening hook strength and suggests improvements
+- **Caption & Hashtag Scoring** — Analyzes caption quality, hashtag relevance, and engagement potential
+- **Trend Matching** — Compares your content against current viral trends
+- **Content Classification** — Categorizes your reel and identifies its viral pattern type
+- **Master Report (PDF)** — Paid premium report with deep-dive analysis and recommendations
+- **SEO Optimizer** — Generate optimized hashtags, titles, and posting times for any topic
+- **Multi-language Support** — English & Hindi interface toggle
+- **Admin Dashboard** — Full admin panel with analytics, API key management, ad slots, and AI assistant
 
-There are several ways of editing your application.
+## 🛠️ Tech Stack
 
-**Use Lovable**
+- **Frontend**: React + Vite + TypeScript + Tailwind CSS + shadcn/ui
+- **Backend**: Supabase (Database, Auth, Edge Functions, Storage)
+- **AI**: Google Gemini via Lovable AI Gateway (self-hosting supports direct Gemini/OpenAI)
+- **Payments**: Razorpay / Stripe (configurable via admin panel)
+- **Charts**: Recharts
+- **PDF**: jsPDF + html2canvas
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 📦 Project Structure
 
-Changes made via Lovable will be committed automatically to this repo.
+```
+src/
+├── components/          # UI components (analysis cards, charts, admin tools)
+├── hooks/               # Custom React hooks
+├── integrations/        # Supabase client & types (auto-generated)
+├── lib/                 # Utilities, types, language context
+├── pages/               # Route pages (Index, SEO, Admin, Blog)
+├── index.css            # Design tokens & global styles
+supabase/
+├── functions/           # Edge functions (analyze-reel, seo-analyze, etc.)
+├── migrations/          # Database migrations
+├── config.toml          # Supabase configuration
+```
 
-**Use your preferred IDE**
+## 🔒 Security Features
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Rate Limiting** — Per-IP rate limits on all edge functions (20/hr analysis, 15/hr SEO, 10/hr payments, 5/hr reports)
+- **Input Validation** — Strict URL validation, character limits, sanitized inputs
+- **RLS Policies** — Row-level security on all database tables
+- **Admin Auth** — Role-based access with `user_roles` table (no client-side role checks)
+- **Secret Management** — Payment keys and API keys stored in database, never in frontend code
+- **Hidden Admin Routes** — Admin panel accessible only via `/bosspage-login`
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🏃 Quick Start (Development)
 
-Follow these steps:
+```bash
+# Clone & install
+git clone <your-repo-url>
+cd <project-folder>
+npm install
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Configure environment
+cp .env.example .env
+# Edit .env with your Supabase credentials
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 📖 Documentation
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+| Document | Description |
+|---|---|
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Complete deployment & self-hosting guide |
+| [SELF-HOSTING.md](./SELF-HOSTING.md) | Quick self-hosting setup reference |
+| [ADS-SETUP-GUIDE.md](./ADS-SETUP-GUIDE.md) | Ad integration guide |
+| [database-setup.sql](./database-setup.sql) | Database schema & migrations |
+| [.env.example](./.env.example) | Environment variables reference |
 
-**Use GitHub Codespaces**
+## 🚀 Deployment
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Lovable (Recommended)
+Click **Publish** in the Lovable editor.
 
-## What technologies are used for this project?
+### Self-Hosting
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for Vercel, Netlify, Cloudflare Pages, Docker, or any static host.
 
-This project is built with:
+## 📋 Admin Panel
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Access at `/bosspage-login` with admin credentials. Features:
+- 📊 Analytics dashboard (usage, revenue, feedback)
+- 🔑 API key manager (up to 10 keys per service with auto-failover)
+- 📢 30+ ad slot management
+- 💰 Payment gateway configuration
+- 🤖 AI Assistant chatbot for natural language admin tasks
+- 🎯 Behaviour trigger settings
+- 📈 API usage & cost tracking
