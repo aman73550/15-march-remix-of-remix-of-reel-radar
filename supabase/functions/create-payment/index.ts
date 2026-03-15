@@ -6,7 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Hash utility for rate limiting
 async function hashString(str: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(str);
@@ -26,11 +25,15 @@ serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const urlPattern = /^https?:\/\/(www\.)?(instagram\.com|instagr\.am)\/(reel|reels|p)\//i;
-    if (!urlPattern.test(reelUrl.trim())) {
-      return new Response(JSON.stringify({ success: false, error: "Invalid Instagram URL" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Allow both Instagram URLs and seo: prefixed topics
+    const isSeoRequest = reelUrl.startsWith("seo:");
+    if (!isSeoRequest) {
+      const urlPattern = /^https?:\/\/(www\.)?(instagram\.com|instagr\.am)\/(reel|reels|p)\//i;
+      if (!urlPattern.test(reelUrl.trim())) {
+        return new Response(JSON.stringify({ success: false, error: "Invalid Instagram URL" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -81,18 +84,17 @@ serve(async (req) => {
       throw new Error("Failed to create report entry: " + (insertErr?.message || "unknown"));
     }
 
+    // ===== RAZORPAY =====
     if (gateway === "razorpay") {
       const razorpayKeyId = config.razorpay_key_id;
       const razorpayKeySecret = config.razorpay_key_secret;
 
       if (!razorpayKeyId || !razorpayKeySecret) {
-        return new Response(JSON.stringify({ success: false, error: "Payment gateway not configured" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ success: false, error: "Payment gateway not configured. Set Razorpay keys in Admin Panel → Config." }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Create Razorpay order
       const authHeader = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
       const orderResp = await fetch("https://api.razorpay.com/v1/orders", {
         method: "POST",
@@ -101,7 +103,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: price * 100, // Razorpay expects paisa
+          amount: price * 100,
           currency,
           receipt: report.id,
           notes: { report_id: report.id, reel_url: reelUrl },
@@ -116,7 +118,6 @@ serve(async (req) => {
 
       const order = await orderResp.json();
 
-      // Update report with payment info
       await supabase
         .from("paid_reports")
         .update({ payment_id: order.id })
@@ -129,7 +130,64 @@ serve(async (req) => {
         reportId: report.id,
         amount: price,
         currency,
-        keyId: razorpayKeyId, // Public key for frontend
+        keyId: razorpayKeyId,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ===== STRIPE =====
+    if (gateway === "stripe") {
+      const stripeKey = config.stripe_key;
+
+      if (!stripeKey) {
+        return new Response(JSON.stringify({ success: false, error: "Stripe not configured. Set Stripe key in Admin Panel → Config." }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Create Stripe Checkout Session
+      const origin = req.headers.get("origin") || req.headers.get("referer")?.replace(/\/$/, "") || "https://localhost";
+      const sessionResp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${stripeKey}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          "mode": "payment",
+          "payment_method_types[0]": "card",
+          "line_items[0][price_data][currency]": currency.toLowerCase(),
+          "line_items[0][price_data][unit_amount]": String(price * 100),
+          "line_items[0][price_data][product_data][name]": isSeoRequest ? "SEO Analysis Report" : "Master Analysis Report",
+          "success_url": `${origin}?payment=success&report_id=${report.id}&session_id={CHECKOUT_SESSION_ID}`,
+          "cancel_url": `${origin}?payment=cancelled`,
+          "metadata[report_id]": report.id,
+          "metadata[reel_url]": reelUrl,
+        }),
+      });
+
+      if (!sessionResp.ok) {
+        const errText = await sessionResp.text();
+        console.error("Stripe session creation failed:", errText);
+        throw new Error("Stripe checkout session creation failed");
+      }
+
+      const session = await sessionResp.json();
+
+      await supabase
+        .from("paid_reports")
+        .update({ payment_id: session.id })
+        .eq("id", report.id);
+
+      return new Response(JSON.stringify({
+        success: true,
+        gateway: "stripe",
+        sessionId: session.id,
+        sessionUrl: session.url,
+        reportId: report.id,
+        amount: price,
+        currency,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -140,7 +198,7 @@ serve(async (req) => {
       function_name: "create-payment", is_ai_call: false, estimated_cost: 0, status_code: 200,
     }).catch(() => {});
 
-    // Fallback: return report info for manual/WhatsApp payment
+    // Fallback: manual/WhatsApp payment
     return new Response(JSON.stringify({
       success: true,
       gateway: "manual",
