@@ -28,6 +28,7 @@ type AdminSection =
   | "ads"
   | "reports"
   | "usage"
+  | "traffic"
   | "generator"
   | "seo"
   | "behaviour"
