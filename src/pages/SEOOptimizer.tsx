@@ -1,5 +1,7 @@
 import SEOOptimizerSection from "@/components/SEOOptimizerSection";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { motion } from "framer-motion";
 
 const SEOOptimizer = () => {
