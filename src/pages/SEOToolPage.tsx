@@ -98,7 +98,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     ],
     howItWorks: [
       { step: "Enter Reel Details", desc: "Provide your reel topic, niche, and existing caption for optimization." },
-      { step: "AI Optimizes", desc: "Our AI generates SEO-optimized titles, captions, hashtags, and keyword suggestions." },
+      { step: "Smart Optimization", desc: "Our system generates SEO-optimized titles, captions, hashtags, and keyword suggestions." },
       { step: "Apply & Post", desc: "Copy the optimized content and apply it to your reel before posting." },
     ],
     contentBlocks: [
