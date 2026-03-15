@@ -101,8 +101,6 @@ serve(async (req) => {
         if (fcKeys.length > 0) FIRECRAWL_API_KEY = fcKeys[0];
       }
     } catch {}
-    
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     if (!LOVABLE_API_KEY) {
       throw new Error("API key not configured");
