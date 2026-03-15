@@ -344,7 +344,7 @@ const SEOToolPage = ({ slug }: SEOToolPageProps) => {
           <div className="border-t border-border/40" />
           <div className="py-6 text-center">
             <p className="text-[10px] text-muted-foreground/50 max-w-lg mx-auto">
-              ReelAnalyzer provides AI-based estimates of Instagram Reel performance. Viral scores are predictions and do not guarantee results. Not affiliated with Instagram or Meta.
+              ReelAnalyzer provides data-based estimates of Instagram Reel performance. Viral scores are predictions and do not guarantee results. Not affiliated with Instagram or Meta.
             </p>
           </div>
         </div>
