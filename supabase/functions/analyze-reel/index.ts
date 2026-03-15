@@ -738,7 +738,7 @@ serve(async (req) => {
               error: "payment_invalid",
               message: "Payment verification failed. Please complete payment first.",
             }), {
-              status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
 
