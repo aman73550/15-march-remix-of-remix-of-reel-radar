@@ -6,10 +6,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LangProvider } from "@/lib/LangContext";
 import Index from "./pages/Index.tsx";
+import SEOOptimizer from "./pages/SEOOptimizer.tsx";
 import { Loader2 } from "lucide-react";
 
 // Lazy load secondary pages
-const SEOOptimizer = lazy(() => import("./pages/SEOOptimizer.tsx"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin.tsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
