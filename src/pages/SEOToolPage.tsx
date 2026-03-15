@@ -125,7 +125,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     ],
     howItWorks: [
       { step: "Describe Your Reel", desc: "Enter your reel topic, niche, or paste your caption." },
-      { step: "AI Generates Hashtags", desc: "Our AI researches trending tags, analyzes competition, and generates optimized sets." },
+      { step: "Smart Hashtag Generation", desc: "Our system researches trending tags, analyzes competition, and generates optimized sets." },
       { step: "Copy & Use", desc: "Copy the hashtag set and paste it into your Instagram reel caption or first comment." },
     ],
     contentBlocks: [
