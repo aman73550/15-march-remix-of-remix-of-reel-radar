@@ -127,12 +127,40 @@ These are set from the Admin Panel UI at `/bosspage-login`, NOT in env files:
 | Config Key | Description | Where to get |
 |---|---|---|
 | `payment_gateway` | `razorpay` or `stripe` | Choose one |
-| `report_price` | Price in ₹ (default: 29) | Your choice |
-| `currency` | `INR` | Your choice |
+| `report_price` | Price (default: 29) | Your choice (shown dynamically in UI) |
+| `currency` | `INR`, `USD`, etc. | Your choice |
 | `razorpay_key_id` | `rzp_live_...` | [dashboard.razorpay.com](https://dashboard.razorpay.com) → Settings → API Keys |
 | `razorpay_key_secret` | Secret key | Same Razorpay dashboard |
 | `stripe_key` | `sk_live_...` | [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API Keys |
 | `whatsapp_number` | `919876543210` (no +) | Your WhatsApp business number |
+
+---
+
+## Payment System
+
+### Supported Gateways
+- **Razorpay** — Inline checkout (stays on page), signature verification via HMAC-SHA256
+- **Stripe** — Redirect to Stripe Checkout, session verification via API
+- **Manual/WhatsApp** — Fallback when no gateway configured
+
+### Payment Flow
+
+#### Razorpay Flow
+1. `create-payment` → Creates Razorpay order via API → Returns `orderId` + `keyId`
+2. Frontend opens Razorpay inline checkout
+3. User pays → `verify-payment` verifies HMAC signature
+4. On success → `generate-master-report` creates the premium PDF
+
+#### Stripe Flow
+1. `create-payment` → Creates Stripe Checkout Session → Returns `sessionUrl`
+2. Frontend redirects to Stripe Checkout
+3. After payment → User redirected back with `session_id`
+4. Frontend calls `verify-payment` with `stripeSessionId`
+5. Backend verifies session `payment_status === "paid"` via Stripe API
+6. On success → `generate-master-report` creates the premium PDF
+
+### Dynamic Pricing
+The report price is fetched from `site_config` table and shown dynamically in the UI. Change it anytime from Admin Panel → Config without code changes.
 
 ---
 
@@ -150,9 +178,9 @@ All edge functions enforce per-IP rate limits using the `rate_limits` database t
 
 ### Input Validation
 - **URL validation**: Only valid Instagram Reel URLs accepted (regex pattern matching)
+- **SEO requests**: Prefixed with `seo:` for differentiation
 - **Character limits**: URL (500), Caption (5000), Topic (1000)
 - **Numeric validation**: Engagement metrics must be positive numbers
-- **Sanitization**: All inputs trimmed and validated before processing
 
 ---
 
@@ -215,3 +243,4 @@ Access it via the floating chat button on the admin dashboard.
 - Payment keys are in the database (admin panel), NOT in env files for security
 - Admin credentials are stored as edge function secrets, never in frontend code
 - Admin route is hidden at `/bosspage-login` (not `/admin`)
+- Report price is dynamic — fetched from database and displayed in real-time
