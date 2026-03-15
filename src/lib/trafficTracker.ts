@@ -319,7 +319,7 @@ export function trackShareEvent(platform: string): string {
     share_id: shareId,
     shared_url: window.location.origin,
     referrer_session_id: session.sessionId,
-  } as any).then(() => {}).catch(() => {});
+  } as any).then(() => {});
 
   return shareId;
 }
