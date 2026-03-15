@@ -112,6 +112,7 @@ const Index = () => {
       // Handle payment_required response from backend
       if (!data?.success && data?.error === "payment_required") {
         setAnalysisPrice(data.price || 10);
+        setShowInterstitial(false);
         setShowPaymentPopup(true);
         setLoading(false);
         return;
@@ -119,6 +120,7 @@ const Index = () => {
       if (!data?.success && data?.error === "payment_invalid") {
         toast({ title: "Payment Invalid", description: data.message || "Please complete payment first", variant: "destructive" });
         setAnalysisPrice(data.price || 10);
+        setShowInterstitial(false);
         setShowPaymentPopup(true);
         setLoading(false);
         return;
@@ -130,6 +132,7 @@ const Index = () => {
       recordAnalysis();
       setRemaining(getRemainingAnalyses());
     } catch (err: any) {
+      setShowInterstitial(false);
       console.error("Analysis error:", err);
       toast({ title: t.analysisFailed, description: err.message || t.tryAgain, variant: "destructive" });
     } finally {
@@ -368,7 +371,7 @@ const Index = () => {
           reelUrl={url.trim()}
           price={analysisPrice}
           onPaymentSuccess={handlePaymentSuccess}
-          onClose={() => setShowPaymentPopup(false)}
+          onClose={() => { setShowInterstitial(false); setShowPaymentPopup(false); }}
         />
       )}
 
