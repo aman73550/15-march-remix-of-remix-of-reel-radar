@@ -66,7 +66,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     features: [
       { icon: Search, title: "Deep Reel Analysis", desc: "Comprehensive analysis covering content classification, hook quality, caption sentiment, and engagement metrics." },
       { icon: TrendingUp, title: "Trend Matching", desc: "Detects if your reel format matches currently trending content patterns for higher discoverability." },
-      { icon: Sparkles, title: "AI-Powered Insights", desc: "Advanced AI models analyze visual elements, text overlays, music usage, and scene transitions." },
+      { icon: Sparkles, title: "Smart Insights", desc: "Advanced models analyze visual elements, text overlays, music usage, and scene transitions." },
       { icon: FileText, title: "Detailed PDF Report", desc: "Get a master report with competitor analysis, improvement roadmap, and premium insights." },
     ],
     howItWorks: [
