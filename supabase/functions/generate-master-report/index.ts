@@ -102,7 +102,7 @@ async function getConfig(supabase: any): Promise<Record<string, string>> {
   return config;
 }
 
-async function generatePremiumAnalysis(analysis: any, reelUrl: string): Promise<any> {
+async function generatePremiumAnalysis(analysis: any, reelUrl: string, supabase?: any): Promise<any> {
   const viralityInsights = analysis._viralityInsights || [];
   const daysSincePost = analysis._daysSincePost || null;
   const viralScore = analysis.viralClassification?.score || analysis.viralScore || 0;
