@@ -114,8 +114,13 @@ export function recordAnalysis(): void {
 export function recordShare(): number {
   const data = getUsage();
   data.shareCount += 1;
-  // Unlock after just 1 share (backend logic), UI still shows 5 required
-  if (data.shareCount >= 1 && data.extraUnlocked < BONUS_ANALYSES) {
+  // Calculate how many total analyses are currently allowed
+  const totalAllowed = FREE_LIMIT + data.extraUnlocked;
+  // If all analyses used up, allow another unlock cycle by adding more bonus
+  if (data.analysisCount >= totalAllowed) {
+    data.extraUnlocked += BONUS_ANALYSES;
+  } else if (data.extraUnlocked < BONUS_ANALYSES) {
+    // First time unlock
     data.extraUnlocked = BONUS_ANALYSES;
   }
   saveUsageData(data);
