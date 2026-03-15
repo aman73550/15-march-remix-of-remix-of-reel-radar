@@ -51,7 +51,21 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+    let FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+    
+    // Try loading Firecrawl key from DB (admin panel)
+    try {
+      const { data: fcData } = await supabase
+        .from("site_config")
+        .select("config_value")
+        .eq("config_key", "firecrawl_api_key")
+        .single();
+      if (fcData?.config_value) {
+        const fcKeys = fcData.config_value.split(",").map((k: string) => k.trim()).filter(Boolean);
+        if (fcKeys.length > 0) FIRECRAWL_API_KEY = fcKeys[0];
+      }
+    } catch {}
+    
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     if (!LOVABLE_API_KEY) {
