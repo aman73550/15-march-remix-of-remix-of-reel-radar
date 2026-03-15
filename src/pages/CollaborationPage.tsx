@@ -1,0 +1,43 @@
+import SEOHead from "@/components/SEOHead";
+import Footer from "@/components/Footer";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Users, Video, PenTool } from "lucide-react";
+
+const CollaborationPage = () => (
+  <div className="min-h-screen bg-background text-foreground">
+    <SEOHead title="Collaboration – Reel Analyzer" description="Collaborate with Reel Analyzer as a creator, influencer, or content strategist. Let's grow together." canonical="https://reelanalyzer.app/collaboration" />
+
+    <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
+      <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary mb-6">
+        <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
+      </Link>
+
+      <h1 className="text-2xl sm:text-3xl font-bold mb-2">Collaboration</h1>
+      <p className="text-sm text-muted-foreground mb-8">We love working with creators and content strategists. Here's how we can collaborate.</p>
+
+      <div className="grid gap-4 sm:grid-cols-3 mb-8">
+        {[
+          { icon: Video, title: "Content Creators", desc: "Use our tool in your content and get featured on our platform." },
+          { icon: Users, title: "Influencers", desc: "Share Reel Analyzer with your audience and earn exclusive benefits." },
+          { icon: PenTool, title: "Guest Writers", desc: "Write for our blog and reach thousands of Instagram creators." },
+        ].map(({ icon: Icon, title, desc }) => (
+          <div key={title} className="p-4 rounded-xl border border-border/50 bg-card/50">
+            <Icon className="w-5 h-5 text-primary mb-2" />
+            <h3 className="text-xs font-bold text-foreground mb-1">{title}</h3>
+            <p className="text-[10px] text-muted-foreground">{desc}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="text-sm text-muted-foreground">
+        <p>Ready to collaborate? Contact us via our <Link to="/contact" className="text-primary hover:underline">Contact page</Link> with your proposal and social media handles.</p>
+      </div>
+    </div>
+
+    <Footer />
+    <MobileBottomNav />
+  </div>
+);
+
+export default CollaborationPage;
