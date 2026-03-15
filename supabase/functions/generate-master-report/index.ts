@@ -486,7 +486,7 @@ serve(async (req) => {
     // Generate premium analysis
     console.log("Generating premium analysis...");
     const genStart = Date.now();
-    const premiumData = await generatePremiumAnalysis(analysisData, reelUrl);
+    const premiumData = await generatePremiumAnalysis(analysisData, reelUrl, supabase);
 
     // Update report with analysis data (only for paid path)
     if (!adminFree && reportId) {
