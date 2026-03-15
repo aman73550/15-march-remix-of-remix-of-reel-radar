@@ -6,15 +6,51 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Hash utility for rate limiting
+async function hashString(str: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { reelUrl, analysisData } = await req.json();
 
+    // === INPUT VALIDATION ===
+    if (!reelUrl || typeof reelUrl !== "string" || reelUrl.trim().length > 500) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid reel URL" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const urlPattern = /^https?:\/\/(www\.)?(instagram\.com|instagr\.am)\/(reel|reels|p)\//i;
+    if (!urlPattern.test(reelUrl.trim())) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid Instagram URL" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // === RATE LIMITING ===
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const ipHash = await hashString(clientIp);
+    const { data: allowed } = await supabase.rpc("check_rate_limit", {
+      p_ip_hash: ipHash,
+      p_function_name: "create-payment",
+      p_max_requests: 10,
+      p_window_minutes: 60,
+    });
+    if (allowed === false) {
+      return new Response(JSON.stringify({ success: false, error: "Too many payment requests. Please try again later." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Get config
     const { data: configData } = await supabase.from("site_config").select("config_key, config_value");

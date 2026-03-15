@@ -415,11 +415,31 @@ Generate ONLY valid JSON with ALL these sections:
 }
 
 
+// Hash utility for rate limiting
+async function hashString(str: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { reportId, analysisData, reelUrl, adminFree } = await req.json();
+
+    // === INPUT VALIDATION ===
+    if (reelUrl && (typeof reelUrl !== "string" || reelUrl.length > 500)) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid reel URL" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (reportId && (typeof reportId !== "string" || reportId.length > 100)) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid report ID" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -427,6 +447,21 @@ serve(async (req) => {
     if (apiKeys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // === RATE LIMITING ===
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const ipHash = await hashString(clientIp);
+    const { data: allowed } = await supabase.rpc("check_rate_limit", {
+      p_ip_hash: ipHash,
+      p_function_name: "generate-master-report",
+      p_max_requests: 5,
+      p_window_minutes: 60,
+    });
+    if (allowed === false) {
+      return new Response(JSON.stringify({ success: false, error: "Too many report requests. Please try again later." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // ===== SECURITY: Payment or Admin auth required =====
     if (adminFree) {
