@@ -16,6 +16,14 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SEOToolPage = lazy(() => import("./pages/SEOToolPage.tsx"));
 const BlogIndex = lazy(() => import("./pages/BlogIndex.tsx"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));
+const AboutPage = lazy(() => import("./pages/AboutPage.tsx"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage.tsx"));
+const TermsPage = lazy(() => import("./pages/TermsPage.tsx"));
+const ContactPage = lazy(() => import("./pages/ContactPage.tsx"));
+const SitemapPage = lazy(() => import("./pages/SitemapPage.tsx"));
+const PartnershipPage = lazy(() => import("./pages/PartnershipPage.tsx"));
+const CollaborationPage = lazy(() => import("./pages/CollaborationPage.tsx"));
+const PromotionPage = lazy(() => import("./pages/PromotionPage.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -51,6 +59,16 @@ const App = () => (
               {/* Blog */}
               <Route path="/blog" element={<BlogIndex />} />
               <Route path="/blog/:slug" element={<BlogArticle />} />
+
+              {/* Info Pages */}
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/sitemap-page" element={<SitemapPage />} />
+              <Route path="/partnership" element={<PartnershipPage />} />
+              <Route path="/collaboration" element={<CollaborationPage />} />
+              <Route path="/promotion" element={<PromotionPage />} />
 
               {/* Admin — hidden route */}
               <Route path="/bosspage-login" element={<AdminLogin />} />
