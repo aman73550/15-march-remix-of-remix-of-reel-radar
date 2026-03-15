@@ -1149,7 +1149,7 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
             </div>
           </div>
 
-          {/* PAGE 7: Roadmap + AI Recommendations */}
+          {/* PAGE 7: Roadmap + Recommendations */}
           <div style={{ minHeight: "1100px", paddingBottom: "40px" }}>
             <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#e5e7eb", marginBottom: "12px", paddingTop: "20px" }}>🎯 5-Step Improvement Roadmap</h2>
             {premiumData.improvementRoadmap?.steps?.map((s: any, i: number) => (
