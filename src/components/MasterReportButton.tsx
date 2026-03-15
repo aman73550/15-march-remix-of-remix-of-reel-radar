@@ -137,9 +137,16 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
         return;
       }
 
+      // ===== FREE MODE =====
+      if (paymentData.gateway === "free") {
+        setShowProcessing(true);
+        toast.success("Free mode active — generating report...");
+        await generateReport(paymentData.reportId);
+        return;
+      }
+
       // ===== STRIPE =====
       if (paymentData.gateway === "stripe" && paymentData.sessionUrl) {
-        // Redirect to Stripe Checkout
         window.location.href = paymentData.sessionUrl;
         return;
       }
