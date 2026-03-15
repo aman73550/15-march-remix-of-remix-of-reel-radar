@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     });
 
     // Create admin user
-    const email = "admin@viralscoreai.com";
+    const email = "owsmboy7383@gmail.com";
     const password = "Aman@73550";
 
     // Check if user exists
@@ -37,7 +37,9 @@ Deno.serve(async (req) => {
 
     if (existing) {
       userId = existing.id;
-      console.log("Admin user already exists:", userId);
+      // Update password
+      await supabase.auth.admin.updateUserById(userId, { password, email_confirm: true });
+      console.log("Admin user already exists, password updated:", userId);
     } else {
       const { data: newUser, error: createErr } = await supabase.auth.admin.createUser({
         email,
@@ -57,7 +59,7 @@ Deno.serve(async (req) => {
 
     if (roleErr) throw roleErr;
 
-    return new Response(JSON.stringify({ success: true, email, message: "Admin created. Login at /admin-login" }), {
+    return new Response(JSON.stringify({ success: true, email, message: "Admin created. Login at /bosspage-login" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
