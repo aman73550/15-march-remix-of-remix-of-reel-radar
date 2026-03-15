@@ -132,6 +132,7 @@ const Index = () => {
       recordAnalysis();
       setRemaining(getRemainingAnalyses());
     } catch (err: any) {
+      setShowInterstitial(false);
       console.error("Analysis error:", err);
       toast({ title: t.analysisFailed, description: err.message || t.tryAgain, variant: "destructive" });
     } finally {
