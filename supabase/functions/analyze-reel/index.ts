@@ -8,8 +8,42 @@ const corsHeaders = {
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
-// Multi-key rotation with auto-failover
-function getApiKeys(): string[] {
+// DB-first multi-key rotation: reads from site_config table, falls back to env vars
+let _cachedDbKeys: string[] | null = null;
+let _cacheTs = 0;
+
+async function getApiKeysFromDb(supabase: any): Promise<string[]> {
+  // Cache for 60s to avoid hitting DB on every request
+  if (_cachedDbKeys && Date.now() - _cacheTs < 60000) return _cachedDbKeys;
+
+  try {
+    const { data } = await supabase
+      .from("site_config")
+      .select("config_key, config_value")
+      .in("config_key", ["gemini_api_keys", "openai_api_keys"]);
+
+    if (data) {
+      for (const row of data) {
+        if (row.config_key === "gemini_api_keys" && row.config_value) {
+          const keys = row.config_value.split(",").map((k: string) => k.trim()).filter(Boolean);
+          if (keys.length > 0) {
+            _cachedDbKeys = keys;
+            _cacheTs = Date.now();
+            console.log(`Loaded ${keys.length} Gemini keys from DB`);
+            return keys;
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to load keys from DB, falling back to env:", e);
+  }
+
+  // Fallback to environment variables
+  return getApiKeysFromEnv();
+}
+
+function getApiKeysFromEnv(): string[] {
   const multiKeys = Deno.env.get("GEMINI_API_KEYS");
   if (multiKeys) {
     const keys = multiKeys.split(",").map(k => k.trim()).filter(Boolean);
@@ -22,9 +56,9 @@ function getApiKeys(): string[] {
 
 let currentKeyIndex = 0;
 
-async function callGemini(body: Record<string, unknown>): Promise<Response> {
-  const keys = getApiKeys();
-  if (keys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
+async function callGemini(body: Record<string, unknown>, supabase?: any): Promise<Response> {
+  const keys = supabase ? await getApiKeysFromDb(supabase) : getApiKeysFromEnv();
+  if (keys.length === 0) throw new Error("No Gemini API keys configured. Add keys in Admin Panel → API Keys Manager or set GEMINI_API_KEY env var.");
 
   const startIndex = currentKeyIndex % keys.length;
   let lastError: Error | null = null;
@@ -330,8 +364,8 @@ async function scrapeMetaTags(url: string): Promise<{
   }
 }
 
-async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshots: string[]; markdown: string } | null> {
-  const apiKey = Deno.env.get("FIRECRAWL_API_KEY");
+async function scrapeReelWithFirecrawl(url: string, firecrawlKey?: string): Promise<{ screenshots: string[]; markdown: string } | null> {
+  const apiKey = firecrawlKey || Deno.env.get("FIRECRAWL_API_KEY");
   if (!apiKey) return null;
 
   try {
@@ -550,17 +584,39 @@ serve(async (req) => {
       });
     }
 
-    const apiKeys = getApiKeys();
-    if (apiKeys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
-
+    // Create supabase client for DB access (keys, logging)
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseClient = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY 
+      ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) 
+      : null;
+
+    // Validate API keys (from DB or env)
+    const apiKeys = supabaseClient ? await getApiKeysFromDb(supabaseClient) : getApiKeysFromEnv();
+    if (apiKeys.length === 0) throw new Error("No Gemini API keys configured. Add keys in Admin Panel → API Keys Manager.");
 
     // Log usage
     try {
-      const supabaseForLog = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-      await supabaseForLog.from("usage_logs").insert({ reel_url: url, user_agent: req.headers.get("user-agent") || null });
+      if (supabaseClient) {
+        await supabaseClient.from("usage_logs").insert({ reel_url: url, user_agent: req.headers.get("user-agent") || null });
+      }
     } catch (e) { console.error("Usage log error:", e); }
+
+    // Load Firecrawl key from DB first, then env
+    let FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+    if (supabaseClient) {
+      try {
+        const { data: fcData } = await supabaseClient
+          .from("site_config")
+          .select("config_value")
+          .eq("config_key", "firecrawl_api_key")
+          .single();
+        if (fcData?.config_value) {
+          const fcKeys = fcData.config_value.split(",").map((k: string) => k.trim()).filter(Boolean);
+          if (fcKeys.length > 0) FIRECRAWL_API_KEY = fcKeys[0]; // Use first available key
+        }
+      } catch {}
+    }
 
     // ==============================
     // STEP 1: Scrape reel page (parallel meta + Firecrawl)
@@ -568,7 +624,7 @@ serve(async (req) => {
     console.log("STEP 1: Scraping reel page...");
     const [metaResult, scrapeResult] = await Promise.all([
       scrapeMetaTags(url),
-      scrapeReelWithFirecrawl(url),
+      scrapeReelWithFirecrawl(url, FIRECRAWL_API_KEY || undefined),
     ]);
 
     // ==============================
@@ -930,7 +986,7 @@ Return ONLY valid JSON (no markdown, no code fences):
       return await callGemini({
         model: "gemini-2.5-flash",
         messages: [systemMsg, { role: "user", content: userContent }],
-      });
+      }, supabaseClient || undefined);
     }
 
     let response = await tryAICall(imagesForVision.length > 0);

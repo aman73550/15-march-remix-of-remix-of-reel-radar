@@ -7,10 +7,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Star, Crown, Loader2, Download, ArrowLeft, Search } from "lucide-react";
+import { Shield, LogOut, BarChart3, Megaphone, TrendingUp, Users, Eye, Calendar, CreditCard, Settings, IndianRupee, MessageCircle, FileText, Star, Crown, Loader2, Download, ArrowLeft, Search, Key, Plus, Trash2, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import MasterReportPDF from "@/components/MasterReportPDF";
 import AdminBehaviourSettings from "@/components/AdminBehaviourSettings";
 import AdminAIUsage from "@/components/AdminAIUsage";
+import AdminApiKeysManager from "@/components/AdminApiKeysManager";
 import SEOResultsDisplay from "@/components/SEOResultsDisplay";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -543,6 +544,12 @@ const AdminDashboard = () => {
           </Card>
 
           {/* Ad Management - Grouped */}
+          {/* API Keys Manager - Full Width */}
+        </div>
+        
+        <AdminApiKeysManager />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <Card className="border-border bg-card">
             <CardHeader className="px-4 sm:px-6 py-3 sm:py-4">
               <CardTitle className="flex items-center gap-2 text-sm sm:text-lg">

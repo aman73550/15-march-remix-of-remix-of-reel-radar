@@ -8,7 +8,37 @@ const corsHeaders = {
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
-function getApiKeys(): string[] {
+// DB-first multi-key rotation: reads from site_config table, falls back to env vars
+let _cachedDbKeys: string[] | null = null;
+let _cacheTs = 0;
+
+async function getApiKeysFromDb(supabase: any): Promise<string[]> {
+  if (_cachedDbKeys && Date.now() - _cacheTs < 60000) return _cachedDbKeys;
+  try {
+    const { data } = await supabase
+      .from("site_config")
+      .select("config_key, config_value")
+      .eq("config_key", "gemini_api_keys");
+    if (data) {
+      for (const row of data) {
+        if (row.config_value) {
+          const keys = row.config_value.split(",").map((k: string) => k.trim()).filter(Boolean);
+          if (keys.length > 0) {
+            _cachedDbKeys = keys;
+            _cacheTs = Date.now();
+            console.log(`Loaded ${keys.length} Gemini keys from DB`);
+            return keys;
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to load keys from DB:", e);
+  }
+  return getApiKeysFromEnv();
+}
+
+function getApiKeysFromEnv(): string[] {
   const multiKeys = Deno.env.get("GEMINI_API_KEYS");
   if (multiKeys) {
     const keys = multiKeys.split(",").map(k => k.trim()).filter(Boolean);
@@ -21,9 +51,9 @@ function getApiKeys(): string[] {
 
 let currentKeyIndex = 0;
 
-async function callGemini(body: Record<string, unknown>): Promise<Response> {
-  const keys = getApiKeys();
-  if (keys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
+async function callGemini(body: Record<string, unknown>, supabase?: any): Promise<Response> {
+  const keys = supabase ? await getApiKeysFromDb(supabase) : getApiKeysFromEnv();
+  if (keys.length === 0) throw new Error("No Gemini API keys configured. Add keys in Admin Panel → API Keys Manager.");
 
   const startIndex = currentKeyIndex % keys.length;
   let lastError: Error | null = null;
@@ -72,7 +102,7 @@ async function getConfig(supabase: any): Promise<Record<string, string>> {
   return config;
 }
 
-async function generatePremiumAnalysis(analysis: any, reelUrl: string): Promise<any> {
+async function generatePremiumAnalysis(analysis: any, reelUrl: string, supabase?: any): Promise<any> {
   const viralityInsights = analysis._viralityInsights || [];
   const daysSincePost = analysis._daysSincePost || null;
   const viralScore = analysis.viralClassification?.score || analysis.viralScore || 0;
@@ -456,7 +486,7 @@ serve(async (req) => {
     // Generate premium analysis
     console.log("Generating premium analysis...");
     const genStart = Date.now();
-    const premiumData = await generatePremiumAnalysis(analysisData, reelUrl);
+    const premiumData = await generatePremiumAnalysis(analysisData, reelUrl, supabase);
 
     // Update report with analysis data (only for paid path)
     if (!adminFree && reportId) {
