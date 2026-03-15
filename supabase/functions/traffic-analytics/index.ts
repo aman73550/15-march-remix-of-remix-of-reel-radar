@@ -130,66 +130,72 @@ serve(async (req) => {
     }
 
     if (action === "ai-analyze") {
-      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-      if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-
       const { trafficData } = body;
       const startTime = Date.now();
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            {
-              role: "system",
-              content: `You are a traffic intelligence analyst. Analyze the provided traffic data and return exactly 4 sections:
+      // Fetch Gemini API keys from database (multi-key rotation)
+      const { data: geminiConfig } = await supabase
+        .from("site_config")
+        .select("config_value")
+        .eq("config_key", "gemini_api_keys")
+        .single();
+
+      let geminiKeys: string[] = [];
+      if (geminiConfig?.config_value) {
+        geminiKeys = geminiConfig.config_value.split(",").map((k: string) => k.trim()).filter(Boolean);
+      }
+      if (geminiKeys.length === 0) {
+        const singleKey = Deno.env.get("GEMINI_API_KEY");
+        if (singleKey) geminiKeys = [singleKey];
+      }
+      if (geminiKeys.length === 0) throw new Error("No Gemini API keys configured");
+
+      const systemPrompt = `You are a traffic intelligence analyst. Analyze the provided traffic data and return exactly 4 sections:
 
 1. **Traffic Quality Assessment** (2-3 lines): Real vs bot ratio, overall traffic health.
 2. **Bot Activity Report** (2-3 lines): Suspicious patterns detected, which sources send bots.
 3. **Growth Opportunities** (2-3 lines): Best traffic sources, which channels to invest in.
 4. **Viral Potential** (2-3 lines): Any traffic spikes, share performance, viral indicators.
 
-Use specific numbers. Be actionable. Reply in English.`
-            },
-            {
-              role: "user",
-              content: `Traffic analytics data:\n\n${JSON.stringify(trafficData, null, 2)}`
-            }
-          ],
-        }),
-      });
+Use specific numbers. Be actionable. Reply in English.`;
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          return new Response(JSON.stringify({ success: false, error: "Rate limit exceeded. Try again later." }), {
-            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      let aiContent = "No analysis available.";
+      let tokensUsed = 0;
+
+      for (const apiKey of geminiKeys) {
+        try {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+          const response = await fetch(geminiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              system_instruction: { parts: [{ text: systemPrompt }] },
+              contents: [{ role: "user", parts: [{ text: `Traffic analytics data:\n\n${JSON.stringify(trafficData, null, 2)}` }] }],
+            }),
           });
+
+          if (!response.ok) {
+            if (response.status === 429 || response.status === 403) continue;
+            throw new Error(`Gemini error: ${response.status}`);
+          }
+
+          const aiResult = await response.json();
+          aiContent = aiResult.candidates?.[0]?.content?.parts?.[0]?.text || "No analysis available.";
+          tokensUsed = aiResult.usageMetadata?.totalTokenCount || 0;
+          break;
+        } catch (e) {
+          continue;
         }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ success: false, error: "Credits exhausted." }), {
-            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        throw new Error(`AI gateway error: ${response.status}`);
       }
 
-      const aiResult = await response.json();
-      const aiContent = aiResult.choices?.[0]?.message?.content || "No analysis available.";
-      const tokensUsed = aiResult.usage?.total_tokens || 0;
       const duration = Date.now() - startTime;
 
-      // Log usage
       await supabase.from("api_usage_logs").insert({
         function_name: "traffic-analytics",
-        ai_model: "google/gemini-3-flash-preview",
-        ai_provider: "lovable-ai",
+        ai_model: "gemini-2.5-flash",
+        ai_provider: "google-direct",
         is_ai_call: true,
-        estimated_cost: (tokensUsed / 1000) * 0.0002,
+        estimated_cost: (tokensUsed / 1000) * 0.00015,
         tokens_used: tokensUsed,
         status_code: 200,
         duration_ms: duration,
