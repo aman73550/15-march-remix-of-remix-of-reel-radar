@@ -443,10 +443,10 @@ serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const apiKeys = getApiKeys();
-    if (apiKeys.length === 0) throw new Error("No GEMINI_API_KEY or GEMINI_API_KEYS configured");
-
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    const apiKeys = await getApiKeysFromDb(supabase);
+    if (apiKeys.length === 0) throw new Error("No Gemini API keys configured. Add keys in Admin Panel → API Keys Manager.");
 
     // === RATE LIMITING ===
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";

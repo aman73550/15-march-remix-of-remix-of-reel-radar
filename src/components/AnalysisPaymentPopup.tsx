@@ -27,6 +27,17 @@ const AnalysisPaymentPopup = ({ reelUrl, price, onPaymentSuccess, onClose }: Pro
 
       const { orderId, reportId, gateway, keyId } = data;
 
+      if (gateway === "free") {
+        toast.success("Free mode active! Starting analysis...");
+        onPaymentSuccess(reportId);
+        return;
+      }
+
+      if (gateway === "stripe" && data.sessionUrl) {
+        window.location.href = data.sessionUrl;
+        return;
+      }
+
       if (gateway === "razorpay" && keyId) {
         // Load Razorpay script if not already loaded
         if (!(window as any).Razorpay) {
@@ -38,10 +49,10 @@ const AnalysisPaymentPopup = ({ reelUrl, price, onPaymentSuccess, onClose }: Pro
 
         const options = {
           key: keyId,
-          amount: price * 100,
-          currency: "INR",
+          amount: (data.amount || price) * 100,
+          currency: data.currency || "INR",
           name: "Reel Viral Analyzer",
-          description: `Reel Analysis — ₹${price}`,
+          description: `Reel Analysis — ₹${data.amount || price}`,
           order_id: orderId,
           handler: async (response: any) => {
             setVerifying(true);
@@ -67,7 +78,10 @@ const AnalysisPaymentPopup = ({ reelUrl, price, onPaymentSuccess, onClose }: Pro
         };
         const rzp = new (window as any).Razorpay(options);
         rzp.open();
+        return;
       }
+
+      throw new Error("Unsupported payment gateway configuration");
     } catch (e: any) {
       toast.error(e.message || "Failed to initiate payment");
     } finally {

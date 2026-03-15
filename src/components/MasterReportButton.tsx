@@ -74,7 +74,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
     setErrorMsg(null);
     try {
       const { data: paymentData, error: paymentErr } = await supabase.functions.invoke("create-payment", {
-        body: { reelUrl, analysisData: analysis },
+        body: { reelUrl, analysisData: analysis, tool: "master_report" },
       });
 
       if (paymentErr || !paymentData?.success) {
@@ -137,9 +137,16 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
         return;
       }
 
+      // ===== FREE MODE =====
+      if (paymentData.gateway === "free") {
+        setShowProcessing(true);
+        toast.success("Free mode active — generating report...");
+        await generateReport(paymentData.reportId);
+        return;
+      }
+
       // ===== STRIPE =====
       if (paymentData.gateway === "stripe" && paymentData.sessionUrl) {
-        // Redirect to Stripe Checkout
         window.location.href = paymentData.sessionUrl;
         return;
       }

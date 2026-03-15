@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Sparkles, Lock, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -38,7 +38,7 @@ const SEOOptimizerSection = () => {
     setIsPaying(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: { reelUrl: `seo:${input.trim()}`, analysisData: { type: "seo", topic: input.trim() } },
+        body: { reelUrl: `seo:${input.trim()}`, analysisData: { type: "seo", topic: input.trim() }, tool: "seo" },
       });
 
       if (error || !data?.success) {
