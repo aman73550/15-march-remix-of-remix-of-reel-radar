@@ -92,7 +92,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     icon: Search,
     features: [
       { icon: FileText, title: "SEO Title Generation", desc: "Generate keyword-rich titles that Instagram's search algorithm indexes for discoverability." },
-      { icon: Sparkles, title: "Caption Optimization", desc: "AI rewrites your caption with emotional hooks, keywords, and CTAs that drive engagement." },
+      { icon: Sparkles, title: "Caption Optimization", desc: "Rewrites your caption with emotional hooks, keywords, and CTAs that drive engagement." },
       { icon: Hash, title: "Smart Hashtag Strategy", desc: "Get a mix of trending, mid-range, and niche hashtags optimized for your content category." },
       { icon: TrendingUp, title: "Trend-Based Keywords", desc: "Identifies trending keywords and phrases in your niche to boost search visibility." },
     ],
