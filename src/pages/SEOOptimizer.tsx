@@ -1,10 +1,18 @@
 import SEOOptimizerSection from "@/components/SEOOptimizerSection";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import { motion } from "framer-motion";
 
 const SEOOptimizer = () => {
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden pb-20 md:pb-0">
+      <SEOHead
+        title="Reel SEO Optimizer – Optimize Instagram Reels for Maximum Reach"
+        description="Optimize your Instagram Reel captions, titles, and hashtags for SEO. Get AI-powered suggestions to improve discoverability and reach on Instagram."
+        canonical="https://reelanalyzer.app/seo-optimizer"
+        keywords="reel seo optimizer, instagram reel seo, reel optimization tool, reel caption optimizer, reel title optimizer, instagram seo tool"
+      />
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-primary/10 blur-[120px]" animate={{ x: [0, 50, 0], y: [0, -30, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} />
@@ -12,6 +20,7 @@ const SEOOptimizer = () => {
       </div>
 
       <SEOOptimizerSection />
+      <Footer />
       <MobileBottomNav />
     </div>
   );

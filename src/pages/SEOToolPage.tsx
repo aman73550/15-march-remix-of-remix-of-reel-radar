@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import SEOHead from "@/components/SEOHead";
 import InternalLinks from "@/components/InternalLinks";
+import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import UserReviews from "@/components/UserReviews";
 import { TrendingUp, Sparkles, Hash, FileText, Target, BarChart3, Search, Zap } from "lucide-react";
@@ -338,17 +339,7 @@ const SEOToolPage = ({ slug }: SEOToolPageProps) => {
       {/* Internal Links */}
       <InternalLinks currentPath={config.slug} />
 
-      {/* Footer */}
-      <footer className="relative z-10 mt-8">
-        <div className="max-w-2xl mx-auto px-4">
-          <div className="border-t border-border/40" />
-          <div className="py-6 text-center">
-            <p className="text-[10px] text-muted-foreground/50 max-w-lg mx-auto">
-              ReelAnalyzer provides data-based estimates of Instagram Reel performance. Viral scores are predictions and do not guarantee results. Not affiliated with Instagram or Meta.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       <MobileBottomNav />
     </div>
