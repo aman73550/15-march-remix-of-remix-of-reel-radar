@@ -226,16 +226,48 @@ Just upload the `dist/` folder contents. Ensure SPA routing redirects all paths 
 4. Login at `/bosspage-login` with your credentials
 5. Configure payment keys, WhatsApp number, API keys, and ad slots from the dashboard
 
-## Admin AI Assistant
+## Super Admin AI Assistant
 
-The admin panel includes a built-in AI chatbot that can:
-- Check system status, API health, and revenue stats
-- Update site configuration via natural language
-- Toggle ad slots on/off
-- Query database analytics
-- Troubleshoot common issues
+The admin panel includes a powerful AI assistant with **full system access**:
 
-Access it via the floating chat button on the admin dashboard.
+### Data Operations (All 9 Tables)
+- **Read** any table with filters, ordering, pagination
+- **Write/Update/Delete** rows in any table
+- **Aggregate** data (sum, avg, min, max) with filters
+- **Count** rows with complex filter conditions
+
+### System Diagnostics
+- Complete system health check (all tables + critical configs)
+- API error analysis with function-wise breakdown
+- Rate limit monitoring — blocked IPs, usage vs limits
+- API key health check (Gemini, OpenAI, Firecrawl, Razorpay, Stripe)
+
+### Configuration Management
+- Read/update any site_config value via natural language
+- Reset configs to defaults
+- Manage behaviour settings (triggers, overlays, limits)
+
+### Ad Management
+- List all ad slots with status
+- Toggle slots on/off
+- Update ad code and type (adsense/affiliate/custom)
+
+### Revenue & Analytics
+- Revenue reports by period with gateway breakdown
+- Usage trends (daily/weekly)
+- Top viral content rankings
+- Payment order tracking (completed/pending/failed)
+
+### User Feedback
+- Rating distribution analysis
+- Recent comment review
+- Trend identification
+
+### Bulk Operations
+- Clear rate limits (unblock stuck users)
+- Reset configurations to defaults
+
+Access via the ⚡ floating button on the admin dashboard. Supports Hindi/Hinglish.
 
 ## Notes
 - The `lovable-tagger` dev dependency is optional and only used in Lovable's editor
