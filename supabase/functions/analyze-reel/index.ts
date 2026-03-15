@@ -364,8 +364,8 @@ async function scrapeMetaTags(url: string): Promise<{
   }
 }
 
-async function scrapeReelWithFirecrawl(url: string): Promise<{ screenshots: string[]; markdown: string } | null> {
-  const apiKey = Deno.env.get("FIRECRAWL_API_KEY");
+async function scrapeReelWithFirecrawl(url: string, firecrawlKey?: string): Promise<{ screenshots: string[]; markdown: string } | null> {
+  const apiKey = firecrawlKey || Deno.env.get("FIRECRAWL_API_KEY");
   if (!apiKey) return null;
 
   try {
