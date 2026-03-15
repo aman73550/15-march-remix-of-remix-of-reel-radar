@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 const SHARE_URL = typeof window !== "undefined" ? window.location.origin : "";
-const SHARE_TEXT = "Check if your Instagram Reel can go viral with this AI Reel Viral Analyzer.\nPaste your reel link and get a viral probability score instantly.\n\n";
+const SHARE_TEXT = "Check if your Instagram Reel can go viral with this Reel Viral Analyzer.\nPaste your reel link and get a viral probability score instantly.\n\n";
 
 const ShareToolPopup = () => {
   const [open, setOpen] = useState(false);

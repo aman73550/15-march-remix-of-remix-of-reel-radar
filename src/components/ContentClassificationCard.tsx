@@ -42,7 +42,7 @@ const ContentClassificationCard = ({ data, thumbnailAnalyzed }: Props) => {
           </h3>
           {thumbnailAnalyzed && (
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary font-medium">
-              👁️ Vision AI
+              👁️ Vision Analyzed
             </span>
           )}
         </div>

@@ -1163,7 +1163,7 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
               </div>
             ))}
 
-            <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#e5e7eb", marginBottom: "12px", marginTop: "28px" }}>💡 AI Recommendations</h2>
+            <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#e5e7eb", marginBottom: "12px", marginTop: "28px" }}>💡 Recommendations</h2>
             {premiumData.aiRecommendations?.hookAlternatives?.map((h: string, i: number) => (
               <p key={i} style={{ fontSize: "11px", color: "#9ca3af", padding: "8px 12px", background: "#111827", borderRadius: "6px", marginBottom: "4px", borderLeft: "3px solid #e63976" }}>{h}</p>
             ))}

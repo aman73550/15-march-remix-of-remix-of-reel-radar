@@ -52,7 +52,7 @@ const TRIGGER_MESSAGES: Record<string, string[]> = {
     "Refreshing trending reel signals. Please wait a moment.",
     "Updating viral trend database... this may take a few seconds.",
     "Syncing latest trending audio & hashtag data...",
-    "Calibrating AI models with latest viral patterns...",
+    "Calibrating models with latest viral patterns...",
   ],
 };
 
