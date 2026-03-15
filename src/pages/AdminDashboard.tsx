@@ -17,6 +17,7 @@ import AdminBehaviourSettings from "@/components/AdminBehaviourSettings";
 import AdminAIUsage from "@/components/AdminAIUsage";
 import AdminApiKeysManager from "@/components/AdminApiKeysManager";
 import SEOResultsDisplay from "@/components/SEOResultsDisplay";
+import AdminAIChat from "@/components/AdminAIChat";
 import { Textarea } from "@/components/ui/textarea";
 
 type AdminSection =
@@ -913,6 +914,8 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+      {/* AI Chat Assistant */}
+      <AdminAIChat />
     </div>
   );
 };
