@@ -179,7 +179,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     ],
     howItWorks: [
       { step: "Enter Topic", desc: "Tell us what your reel is about and your niche." },
-      { step: "AI Generates Titles", desc: "Get 5-10 title options with different styles — curiosity, how-to, listicle, provocative." },
+      { step: "Smart Title Generation", desc: "Get 5-10 title options with different styles — curiosity, how-to, listicle, provocative." },
       { step: "Pick & Apply", desc: "Choose the best title and add it as your reel's on-screen text or caption header." },
     ],
     contentBlocks: [
