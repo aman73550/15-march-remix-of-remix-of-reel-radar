@@ -80,7 +80,7 @@ const AdminDashboard = () => {
       .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin");
     if (!roles || roles.length === 0) {
       await supabase.auth.signOut();
-      navigate("/admin-login");
+      navigate("/bosspage-login");
       return;
     }
     await Promise.all([loadStats(), loadAdConfig(), loadRecentUsage(), loadConfig(), loadPaidStats(), loadRecentReports(), loadFeedback()]);
