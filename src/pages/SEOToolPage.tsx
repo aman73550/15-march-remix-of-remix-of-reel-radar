@@ -194,7 +194,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     metaDesc: "Free reel viral checker. Check your Instagram reel's viral probability with AI analysis. Get viral score, engagement prediction, and improvement tips before posting.",
     keywords: "reel viral checker, reel viral score checker, reel viral prediction tool, viral reel strategy, how to make reels go viral",
     h1: "Check if Your Reel Can Go Viral",
-    subtitle: "Our AI predicts your reel's viral probability before you post. Get a viral score, identify weak spots, and fix them to maximize your chances of going viral.",
+    subtitle: "Our system predicts your reel's viral probability before you post. Get a viral score, identify weak spots, and fix them to maximize your chances of going viral.",
     ctaText: "Check Viral Potential",
     ctaRoute: "/",
     icon: Sparkles,
