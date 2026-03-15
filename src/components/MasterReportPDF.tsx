@@ -770,7 +770,7 @@ const MasterReportPDF = ({ analysis, premiumData, reelUrl }: Props) => {
       {premiumData.aiRecommendations && (
         <Card className="glass p-5 space-y-3">
           <h3 className="font-bold text-foreground flex items-center gap-2">
-            <Lightbulb className="w-4 h-4 text-primary" /> AI Personalized Recommendations
+            <Lightbulb className="w-4 h-4 text-primary" /> Personalized Recommendations
           </h3>
 
           {premiumData.aiRecommendations.hookAlternatives?.length > 0 && (
