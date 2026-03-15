@@ -1,5 +1,6 @@
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Zap, Target, Users } from "lucide-react";
