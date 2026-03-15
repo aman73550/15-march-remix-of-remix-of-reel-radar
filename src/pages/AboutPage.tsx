@@ -49,6 +49,7 @@ const AboutPage = () => (
 
     <Footer />
     <MobileBottomNav />
+    <WhatsAppButton />
   </div>
 );
 

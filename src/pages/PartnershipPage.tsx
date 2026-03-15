@@ -38,6 +38,7 @@ const PartnershipPage = () => (
 
     <Footer />
     <MobileBottomNav />
+    <WhatsAppButton />
   </div>
 );
 

@@ -38,6 +38,7 @@ const CollaborationPage = () => (
 
     <Footer />
     <MobileBottomNav />
+    <WhatsAppButton />
   </div>
 );
 

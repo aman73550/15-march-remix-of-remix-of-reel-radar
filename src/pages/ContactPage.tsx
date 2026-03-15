@@ -95,6 +95,7 @@ const ContactPage = () => {
 
       <Footer />
       <MobileBottomNav />
+      <WhatsAppButton />
     </div>
   );
 };

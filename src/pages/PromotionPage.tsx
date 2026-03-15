@@ -38,6 +38,7 @@ const PromotionPage = () => (
 
     <Footer />
     <MobileBottomNav />
+    <WhatsAppButton />
   </div>
 );
 
