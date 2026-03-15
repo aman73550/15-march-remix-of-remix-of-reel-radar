@@ -86,7 +86,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     metaDesc: "Free reel SEO optimization tool. Generate SEO-optimized titles, captions, and hashtags for Instagram reels. Improve discoverability and get more views.",
     keywords: "reel seo optimization tool, reel seo analyzer, instagram reel seo optimization, reel title generator, reel caption generator",
     h1: "Reel SEO Optimization Tool",
-    subtitle: "Generate SEO-optimized titles, captions, and hashtags that help Instagram's algorithm push your reels to more people. Free AI-powered reel SEO tool.",
+    subtitle: "Generate SEO-optimized titles, captions, and hashtags that help Instagram's algorithm push your reels to more people. Free smart reel SEO tool.",
     ctaText: "Optimize Your Reel SEO",
     ctaRoute: "/seo-optimizer",
     icon: Search,
