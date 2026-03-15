@@ -309,7 +309,7 @@ serve(async (req) => {
       }
     })();
 
-    return new Response(response.body, {
+    return new Response(readable, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
