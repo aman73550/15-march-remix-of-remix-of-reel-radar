@@ -44,6 +44,7 @@ import { useLang } from "@/lib/LangContext";
 import { useBehaviourTrigger, BehaviourTriggerDisplay } from "@/components/BehaviourTrigger";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import InternalLinks from "@/components/InternalLinks";
+import AnalysisPaymentPopup from "@/components/AnalysisPaymentPopup";
 import type { ReelAnalysis } from "@/lib/types";
 import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
 
@@ -63,6 +64,9 @@ const Index = () => {
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showShareGate, setShowShareGate] = useState(false);
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false);
+  const [analysisPrice, setAnalysisPrice] = useState(0);
+  const [pendingPaymentToken, setPendingPaymentToken] = useState<string | null>(null);
   const [remaining, setRemaining] = useState(getRemainingAnalyses());
   const { toast } = useToast();
   const { lang, t } = useLang();
@@ -77,38 +81,84 @@ const Index = () => {
     inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  const runAnalysis = useCallback(async () => {
+  const runAnalysis = useCallback(async (paymentToken?: string) => {
     setLoading(true);
     setAnalysis(null);
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-reel", {
-        body: {
-          url: url.trim(),
-          caption: caption.trim() || undefined,
-          hashtags: hashtags.trim() || undefined,
-          lang,
-          metrics: {
-            likes: likes ? parseInt(likes) : undefined,
-            comments: comments ? parseInt(comments) : undefined,
-            views: views ? parseInt(views) : undefined,
-            shares: shares ? parseInt(shares) : undefined,
-            saves: saves ? parseInt(saves) : undefined,
-          },
-          sampleComments: sampleComments.trim() || undefined,
+      const bodyPayload: any = {
+        url: url.trim(),
+        caption: caption.trim() || undefined,
+        hashtags: hashtags.trim() || undefined,
+        lang,
+        metrics: {
+          likes: likes ? parseInt(likes) : undefined,
+          comments: comments ? parseInt(comments) : undefined,
+          views: views ? parseInt(views) : undefined,
+          shares: shares ? parseInt(shares) : undefined,
+          saves: saves ? parseInt(saves) : undefined,
         },
+        sampleComments: sampleComments.trim() || undefined,
+      };
+      if (paymentToken) bodyPayload.paymentToken = paymentToken;
+
+      const { data, error } = await supabase.functions.invoke("analyze-reel", {
+        body: bodyPayload,
       });
-      if (error) throw error;
+
+      if (error) {
+        // Check if it's a payment required error
+        if (error.message?.includes("402") || error.message?.includes("payment")) {
+          throw new Error("payment_required");
+        }
+        throw error;
+      }
+
+      // Handle payment_required response from backend
+      if (!data?.success && data?.error === "payment_required") {
+        setAnalysisPrice(data.price || 10);
+        setShowPaymentPopup(true);
+        setLoading(false);
+        return;
+      }
+      if (!data?.success && data?.error === "payment_invalid") {
+        toast({ title: "Payment Invalid", description: data.message || "Please complete payment first", variant: "destructive" });
+        setShowPaymentPopup(true);
+        setLoading(false);
+        return;
+      }
+
       if (!data?.success) throw new Error(data?.error || "Analysis failed");
       setAnalysis(data.analysis);
+      setPendingPaymentToken(null);
       recordAnalysis();
       setRemaining(getRemainingAnalyses());
     } catch (err: any) {
-      console.error("Analysis error:", err);
-      toast({ title: t.analysisFailed, description: err.message || t.tryAgain, variant: "destructive" });
+      if (err.message === "payment_required") {
+        // Fetch pricing config
+        try {
+          const { data: configData } = await supabase
+            .from("site_config" as any)
+            .select("config_key, config_value")
+            .in("config_key", ["analysis_price"]);
+          const priceRow = (configData as any[])?.find((r: any) => r.config_key === "analysis_price");
+          setAnalysisPrice(priceRow ? parseFloat(priceRow.config_value) || 10 : 10);
+        } catch { setAnalysisPrice(10); }
+        setShowPaymentPopup(true);
+      } else {
+        console.error("Analysis error:", err);
+        toast({ title: t.analysisFailed, description: err.message || t.tryAgain, variant: "destructive" });
+      }
     } finally {
       setLoading(false);
     }
   }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast]);
+
+  const handlePaymentSuccess = (paymentToken: string) => {
+    setShowPaymentPopup(false);
+    setPendingPaymentToken(paymentToken);
+    setShowInterstitial(true);
+    runAnalysis(paymentToken);
+  };
 
   const handleAnalyze = async () => {
     const trimmedUrl = url.trim();
@@ -327,6 +377,16 @@ const Index = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Payment Popup */}
+      {showPaymentPopup && (
+        <AnalysisPaymentPopup
+          reelUrl={url.trim()}
+          price={analysisPrice}
+          onPaymentSuccess={handlePaymentSuccess}
+          onClose={() => setShowPaymentPopup(false)}
+        />
+      )}
 
       {/* Social Proof Section */}
       {!analysis && !showShareGate && <div className="relative z-10"><SocialProofSection /></div>}

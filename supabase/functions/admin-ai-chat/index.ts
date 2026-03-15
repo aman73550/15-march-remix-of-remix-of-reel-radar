@@ -34,7 +34,7 @@ Ad slot management. Columns: id, slot_name, enabled (bool), ad_code (text), ad_t
 
 ### site_config
 Key-value system settings. Columns: id, config_key, config_value, updated_at
-Known keys: report_price, payment_gateway, razorpay_key_id, razorpay_key_secret, stripe_key, whatsapp_number, example_pdf_url, gemini_api_keys, openai_api_keys, firecrawl_api_keys, behaviour_settings, currency
+Known keys: report_price, payment_gateway, razorpay_key_id, razorpay_key_secret, stripe_key, whatsapp_number, example_pdf_url, gemini_api_keys, openai_api_keys, firecrawl_api, behaviour_settings, currency, analysis_pricing_mode (free/paid), analysis_price (number in INR)
 
 ### feedback
 User ratings. Columns: id, reel_url, rating (1-5), comment (text), created_at
