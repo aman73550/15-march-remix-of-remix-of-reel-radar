@@ -154,9 +154,9 @@ const SEOOptimizerSection = () => {
           Reel <span className="text-primary">SEO Optimizer</span>
         </h1>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          {lang === "hi"
-            ? "डीप AI रिसर्च से ट्रेंडिंग टाइटल, हैशटैग, म्यूज़िक सुझाव और कंटेंट सुधार टिप्स पाएं"
-            : "Get trending titles, hashtags, music suggestions & content improvement tips powered by deep AI research"}
+           {lang === "hi"
+             ? "डीप रिसर्च से ट्रेंडिंग टाइटल, हैशटैग, म्यूज़िक सुझाव और कंटेंट सुधार टिप्स पाएं"
+             : "Get trending titles, hashtags, music suggestions & content improvement tips powered by deep research"}
         </p>
       </motion.div>
 

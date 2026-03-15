@@ -104,7 +104,7 @@ const ViralReelsShowcase = ({ onAnalyzeClick }: Props) => {
           Viral Score Leaderboard
         </h2>
         <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
-          Real scores from creators who analyzed their reels · Updates every 3 days
+          Real scores from creators who analyzed their reels
         </p>
       </div>
 

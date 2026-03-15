@@ -302,7 +302,7 @@ const Index = () => {
                 className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full gradient-primary-bg text-primary-foreground font-semibold text-xs sm:text-sm shadow-glow hover:opacity-90 transition-opacity"
               >
                 <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                Get Master AI Report
+                Get Master Report
                 <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </motion.div>

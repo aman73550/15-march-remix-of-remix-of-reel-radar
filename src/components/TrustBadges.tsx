@@ -4,7 +4,7 @@ import { Sparkles, Search, TrendingUp, Radio } from "lucide-react";
 const BADGES = [
   {
     icon: Sparkles,
-    title: "AI-Powered Reel Analyzer",
+    title: "Smart Reel Analyzer",
     subtitle: "Detects Viral Hooks and Engagement Signals",
   },
   {

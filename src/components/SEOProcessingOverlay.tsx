@@ -167,7 +167,7 @@ const SEOProcessingOverlay = ({ show, analysisComplete, onComplete }: SEOProcess
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <p className="text-sm font-semibold text-primary leading-relaxed">
-                ⏳ Please wait while our AI performs deep SEO research.
+                ⏳ Please wait while deep SEO research is being performed.
               </p>
               <p className="text-xs font-medium text-foreground/70 mt-1">
                 ⚠️ Do not close this page until the progress bar completes.
