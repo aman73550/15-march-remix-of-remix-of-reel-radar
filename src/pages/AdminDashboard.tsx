@@ -787,6 +787,7 @@ const AdminDashboard = () => {
       case "ads": return renderAds();
       case "reports": return renderReports();
       case "usage": return <AdminAIUsage />;
+      case "traffic": return <AdminTrafficIntelligence />;
       case "generator": return renderGenerator();
       case "seo": return renderSeo();
       case "behaviour": return <AdminBehaviourSettings />;

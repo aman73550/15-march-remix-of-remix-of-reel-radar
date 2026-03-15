@@ -33,14 +33,14 @@ const ShareToolPopup = () => {
   ];
 
   const handleCopy = async () => {
+    const url = getShareUrl("copy");
     try {
-      await navigator.clipboard.writeText(SHARE_URL);
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // fallback
       const ta = document.createElement("textarea");
-      ta.value = SHARE_URL;
+      ta.value = url;
       document.body.appendChild(ta);
       ta.select();
       document.execCommand("copy");
