@@ -74,7 +74,7 @@ const MasterReportButton = ({ analysis, reelUrl }: Props) => {
     setErrorMsg(null);
     try {
       const { data: paymentData, error: paymentErr } = await supabase.functions.invoke("create-payment", {
-        body: { reelUrl, analysisData: analysis },
+        body: { reelUrl, analysisData: analysis, tool: "master_report" },
       });
 
       if (paymentErr || !paymentData?.success) {
