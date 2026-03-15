@@ -712,6 +712,7 @@ serve(async (req) => {
           }
         } else if (!paymentToken) {
           // No payment token — return pricing info so frontend can show payment popup
+          // Use status 200 so supabase.functions.invoke returns data (not error)
           return new Response(JSON.stringify({
             success: false,
             error: "payment_required",
@@ -720,7 +721,7 @@ serve(async (req) => {
             currency: "INR",
             message: `Analysis requires payment of ₹${analysisPrice}`,
           }), {
-            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         } else {
           // Verify payment token against paid_reports table
