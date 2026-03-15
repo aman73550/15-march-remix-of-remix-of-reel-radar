@@ -130,20 +130,8 @@ const Index = () => {
       recordAnalysis();
       setRemaining(getRemainingAnalyses());
     } catch (err: any) {
-      if (err.message === "payment_required") {
-        // Fetch pricing config
-        try {
-          const { data: configData } = await supabase
-            .from("site_config" as any)
-            .select("config_key, config_value")
-            .in("config_key", ["analysis_price"]);
-          const priceRow = (configData as any[])?.find((r: any) => r.config_key === "analysis_price");
-          setAnalysisPrice(priceRow ? parseFloat(priceRow.config_value) || 10 : 10);
-        } catch { setAnalysisPrice(10); }
-        setShowPaymentPopup(true);
-      } else {
-        console.error("Analysis error:", err);
-        toast({ title: t.analysisFailed, description: err.message || t.tryAgain, variant: "destructive" });
+      console.error("Analysis error:", err);
+      toast({ title: t.analysisFailed, description: err.message || t.tryAgain, variant: "destructive" });
       }
     } finally {
       setLoading(false);
