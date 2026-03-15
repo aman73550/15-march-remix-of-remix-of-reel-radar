@@ -1260,6 +1260,7 @@ Return ONLY valid JSON (no markdown, no code fences):
         }
       }
       viralLabel = "Viral Potential";
+    }
 
     viralScore = Math.min(80, viralScore);
 
