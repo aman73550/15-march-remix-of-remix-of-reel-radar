@@ -111,9 +111,30 @@ const Index = () => {
   }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast]);
 
   const handleAnalyze = async () => {
-    if (!url.trim()) {
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) {
       toast({ title: t.enterUrl, variant: "destructive" });
       return;
+    }
+
+    // Client-side URL validation
+    const urlPattern = /^https?:\/\/(www\.)?(instagram\.com|instagr\.am)\/(reel|reels|p)\//i;
+    if (!urlPattern.test(trimmedUrl)) {
+      toast({ title: "Invalid URL", description: "Please enter a valid Instagram Reel URL (e.g., https://www.instagram.com/reel/...)", variant: "destructive" });
+      return;
+    }
+    if (trimmedUrl.length > 500) {
+      toast({ title: "URL too long", variant: "destructive" });
+      return;
+    }
+
+    // Validate optional metrics
+    const numFields = [likes, comments, views, shares, saves];
+    for (const val of numFields) {
+      if (val && (isNaN(Number(val)) || Number(val) < 0)) {
+        toast({ title: "Invalid metric value", description: "Metrics must be positive numbers", variant: "destructive" });
+        return;
+      }
     }
 
     // Usage limit check

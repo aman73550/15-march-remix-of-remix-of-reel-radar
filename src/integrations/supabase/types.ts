@@ -152,6 +152,30 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          function_name: string
+          id: string
+          ip_hash: string
+          request_count: number
+          window_start: string
+        }
+        Insert: {
+          function_name: string
+          id?: string
+          ip_hash: string
+          request_count?: number
+          window_start?: string
+        }
+        Update: {
+          function_name?: string
+          id?: string
+          ip_hash?: string
+          request_count?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       site_config: {
         Row: {
           config_key: string
@@ -337,6 +361,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          p_function_name: string
+          p_ip_hash: string
+          p_max_requests?: number
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
