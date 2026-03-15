@@ -624,7 +624,7 @@ serve(async (req) => {
     console.log("STEP 1: Scraping reel page...");
     const [metaResult, scrapeResult] = await Promise.all([
       scrapeMetaTags(url),
-      scrapeReelWithFirecrawl(url),
+      scrapeReelWithFirecrawl(url, FIRECRAWL_API_KEY || undefined),
     ]);
 
     // ==============================
