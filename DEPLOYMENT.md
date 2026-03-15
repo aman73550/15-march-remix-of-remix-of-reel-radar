@@ -9,8 +9,9 @@
 6. [Admin Panel Setup](#admin-panel-setup)
 7. [Security Features](#security-features)
 8. [Deployment Options](#deployment-options)
-9. [User Manual](#user-manual)
-10. [Troubleshooting](#troubleshooting)
+9. [All Pages & Routes](#all-pages--routes)
+10. [User Manual](#user-manual)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -50,6 +51,7 @@ npx supabase functions deploy check-reel-date
 npx supabase functions deploy create-admin
 npx supabase functions deploy usage-analyzer
 npx supabase functions deploy admin-ai-chat
+npx supabase functions deploy traffic-analytics
 
 # 6. Create admin user
 curl -X POST https://<project-id>.supabase.co/functions/v1/create-admin \
@@ -207,6 +209,8 @@ Report price is fetched from the database and displayed dynamically in the butto
 5. Click **Deploy Ad** — it's live immediately!
 6. Use toggle to enable/disable any slot
 
+See [ADS-SETUP-GUIDE.md](./ADS-SETUP-GUIDE.md) for detailed ad setup instructions.
+
 ---
 
 ## Admin Panel Setup
@@ -235,6 +239,7 @@ Report price is fetched from the database and displayed dynamically in the butto
 | 📢 Ad Slots | Deploy/manage 30+ ad placements |
 | 📄 Reports & Logs | View recent reports, payment history |
 | 📈 API Usage | Track API calls, costs, AI model usage |
+| 🌐 Traffic Intelligence | Bot detection, real user analytics, geo data |
 | 👑 Report Generator | Generate free reports (admin only, no payment) |
 | 🔍 SEO Optimizer | Free SEO analysis (admin only) |
 | 🎯 Behaviour | Configure popups, triggers, CTAs |
@@ -324,6 +329,35 @@ Upload `dist/` folder. Ensure SPA routing redirects all paths to `index.html`.
 
 ---
 
+## All Pages & Routes
+
+| Route | Component | Description |
+|---|---|---|
+| `/` | Index | Main Reel Analyzer tool (homepage) |
+| `/seo-optimizer` | SEOOptimizer | SEO optimization tool |
+| `/reel-analyzer` | SEOToolPage | Reel Analyzer landing page |
+| `/instagram-reel-analyzer` | SEOToolPage | Instagram Reel Analyzer landing |
+| `/reel-seo-optimizer` | SEOToolPage | Reel SEO Optimizer landing |
+| `/reel-hashtag-generator` | SEOToolPage | Hashtag Generator tool page |
+| `/reel-caption-generator` | SEOToolPage | Caption Generator tool page |
+| `/reel-title-generator` | SEOToolPage | Title Generator tool page |
+| `/reel-viral-checker` | SEOToolPage | Viral Checker tool page |
+| `/reel-engagement-calculator` | SEOToolPage | Engagement Calculator tool page |
+| `/blog` | BlogIndex | Blog articles listing |
+| `/blog/:slug` | BlogArticle | Individual blog post |
+| `/about` | AboutPage | About the platform |
+| `/contact` | ContactPage | Contact form |
+| `/partnership` | PartnershipPage | Partnership opportunities |
+| `/collaboration` | CollaborationPage | Creator collaboration |
+| `/promotion` | PromotionPage | Advertising/promotion info |
+| `/privacy-policy` | PrivacyPolicyPage | Privacy policy |
+| `/terms` | TermsPage | Terms & conditions |
+| `/sitemap-page` | SitemapPage | HTML sitemap |
+| `/bosspage-login` | AdminLogin | Admin login (hidden) |
+| `/bosspage` | AdminDashboard | Admin dashboard (hidden) |
+
+---
+
 ## User Manual
 
 ### For End Users
@@ -333,6 +367,7 @@ Upload `dist/` folder. Ensure SPA routing redirects all paths to `index.html`.
 3. **Master Report**: Click "Unlock Master Report" → Pay configured price → Get detailed PDF
 4. **SEO Optimizer**: Enter topic → Pay → Get optimized hashtags, titles, posting times
 5. **Language Toggle**: Switch between English & Hindi
+6. **WhatsApp Support**: Click the green WhatsApp button (visible on About, Contact, Partnership, Collaboration, Promotion pages) for quick support
 
 ### For Admins
 
@@ -341,8 +376,9 @@ Upload `dist/` folder. Ensure SPA routing redirects all paths to `index.html`.
 3. **Payment & Config**: Set gateway (Razorpay/Stripe), pricing, currency
 4. **API Keys**: Add multiple keys for uninterrupted service
 5. **Ad Management**: Deploy ads to 30+ slots
-6. **AI Assistant**: Use chatbot (💬) for quick admin tasks
-7. **Free Tools**: Generate reports/SEO analysis without payment
+6. **Traffic Intelligence**: Monitor real users vs bots, geo distribution
+7. **AI Assistant**: Use chatbot (💬) for quick admin tasks
+8. **Free Tools**: Generate reports/SEO analysis without payment
 
 ---
 
@@ -361,6 +397,7 @@ Upload `dist/` folder. Ensure SPA routing redirects all paths to `index.html`.
 | Admin can't login | Verify `ADMIN_EMAIL`/`ADMIN_PASSWORD` secrets |
 | Old `/admin` URL not working | Use `/bosspage-login` instead |
 | Price shows ₹29 even after change | Refresh the page — price is fetched on load |
+| WhatsApp button not showing | Set `whatsapp_number` in Admin Panel → Config |
 
 ### Edge Function Logs
 
@@ -370,6 +407,7 @@ npx supabase functions logs create-payment --follow
 npx supabase functions logs verify-payment --follow
 npx supabase functions logs generate-master-report --follow
 npx supabase functions logs admin-ai-chat --follow
+npx supabase functions logs traffic-analytics --follow
 ```
 
 ### Edge Functions Reference
@@ -385,3 +423,4 @@ npx supabase functions logs admin-ai-chat --follow
 | `create-admin` | Admin user setup | — |
 | `usage-analyzer` | API usage tracking | — |
 | `admin-ai-chat` | AI assistant for admin | — |
+| `traffic-analytics` | Traffic & bot detection | — |

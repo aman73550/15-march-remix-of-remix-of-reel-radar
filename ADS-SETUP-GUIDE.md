@@ -19,7 +19,7 @@ Admin Panel → ad_config (Database) → Website Components → Users ko Ad dikh
 
 ---
 
-## 📍 Available Ad Slots (25+ positions)
+## 📍 Available Ad Slots (30+ positions)
 
 ### 🏠 Homepage & Global
 | Slot Name | Position | Best For |
@@ -114,7 +114,7 @@ Admin Panel → ad_config (Database) → Website Components → Users ko Ad dikh
 ## 📱 Step-by-Step: Admin Panel Se Ad Deploy Karna
 
 ### Method 1: Quick Template Use Karo
-1. Admin Panel me login karo
+1. Admin Panel me login karo (`/bosspage-login`)
 2. **Ad Slots** section me jaao
 3. Kisi bhi slot pe **"Edit"** click karo
 4. **"⚡ Quick Templates"** se template choose karo (AdSense/Affiliate/Custom)
@@ -172,7 +172,22 @@ Since ads are loaded dynamically, track performance via:
 1. **Google AdSense Dashboard** — For AdSense ads
 2. **Affiliate Network Dashboard** — For affiliate links
 3. **UTM Parameters** — Add `?utm_source=viralanalyzer&utm_medium=banner&utm_campaign=slot-name` to affiliate links
-4. **Admin Panel → AI Usage** — Monitor overall site traffic patterns
+4. **Admin Panel → Traffic Intelligence** — Monitor overall site traffic patterns and real user analytics
+
+---
+
+## 📄 Related Pages
+
+Ads can appear across all major pages. Here's the full site map:
+
+| Page | Route |
+|---|---|
+| Homepage (Reel Analyzer) | `/` |
+| SEO Optimizer | `/seo-optimizer` |
+| 8 SEO Tool Landing Pages | `/reel-analyzer`, `/reel-hashtag-generator`, etc. |
+| Blog | `/blog`, `/blog/:slug` |
+| About / Contact / Partnership / Collaboration / Promotion | `/about`, `/contact`, `/partnership`, `/collaboration`, `/promotion` |
+| Privacy / Terms / Sitemap | `/privacy-policy`, `/terms`, `/sitemap-page` |
 
 ---
 
@@ -192,3 +207,6 @@ A: Haan, ek slot me multiple ad codes paste kar sakte ho (e.g., 2 AdSense units)
 
 **Q: Ad hatana hai to?**
 A: Edit → "🗑️ Clear Ad" click karo, ya simply toggle off karo.
+
+**Q: WhatsApp button ads ke saath overlap karta hai?**
+A: Nahi, WhatsApp button mobile pe bottom-20 pe positioned hai taaki bottom nav aur ads se overlap na ho.
