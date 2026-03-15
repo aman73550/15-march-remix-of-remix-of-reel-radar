@@ -37,7 +37,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     ctaRoute: "/",
     icon: TrendingUp,
     features: [
-      { icon: Target, title: "Viral Score Prediction", desc: "AI predicts your reel's viral potential with a 0-100 score based on engagement patterns and content quality signals." },
+      { icon: Target, title: "Viral Score Prediction", desc: "Predicts your reel's viral potential with a 0-100 score based on engagement patterns and content quality signals." },
       { icon: Zap, title: "Hook Strength Analysis", desc: "Detects whether your first 3 seconds are strong enough to stop the scroll and retain viewers." },
       { icon: Hash, title: "Hashtag Performance Check", desc: "Analyzes your hashtag strategy — competition level, relevance, and optimal count for maximum reach." },
       { icon: BarChart3, title: "Engagement Rate Calculator", desc: "Compares your likes, comments, shares, and saves against category benchmarks to gauge performance." },
