@@ -199,7 +199,7 @@ const PAGES: Record<string, ToolPageConfig> = {
     ctaRoute: "/",
     icon: Sparkles,
     features: [
-      { icon: Sparkles, title: "Viral Score (0-100)", desc: "AI calculates a viral probability score based on hook, caption, hashtags, and content quality." },
+      { icon: Sparkles, title: "Viral Score (0-100)", desc: "Calculates a viral probability score based on hook, caption, hashtags, and content quality." },
       { icon: TrendingUp, title: "Trend Alignment", desc: "Checks if your reel matches currently viral content formats, audio trends, and topics." },
       { icon: Target, title: "Weak Spot Detection", desc: "Pinpoints exactly what's holding your reel back — weak hook, poor hashtags, or missing CTA." },
       { icon: BarChart3, title: "Benchmark Comparison", desc: "Compares your reel's metrics against average performance in your content category." },
