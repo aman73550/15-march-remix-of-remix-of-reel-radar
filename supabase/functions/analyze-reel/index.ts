@@ -595,14 +595,28 @@ serve(async (req) => {
     const apiKeys = supabaseClient ? await getApiKeysFromDb(supabaseClient) : getApiKeysFromEnv();
     if (apiKeys.length === 0) throw new Error("No Gemini API keys configured. Add keys in Admin Panel → API Keys Manager.");
 
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
     // Log usage
     try {
-      const supabaseForLog = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-      await supabaseForLog.from("usage_logs").insert({ reel_url: url, user_agent: req.headers.get("user-agent") || null });
+      if (supabaseClient) {
+        await supabaseClient.from("usage_logs").insert({ reel_url: url, user_agent: req.headers.get("user-agent") || null });
+      }
     } catch (e) { console.error("Usage log error:", e); }
+
+    // Load Firecrawl key from DB first, then env
+    let FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+    if (supabaseClient) {
+      try {
+        const { data: fcData } = await supabaseClient
+          .from("site_config")
+          .select("config_value")
+          .eq("config_key", "firecrawl_api_key")
+          .single();
+        if (fcData?.config_value) {
+          const fcKeys = fcData.config_value.split(",").map((k: string) => k.trim()).filter(Boolean);
+          if (fcKeys.length > 0) FIRECRAWL_API_KEY = fcKeys[0]; // Use first available key
+        }
+      } catch {}
+    }
 
     // ==============================
     // STEP 1: Scrape reel page (parallel meta + Firecrawl)
