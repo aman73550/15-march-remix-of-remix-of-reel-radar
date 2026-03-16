@@ -19,6 +19,7 @@ import AdminApiKeysManager from "@/components/AdminApiKeysManager";
 import SEOResultsDisplay from "@/components/SEOResultsDisplay";
 import AdminAIChat from "@/components/AdminAIChat";
 import AdminTrafficIntelligence from "@/components/AdminTrafficIntelligence";
+import AdminAdsManager from "@/components/ads/AdminAdsManager";
 import { Textarea } from "@/components/ui/textarea";
 
 type AdminSection =
