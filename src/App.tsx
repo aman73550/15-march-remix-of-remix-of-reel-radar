@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LangProvider } from "@/lib/LangContext";
 import Index from "./pages/Index.tsx";
 import SEOOptimizer from "./pages/SEOOptimizer.tsx";
+import PopupAdOverlay from "./components/ads/PopupAds";
 import { Loader2 } from "lucide-react";
 
 // Lazy load secondary pages
