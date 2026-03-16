@@ -833,7 +833,7 @@ const AdminDashboard = () => {
       case "dashboard": return renderDashboard();
       case "config": return renderConfig();
       case "api-keys": return <AdminApiKeysManager />;
-      case "ads": return renderAds();
+      case "ads": return <AdminAdsManager />;
       case "reports": return renderReports();
       case "usage": return <AdminAIUsage />;
       case "traffic": return <AdminTrafficIntelligence />;
