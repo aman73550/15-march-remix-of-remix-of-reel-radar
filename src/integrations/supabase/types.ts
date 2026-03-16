@@ -17,27 +17,69 @@ export type Database = {
       ad_config: {
         Row: {
           ad_code: string | null
+          ad_name: string | null
           ad_type: string
+          device_target: string
           enabled: boolean
+          frequency_limit: string | null
           id: string
           slot_name: string
+          trigger_type: string | null
           updated_at: string
         }
         Insert: {
           ad_code?: string | null
+          ad_name?: string | null
           ad_type?: string
+          device_target?: string
           enabled?: boolean
+          frequency_limit?: string | null
           id?: string
           slot_name: string
+          trigger_type?: string | null
           updated_at?: string
         }
         Update: {
           ad_code?: string | null
+          ad_name?: string | null
           ad_type?: string
+          device_target?: string
           enabled?: boolean
+          frequency_limit?: string | null
           id?: string
           slot_name?: string
+          trigger_type?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ad_impressions: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          session_id: string | null
+          slot_name: string
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          session_id?: string | null
+          slot_name: string
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          session_id?: string | null
+          slot_name?: string
         }
         Relationships: []
       }

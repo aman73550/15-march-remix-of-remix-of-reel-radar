@@ -19,6 +19,7 @@ import AdminApiKeysManager from "@/components/AdminApiKeysManager";
 import SEOResultsDisplay from "@/components/SEOResultsDisplay";
 import AdminAIChat from "@/components/AdminAIChat";
 import AdminTrafficIntelligence from "@/components/AdminTrafficIntelligence";
+import AdminAdsManager from "@/components/ads/AdminAdsManager";
 import { Textarea } from "@/components/ui/textarea";
 
 type AdminSection =
@@ -832,7 +833,7 @@ const AdminDashboard = () => {
       case "dashboard": return renderDashboard();
       case "config": return renderConfig();
       case "api-keys": return <AdminApiKeysManager />;
-      case "ads": return renderAds();
+      case "ads": return <AdminAdsManager />;
       case "reports": return renderReports();
       case "usage": return <AdminAIUsage />;
       case "traffic": return <AdminTrafficIntelligence />;

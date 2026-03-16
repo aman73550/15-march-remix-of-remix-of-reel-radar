@@ -381,6 +381,9 @@ const Index = () => {
 
       <div className="relative z-10 py-4"><BannerAd slot="banner-top" /></div>
 
+      {/* Mid Banner */}
+      {!analysis && <div className="relative z-10 py-2"><BannerAd slot="banner-mid" /></div>}
+
       {/* Results */}
       <AnimatePresence>
         {analysis && scores && (
