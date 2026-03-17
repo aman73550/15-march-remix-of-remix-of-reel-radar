@@ -256,7 +256,7 @@ const SEOToolPage = ({ slug }: SEOToolPageProps) => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden pb-20 md:pb-0">
-      <SEOHead title={config.metaTitle} description={config.metaDesc} canonical={`https://reelanalyzer.app${config.slug}`} keywords={config.keywords} />
+      <SEOHead title={config.metaTitle} description={config.metaDesc} canonical={`https://reelsanylizer.in${config.slug}`} keywords={config.keywords} />
 
       {/* Hero */}
       <div className="relative z-10 max-w-2xl mx-auto px-4 pt-10 sm:pt-14 pb-8 text-center">

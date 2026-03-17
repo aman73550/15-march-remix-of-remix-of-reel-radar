@@ -57,7 +57,7 @@ const SITEMAP_SECTIONS = [
 
 const SitemapPage = () => (
   <div className="min-h-screen bg-background text-foreground">
-    <SEOHead title="Sitemap – Reel Analyzer" description="Browse all pages and tools available on Reel Analyzer." canonical="https://reelanalyzer.app/sitemap-page" />
+    <SEOHead title="Sitemap – Reel Analyzer" description="Browse all pages and tools available on Reel Analyzer." canonical="https://reelsanylizer.in/sitemap-page" />
 
     <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
       <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary mb-6">

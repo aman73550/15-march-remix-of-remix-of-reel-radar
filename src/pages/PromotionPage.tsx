@@ -12,7 +12,7 @@ const PromotionPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEOHead title="Promotion – Reel Analyzer" description="Promote your brand, tool, or service on Reel Analyzer. Reach thousands of Instagram creators and marketers." canonical="https://reelanalyzer.app/promotion" />
+      <SEOHead title="Promotion – Reel Analyzer" description="Promote your brand, tool, or service on Reel Analyzer. Reach thousands of Instagram creators and marketers." canonical="https://reelsanylizer.in/promotion" />
 
       <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
         <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary mb-6">

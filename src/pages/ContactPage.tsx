@@ -12,7 +12,7 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEOHead title="Contact Us – Reel Analyzer" description="Get in touch with the Reel Analyzer team for support, feedback, or business inquiries via WhatsApp." canonical="https://reelanalyzer.app/contact" />
+      <SEOHead title="Contact Us – Reel Analyzer" description="Get in touch with the Reel Analyzer team for support, feedback, or business inquiries via WhatsApp." canonical="https://reelsanylizer.in/contact" />
 
       <div className="max-w-xl mx-auto px-4 py-8 sm:py-12">
         <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary mb-6">

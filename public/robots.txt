@@ -17,4 +17,4 @@ Allow: /
 Disallow: /bosspage
 Disallow: /bosspage-login
 
-Sitemap: https://reelanalyzer.app/sitemap.xml
+Sitemap: https://reelsanylizer.in/sitemap.xml
