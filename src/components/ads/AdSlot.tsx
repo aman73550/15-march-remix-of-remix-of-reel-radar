@@ -152,14 +152,24 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
     return () => observer.disconnect();
   }, [lazy, visible]);
 
-  // Fetch ad config
+  // Fetch ad config with fallback to generic pool
   useEffect(() => {
     if (!visible) return;
 
     const fetchAd = async () => {
       try {
         await loadAllAdConfigs();
-        const cached = adConfigCache.get(slot) || null;
+        // Try exact slot match first
+        let cached = adConfigCache.get(slot) || null;
+        // Fallback: if no exact match, use any available enabled ad with code
+        if (!cached) {
+          for (const [, config] of adConfigCache) {
+            if (config && config.enabled && config.ad_code && config.ad_type !== "popup" && config.ad_type !== "popunder") {
+              cached = config;
+              break;
+            }
+          }
+        }
         setAd(cached);
       } catch {
         setHasError(true);
