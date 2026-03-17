@@ -116,7 +116,7 @@ const BlogArticle = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden pb-20 md:pb-0">
-      <SEOHead title={article.metaTitle} description={article.metaDesc} canonical={`https://reelanalyzer.app/blog/${slug}`} keywords={article.keywords} />
+      <SEOHead title={article.metaTitle} description={article.metaDesc} canonical={`https://reelsanylizer.in/blog/${slug}`} keywords={article.keywords} />
 
       <div className="max-w-2xl mx-auto px-4 pt-8 sm:pt-12 pb-6">
         <Link to="/blog" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6">

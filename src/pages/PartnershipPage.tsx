@@ -12,7 +12,7 @@ const PartnershipPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEOHead title="Partnership – Reel Analyzer" description="Partner with Reel Analyzer to grow together. Explore partnership opportunities for agencies, tools, and platforms." canonical="https://reelanalyzer.app/partnership" />
+      <SEOHead title="Partnership – Reel Analyzer" description="Partner with Reel Analyzer to grow together. Explore partnership opportunities for agencies, tools, and platforms." canonical="https://reelsanylizer.in/partnership" />
 
       <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
         <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary mb-6">

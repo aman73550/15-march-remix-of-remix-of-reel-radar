@@ -12,7 +12,7 @@ const CollaborationPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEOHead title="Collaboration – Reel Analyzer" description="Collaborate with Reel Analyzer as a creator, influencer, or content strategist. Let's grow together." canonical="https://reelanalyzer.app/collaboration" />
+      <SEOHead title="Collaboration – Reel Analyzer" description="Collaborate with Reel Analyzer as a creator, influencer, or content strategist. Let's grow together." canonical="https://reelsanylizer.in/collaboration" />
 
       <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
         <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary mb-6">

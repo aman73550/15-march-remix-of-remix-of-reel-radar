@@ -10,7 +10,7 @@ const SEOOptimizer = () => {
       <SEOHead
         title="Reel SEO Optimizer – Optimize Instagram Reels for Maximum Reach"
         description="Optimize your Instagram Reel captions, titles, and hashtags for SEO. Get AI-powered suggestions to improve discoverability and reach on Instagram."
-        canonical="https://reelanalyzer.app/seo-optimizer"
+        canonical="https://reelsanylizer.in/seo-optimizer"
         keywords="reel seo optimizer, instagram reel seo, reel optimization tool, reel caption optimizer, reel title optimizer, instagram seo tool"
       />
       {/* Animated Background */}

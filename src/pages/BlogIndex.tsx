@@ -58,7 +58,7 @@ const BlogIndex = () => (
     <SEOHead
       title="Blog — Instagram Reel Growth Guides & SEO Tips | ReelAnalyzer"
       description="Expert guides on Instagram reel growth, viral strategies, hashtag optimization, reel SEO, and engagement tips. Learn how to make your reels go viral."
-      canonical="https://reelanalyzer.app/blog"
+      canonical="https://reelsanylizer.in/blog"
       keywords="instagram reel tips, reel growth guide, how to go viral on instagram, reel seo guide, reel hashtag tips"
     />
 

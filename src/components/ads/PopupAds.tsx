@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +23,6 @@ function markSeenInSession(slotName: string) {
   sessionStorage.setItem(`${SESSION_KEY_PREFIX}${slotName}`, "true");
 }
 
-// Track popup impression
 function trackPopupEvent(slotName: string, eventType: string) {
   supabase.from("ad_impressions" as any).insert({
     slot_name: slotName,
@@ -33,21 +32,26 @@ function trackPopupEvent(slotName: string, eventType: string) {
   } as any).then(() => {});
 }
 
-// Safe ad renderer for popups
-const PopupAdRenderer = ({ html, slotName }: { html: string; slotName: string }) => {
-  const ref = React.useRef<HTMLDivElement>(null);
+// Prevent duplicate global script injection
+const injectedScripts = new Set<string>();
 
-  React.useEffect(() => {
+const PopupAdRenderer = ({ html, slotName }: { html: string; slotName: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
     if (!ref.current || !html) return;
     ref.current.innerHTML = html;
     const scripts = ref.current.querySelectorAll("script");
     scripts.forEach((old) => {
+      const src = old.getAttribute("src") || old.textContent || "";
+      const key = src.substring(0, 200);
+      if (injectedScripts.has(key)) { old.remove(); return; }
+      injectedScripts.add(key);
       const s = document.createElement("script");
       Array.from(old.attributes).forEach((a) => s.setAttribute(a.name, a.value));
       s.textContent = old.textContent;
       old.parentNode?.replaceChild(s, old);
     });
-    // Handle link clicks
     ref.current.querySelectorAll("a").forEach((link) => {
       if (!link.getAttribute("target")) link.setAttribute("target", "_blank");
       if (!link.getAttribute("rel")) link.setAttribute("rel", "noopener sponsored");
@@ -58,14 +62,15 @@ const PopupAdRenderer = ({ html, slotName }: { html: string; slotName: string })
   return <div ref={ref} className="w-full" />;
 };
 
-import React from "react";
-
-// ============ POPUP AD ============
 export const PopupAdOverlay = () => {
   const [popupAd, setPopupAd] = useState<PopupAdConfig | null>(null);
   const [show, setShow] = useState(false);
+  const loadedRef = useRef(false);
 
   useEffect(() => {
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+
     const loadPopupAds = async () => {
       const { data } = await supabase
         .from("ad_config")
@@ -74,7 +79,6 @@ export const PopupAdOverlay = () => {
         .eq("enabled", true);
       
       if (!data || data.length === 0) return;
-
       const device = window.innerWidth < 768 ? "mobile" : "desktop";
 
       for (const ad of data as any[]) {
@@ -83,11 +87,8 @@ export const PopupAdOverlay = () => {
         if (config.device_target && config.device_target !== "both" && config.device_target !== device) continue;
         if (hasSeenInSession(config.slot_name)) continue;
 
-        // Found a valid popup ad
         if (config.ad_type === "popup") {
           setPopupAd(config);
-          
-          // Trigger on first interaction
           const triggerType = config.trigger_type || "interaction";
           if (triggerType === "immediate") {
             setTimeout(() => {
@@ -96,7 +97,6 @@ export const PopupAdOverlay = () => {
               trackPopupEvent(config.slot_name, "impression");
             }, 3000);
           } else {
-            // interaction-based
             const handler = () => {
               setShow(true);
               markSeenInSession(config.slot_name);
@@ -113,24 +113,19 @@ export const PopupAdOverlay = () => {
         }
 
         if (config.ad_type === "popunder") {
-          // Popunder: open on first click or exit intent
           const handlePopunder = () => {
             if (hasSeenInSession(config.slot_name)) return;
             markSeenInSession(config.slot_name);
             trackPopupEvent(config.slot_name, "impression");
-            
-            // Open popunder in background
             const w = window.open("about:blank", "_blank");
             if (w && config.ad_code) {
               w.document.write(`<!DOCTYPE html><html><head><title>Sponsored</title></head><body style="margin:0;padding:20px;background:#111;color:#fff;font-family:sans-serif;">${config.ad_code}</body></html>`);
               w.document.close();
-              // Bring original window back to focus
               window.focus();
             }
             document.removeEventListener("click", handlePopunder);
           };
 
-          // Exit intent (mouseleave on desktop)
           const handleExitIntent = (e: MouseEvent) => {
             if (e.clientY <= 0) {
               handlePopunder();
