@@ -1,0 +1,1 @@
+UPDATE ad_config SET ad_type = 'popup', trigger_type = 'interaction', frequency_limit = 'once_per_session' WHERE slot_name = 'popup-global';
