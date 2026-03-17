@@ -40,6 +40,7 @@ const SEOHead = ({ title, description, canonical, keywords }: SEOHeadProps) => {
     return () => {
       document.title = "Free Reel Analyzer & Instagram Reel SEO Optimization Tool | ReelAnalyzer";
     };
+    // Note: canonical URLs should use reelsanylizer.in domain
   }, [title, description, canonical, keywords]);
 
   return null;
