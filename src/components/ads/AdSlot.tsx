@@ -224,8 +224,8 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
   // Loading
   if (ad === undefined) return null;
 
-  // Disabled or null
-  if (ad === null || !ad.enabled) return null;
+  // No ad configured — show placeholder with slot info so admin knows where to add ads
+  const hasAdCode = ad && ad.enabled && ad.ad_code;
 
   // Device targeting
   const device = getDeviceType();
