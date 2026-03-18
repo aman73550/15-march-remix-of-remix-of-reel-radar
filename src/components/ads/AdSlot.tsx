@@ -104,13 +104,42 @@ const SafeAdRenderer = ({ html, slotName, className = "" }: { html: string; slot
   return <div ref={containerRef} className={className} onClick={() => trackClick(slotName)} />;
 };
 
-// Placeholder
-const AdPlaceholder = ({ label = "Ad Space" }: { label?: string }) => (
-  <div className="w-full h-full bg-gradient-to-br from-muted/30 via-card to-muted/30 flex flex-col items-center justify-center gap-2 min-h-[60px]">
-    <div className="w-10 h-10 rounded-xl gradient-primary-bg opacity-20" />
-    <span className="text-[9px] text-muted-foreground/40">{label}</span>
-  </div>
-);
+// Standard ad dimensions for Adsterra/AdSense
+const SLOT_DIMENSIONS: Record<string, { w: number; h: number; label: string }> = {
+  "banner-top": { w: 728, h: 90, label: "Leaderboard" },
+  "banner-mid": { w: 728, h: 90, label: "Leaderboard" },
+  "banner-bottom": { w: 728, h: 90, label: "Leaderboard" },
+  "footer-above": { w: 728, h: 90, label: "Leaderboard" },
+  "footer-banner": { w: 468, h: 60, label: "Banner" },
+  "sidebar-left": { w: 160, h: 600, label: "Wide Skyscraper" },
+  "sidebar-right": { w: 160, h: 600, label: "Wide Skyscraper" },
+  "after-score": { w: 336, h: 280, label: "Large Rectangle" },
+  "mid-1": { w: 300, h: 250, label: "Medium Rectangle" },
+  "mid-2": { w: 300, h: 250, label: "Medium Rectangle" },
+  "mid-3": { w: 300, h: 250, label: "Medium Rectangle" },
+  "after-charts": { w: 336, h: 280, label: "Large Rectangle" },
+  "after-hooks": { w: 300, h: 250, label: "Medium Rectangle" },
+  "after-recommendations": { w: 336, h: 280, label: "Large Rectangle" },
+  "master-report-below": { w: 336, h: 280, label: "Large Rectangle" },
+  "processing-overlay": { w: 300, h: 250, label: "Medium Rectangle" },
+  "below-progress": { w: 468, h: 60, label: "Banner" },
+  "before-leaderboard": { w: 336, h: 280, label: "Large Rectangle" },
+  "before-reviews": { w: 300, h: 250, label: "Medium Rectangle" },
+  "share-gate-below": { w: 300, h: 250, label: "Medium Rectangle" },
+};
+
+// Placeholder with slot name + dimensions
+const AdPlaceholder = ({ slotName = "ad-slot" }: { slotName?: string }) => {
+  const dim = SLOT_DIMENSIONS[slotName];
+  return (
+    <div className="w-full h-full bg-gradient-to-br from-muted/20 via-card to-muted/20 flex flex-col items-center justify-center gap-1 min-h-[60px] border border-dashed border-border/40 rounded">
+      <span className="text-[10px] font-mono text-muted-foreground/50">{slotName}</span>
+      {dim && (
+        <span className="text-[9px] text-muted-foreground/35">{dim.w}×{dim.h} · {dim.label}</span>
+      )}
+    </div>
+  );
+};
 
 // Device check
 function getDeviceType(): "mobile" | "desktop" {
@@ -195,13 +224,13 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
   // Loading
   if (ad === undefined) return null;
 
-  // Disabled or null
-  if (ad === null || !ad.enabled) return null;
+  // No ad configured — show placeholder with slot info so admin knows where to add ads
+  const hasAdCode = ad && ad.enabled && ad.ad_code;
 
-  // Device targeting
+  // Device targeting — only hide if ad exists and targets different device
   const device = getDeviceType();
-  if (ad.device_target && ad.device_target !== "both") {
-    if (ad.device_target !== device) return null;
+  if (hasAdCode && ad!.device_target && ad!.device_target !== "both" && ad!.device_target !== device) {
+    return null;
   }
 
   // Error state
@@ -216,10 +245,10 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
           {labelText}
         </div>
         <div className="w-full h-[600px] flex items-center justify-center">
-          {ad.ad_code ? (
-            <SafeAdRenderer html={ad.ad_code} slotName={slot} className="w-full h-full" />
+           {hasAdCode ? (
+            <SafeAdRenderer html={ad!.ad_code!} slotName={slot} className="w-full h-full" />
           ) : (
-            <AdPlaceholder label={slot} />
+            <AdPlaceholder slotName={slot} />
           )}
         </div>
       </div>
@@ -235,10 +264,10 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
               {labelText}
             </div>
             <div className="w-full aspect-video sm:h-[120px] sm:aspect-auto flex items-center justify-center">
-              {ad.ad_code ? (
-                <SafeAdRenderer html={ad.ad_code} slotName={slot} className="w-full h-full flex items-center justify-center" />
+              {hasAdCode ? (
+                <SafeAdRenderer html={ad!.ad_code!} slotName={slot} className="w-full h-full flex items-center justify-center" />
               ) : (
-                <AdPlaceholder label={slot} />
+                <AdPlaceholder slotName={slot} />
               )}
             </div>
           </div>
@@ -254,10 +283,10 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
         Sponsored
       </div>
       <div className="w-full aspect-[16/7] sm:h-[80px] sm:aspect-auto flex items-center justify-center">
-        {ad.ad_code ? (
-          <SafeAdRenderer html={ad.ad_code} slotName={slot} className="w-full h-full flex items-center justify-center" />
+        {hasAdCode ? (
+          <SafeAdRenderer html={ad!.ad_code!} slotName={slot} className="w-full h-full flex items-center justify-center" />
         ) : (
-          <AdPlaceholder label={slot} />
+          <AdPlaceholder slotName={slot} />
         )}
       </div>
     </div>
