@@ -140,10 +140,10 @@ export const LiveActivityIndicator = () => {
 };
 
 export const ReelsAnalyzedCounter = () => {
-  const [count, setCount] = useState(getStoredCount);
+  const [count, setCount] = useState(getTodayCount);
   useEffect(() => {
-    const tick = () => setCount(tickCounter());
-    const id = setInterval(tick, 15000 + Math.random() * 30000);
+    const tick = () => setCount(tickTodayCounter());
+    const id = setInterval(tick, 12000 + Math.random() * 20000);
     return () => clearInterval(id);
   }, []);
 
@@ -151,8 +151,9 @@ export const ReelsAnalyzedCounter = () => {
     <motion.div className="flex items-center justify-center gap-2 text-xs text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}>
       <BarChart3 className="w-3.5 h-3.5 text-primary" />
       <span>
+        Today analyzed{" "}
         <span className="font-bold text-foreground">{count.toLocaleString()}</span>
-        {" "}reels analyzed with this tool
+        {" "}reels
       </span>
     </motion.div>
   );
