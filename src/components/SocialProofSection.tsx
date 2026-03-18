@@ -76,42 +76,47 @@ function generateEntry() {
   };
 }
 
-// --- Reels Counter (grows organically over time) ---
-const BASE_COUNT = 48750;
-const STORAGE_KEY = "rva_reel_counter";
-const COUNTER_TS_KEY = "rva_counter_ts";
+// --- Today's Reels Counter (resets daily, drifts naturally) ---
+const TODAY_COUNTER_KEY = "rva_today_counter";
+const TODAY_DATE_KEY = "rva_today_date";
 
-function getStoredCount(): number {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY);
-    const ts = localStorage.getItem(COUNTER_TS_KEY);
-    if (v && ts) {
-      const stored = parseInt(v, 10);
-      const elapsed = Date.now() - parseInt(ts, 10);
-      const organic = Math.floor(elapsed / 1000 / 60 * (2 + Math.random() * 2));
-      const total = Math.max(BASE_COUNT, stored + organic);
-      localStorage.setItem(STORAGE_KEY, String(total));
-      localStorage.setItem(COUNTER_TS_KEY, String(Date.now()));
-      return total;
-    }
-  } catch {}
-  try {
-    localStorage.setItem(STORAGE_KEY, String(BASE_COUNT));
-    localStorage.setItem(COUNTER_TS_KEY, String(Date.now()));
-  } catch {}
-  return BASE_COUNT;
+function getTodayString(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
-function tickCounter(): number {
+function getTodayCount(): number {
   try {
-    const current = parseInt(localStorage.getItem(STORAGE_KEY) || String(BASE_COUNT), 10);
+    const storedDate = localStorage.getItem(TODAY_DATE_KEY);
+    const today = getTodayString();
+    if (storedDate === today) {
+      return parseInt(localStorage.getItem(TODAY_COUNTER_KEY) || "320", 10);
+    }
+    // New day — reset with random base
+    const base = 280 + Math.floor(Math.random() * 150);
+    localStorage.setItem(TODAY_DATE_KEY, today);
+    localStorage.setItem(TODAY_COUNTER_KEY, String(base));
+    return base;
+  } catch {}
+  return 320;
+}
+
+function tickTodayCounter(): number {
+  try {
+    const today = getTodayString();
+    const storedDate = localStorage.getItem(TODAY_DATE_KEY);
+    if (storedDate !== today) {
+      const base = 280 + Math.floor(Math.random() * 150);
+      localStorage.setItem(TODAY_DATE_KEY, today);
+      localStorage.setItem(TODAY_COUNTER_KEY, String(base));
+      return base;
+    }
+    const current = parseInt(localStorage.getItem(TODAY_COUNTER_KEY) || "320", 10);
     const bump = Math.floor(Math.random() * 3) + 1;
     const next = current + bump;
-    localStorage.setItem(STORAGE_KEY, String(next));
-    localStorage.setItem(COUNTER_TS_KEY, String(Date.now()));
+    localStorage.setItem(TODAY_COUNTER_KEY, String(next));
     return next;
   } catch {}
-  return BASE_COUNT;
+  return 320;
 }
 
 // --- Components ---
