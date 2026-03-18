@@ -245,10 +245,10 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
           {labelText}
         </div>
         <div className="w-full h-[600px] flex items-center justify-center">
-          {ad.ad_code ? (
+           {ad.ad_code ? (
             <SafeAdRenderer html={ad.ad_code} slotName={slot} className="w-full h-full" />
           ) : (
-            <AdPlaceholder label={slot} />
+            <AdPlaceholder slotName={slot} />
           )}
         </div>
       </div>
