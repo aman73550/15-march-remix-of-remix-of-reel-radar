@@ -206,7 +206,6 @@ const SocialProofSection = () => (
   <motion.div className="relative z-10 max-w-xl mx-auto px-4 py-4 space-y-3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7, duration: 0.5 }}>
     <LiveActivityIndicator />
     <ReelsAnalyzedCounter />
-    <ActivityFeed />
   </motion.div>
 );
 

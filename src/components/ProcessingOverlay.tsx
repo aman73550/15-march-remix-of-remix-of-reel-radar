@@ -122,8 +122,8 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
               </h2>
             </div>
 
-            {/* Progress bar */}
-            <div className="space-y-2">
+            {/* Progress bar - ALWAYS visible, not inside scrollable area */}
+            <div className="space-y-2 sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-2 -mx-6 px-6 sm:-mx-8 sm:px-8 rounded-lg">
               <div className="w-full h-3 rounded-full bg-muted/50 border border-border overflow-hidden">
                 <motion.div
                   className="h-full rounded-full instagram-progress-bg"
@@ -135,11 +135,6 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
                 <span>{Math.round(progress)}%</span>
                 <span>{progress >= 100 ? "Done" : `~${Math.max(0, Math.round(TOTAL_DURATION - (progress / 100) * TOTAL_DURATION))}s remaining`}</span>
               </div>
-            </div>
-
-            {/* Ad below progress bar */}
-            <div className="-mx-6 sm:mx-0">
-              <BannerAd slot="below-progress" />
             </div>
 
             {/* Status steps */}
@@ -174,14 +169,14 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
               })}
             </div>
 
+            {/* Ad below progress — clearly separated */}
+            <div className="-mx-6 sm:mx-0">
+              <BannerAd slot="below-progress" />
+            </div>
+
             {/* Ad area */}
             <div className="-mx-6 sm:mx-0">
               <BannerAd slot="processing-overlay" />
-            </div>
-
-            {/* Banner ad */}
-            <div className="-mx-6 sm:mx-0">
-              <BannerAd slot="banner-bottom" />
             </div>
 
             {/* Disclaimer */}
