@@ -227,10 +227,10 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
   // No ad configured — show placeholder with slot info so admin knows where to add ads
   const hasAdCode = ad && ad.enabled && ad.ad_code;
 
-  // Device targeting
+  // Device targeting — only hide if ad exists and targets different device
   const device = getDeviceType();
-  if (ad.device_target && ad.device_target !== "both") {
-    if (ad.device_target !== device) return null;
+  if (hasAdCode && ad!.device_target && ad!.device_target !== "both" && ad!.device_target !== device) {
+    return null;
   }
 
   // Error state
