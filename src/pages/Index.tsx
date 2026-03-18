@@ -26,7 +26,7 @@ import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
 import ShareToolPopup from "@/components/ShareToolPopup";
 import ShareUnlockScreen from "@/components/ShareUnlockScreen";
-import SocialProofSection from "@/components/SocialProofSection";
+import SocialProofSection, { SocialProofBadge } from "@/components/SocialProofSection";
 import SampleAnalysisPreview from "@/components/SampleAnalysisPreview";
 import ViralReelsShowcase from "@/components/ViralReelsShowcase";
 import TrendingLeaderboard from "@/components/TrendingLeaderboard";
@@ -47,7 +47,7 @@ import InternalLinks from "@/components/InternalLinks";
 import Footer from "@/components/Footer";
 import AnalysisPaymentPopup from "@/components/AnalysisPaymentPopup";
 import type { ReelAnalysis } from "@/lib/types";
-import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown, Zap, BarChart3, Globe, Users } from "lucide-react";
+import { Loader2, Link, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
 
 const Index = () => {
   const [url, setUrl] = useState("");
@@ -106,8 +106,11 @@ const Index = () => {
         body: bodyPayload,
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
+      // Handle payment_required response from backend
       if (!data?.success && data?.error === "payment_required") {
         setAnalysisPrice(data.price || 10);
         setShowInterstitial(false);
@@ -152,6 +155,7 @@ const Index = () => {
       return;
     }
 
+    // Client-side URL validation
     const urlPattern = /^https?:\/\/(www\.)?(instagram\.com|instagr\.am)\/(reel|reels|p)\//i;
     if (!urlPattern.test(trimmedUrl)) {
       toast({ title: "Invalid URL", description: "Please enter a valid Instagram Reel URL (e.g., https://www.instagram.com/reel/...)", variant: "destructive" });
@@ -162,6 +166,7 @@ const Index = () => {
       return;
     }
 
+    // Validate optional metrics
     const numFields = [likes, comments, views, shares, saves];
     for (const val of numFields) {
       if (val && (isNaN(Number(val)) || Number(val) < 0)) {
@@ -170,12 +175,16 @@ const Index = () => {
       }
     }
 
+    // Usage limit check
     if (!canAnalyze()) {
       setShowShareGate(true);
       return;
     }
 
-    if (checkTriggers()) return;
+    // Behaviour trigger check (blocks analysis if triggered, reward loop ensures next attempt succeeds)
+    if (checkTriggers()) {
+      return;
+    }
 
     setShowShareGate(false);
     setShowInterstitial(true);
@@ -184,10 +193,12 @@ const Index = () => {
 
   const handleTriggerRetry = () => {
     dismissTrigger();
+    // After seeing trigger, next attempt always succeeds (reward loop)
     setShowInterstitial(true);
     runAnalysis();
   };
 
+  // Build chart data from new structure
   const scores = analysis
     ? {
         hook: analysis.hookAnalysis?.score ?? analysis.hookScore ?? 0,
@@ -213,6 +224,7 @@ const Index = () => {
       <MobileBottomNav />
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
 
+      {/* Behaviour Trigger Overlay */}
       {activeTrigger && (
         <BehaviourTriggerDisplay
           trigger={activeTrigger.trigger}
@@ -223,133 +235,68 @@ const Index = () => {
         />
       )}
 
-      {/* Background */}
+      {/* Hero Background with Instagram Collage */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-background" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,hsl(var(--primary)/0.12),transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_80%_50%,hsl(var(--secondary)/0.06),transparent)]" />
+        {/* Collage background image */}
+        <div 
+          className="absolute inset-0 hero-bg-collage"
+          style={{ backgroundImage: "url('/images/hero-bg.png')" }}
+        />
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
+        {/* Animated gradient orbs on top */}
+        <motion.div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-primary/10 blur-[120px]" animate={{ x: [0, 50, 0], y: [0, -30, 0] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }} />
+        <motion.div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-secondary/10 blur-[120px]" animate={{ x: [0, -40, 0], y: [0, 40, 0] }} transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} />
+        <motion.div className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full bg-accent/5 blur-[100px]" animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} />
       </div>
 
-      {/* ─── HERO ─── */}
+
+      {/* Hero */}
       <div className="relative z-10">
-        <motion.div
-          className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-4 sm:pb-6 text-center"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          {/* Pill badge */}
-          <motion.div
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-xs font-medium text-primary mb-6"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Zap className="w-3.5 h-3.5" />
+        <motion.div className="max-w-2xl mx-auto px-3 sm:px-4 pt-10 sm:pt-14 pb-6 sm:pb-8 text-center" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+          <motion.div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-muted/50 text-xs text-muted-foreground mb-6" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
+            <Sparkles className="w-3 h-3" />
             {t.badge}
           </motion.div>
-
-          {/* Headline */}
-          <motion.h1
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-foreground mb-4 sm:mb-5"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
+          <motion.h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-foreground mb-2 sm:mb-3 tracking-tight leading-tight" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
             {t.title1}
-            <br className="hidden sm:block" />
             <span className="gradient-primary">{t.title2}</span>
           </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
+          <motion.p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
             {t.subtitle}
           </motion.p>
-
-          {/* Stats row */}
-          <motion.div
-            className="flex items-center justify-center gap-4 sm:gap-8 mt-6 sm:mt-8 flex-wrap"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Users className="w-4 h-4 text-primary" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm sm:text-base font-bold text-foreground">48,000+</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Creators</p>
-              </div>
-            </div>
-            <div className="w-px h-8 bg-border/50 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
-                <BarChart3 className="w-4 h-4 text-secondary" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm sm:text-base font-bold text-foreground">2.5M+</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Reels Analyzed</p>
-              </div>
-            </div>
-            <div className="w-px h-8 bg-border/50 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                <Globe className="w-4 h-4 text-accent" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm sm:text-base font-bold text-foreground">120+</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Countries</p>
-              </div>
-            </div>
-          </motion.div>
+          <div className="mt-3">
+            <SocialProofBadge />
+          </div>
         </motion.div>
       </div>
 
-      {/* ─── INPUT CARD ─── */}
-      <motion.div
-        ref={inputRef}
-        className="relative z-10 max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-6 pb-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-      >
-        <Card className="glass p-5 sm:p-6 space-y-4 shadow-2xl shadow-primary/5 border-border/50">
-          {/* URL input */}
+      {/* Input — URL only */}
+      <motion.div ref={inputRef} className="relative z-10 max-w-xl lg:max-w-2xl mx-auto px-3 sm:px-4 pb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+        <Card className="glass p-4 sm:p-5 space-y-3">
+          {/* URL input - always visible */}
           <div className="relative">
-            <Link className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder={t.urlPlaceholder}
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="pl-10 bg-muted/50 border-border h-12 text-sm"
-            />
+            <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/70" />
+            <Input placeholder={t.urlPlaceholder} value={url} onChange={(e) => setUrl(e.target.value)} className="pl-9 bg-muted/50 border-border h-11" />
           </div>
 
-          {/* Add More Details */}
-          <button
-            type="button"
-            onClick={() => setShowDetails(!showDetails)}
-            className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg bg-muted/30 border border-border/50 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
+          {/* Add More Details toggle */}
+          <button type="button" onClick={() => setShowDetails(!showDetails)} className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-muted/30 border border-border text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <span className="flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3" />
               ⚡ Boost Accuracy — Add Details (Highly Recommended!)
             </span>
-            {showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {showDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
+          {/* Collapsible details section */}
           <AnimatePresence>
             {showDetails && (
               <motion.div className="space-y-3" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }}>
                 <Input placeholder={t.captionPlaceholder} value={caption} onChange={(e) => setCaption(e.target.value)} className="bg-muted/50 border-border h-10 text-sm" />
                 <Input placeholder={t.hashtagPlaceholder} value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-muted/50 border-border h-10 text-sm" />
 
+                {/* Engagement Metrics sub-section */}
                 <button type="button" onClick={() => setShowMetrics(!showMetrics)} className="w-full flex items-center justify-between px-3 py-2 rounded-md bg-muted/20 border border-border/50 text-xs text-muted-foreground hover:text-foreground transition-colors">
                   <span>{t.metricsLabel}</span>
                   {showMetrics ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -373,32 +320,46 @@ const Index = () => {
             )}
           </AnimatePresence>
 
-          <Button
-            onClick={handleAnalyze}
-            disabled={loading}
-            className="w-full h-12 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity text-sm sm:text-base rounded-lg"
-          >
-            {loading ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>
-            ) : (
-              <><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>
-            )}
-          </Button>
+          <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
+            <Button onClick={handleAnalyze} disabled={loading} className="w-full h-12 sm:h-11 gradient-primary-bg text-primary-foreground font-semibold shadow-glow hover:opacity-90 transition-opacity text-sm sm:text-base">
+              {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
+            </Button>
+          </motion.div>
 
-          <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
-            <span>{remaining > 0 ? `${remaining} free analyses left` : "Share to unlock more"}</span>
-            <span className="w-px h-3 bg-border" />
-            <span>No login required</span>
-          </div>
+          <p className="text-center text-[10px] text-muted-foreground">
+            {remaining > 0 ? `${remaining} free analysis${remaining !== 1 ? "es" : ""} remaining` : "No free analyses remaining — share to unlock more"}
+          </p>
+          <p className="text-center text-[10px] text-muted-foreground/60">
+            No login required • Auto-extracts data if you skip optional fields
+          </p>
         </Card>
       </motion.div>
 
-      {/* Share Unlock Gate */}
+      {/* Share Unlock Gate - Full screen modal with blur */}
       <AnimatePresence>
         {showShareGate && (
-          <motion.div className="fixed inset-0 z-[60] flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="absolute inset-0 bg-background/70 backdrop-blur-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowShareGate(false)} />
-            <motion.div className="relative z-10 w-full max-w-xl" initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} transition={{ type: "spring", stiffness: 300, damping: 25 }}>
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Blurred backdrop */}
+            <motion.div
+              className="absolute inset-0 bg-background/70 backdrop-blur-md"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowShareGate(false)}
+            />
+            {/* Modal content */}
+            <motion.div
+              className="relative z-10 w-full max-w-xl"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
               <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
             </motion.div>
           </motion.div>
@@ -415,32 +376,47 @@ const Index = () => {
         />
       )}
 
-      {/* Social Proof (live counters) */}
+      {/* Social Proof Section */}
       {!analysis && !showShareGate && <div className="relative z-10"><SocialProofSection /></div>}
 
       <div className="relative z-10 py-4"><BannerAd slot="banner-top" /></div>
 
+      {/* Mid Banner */}
       {!analysis && <div className="relative z-10 py-2"><BannerAd slot="banner-mid" /></div>}
 
-      {/* ─── RESULTS ─── */}
+      {/* Results */}
       <AnimatePresence>
         {analysis && scores && (
           <motion.div className="relative z-10 max-w-2xl mx-auto px-3 sm:px-4 pb-16 space-y-4 sm:space-y-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="flex justify-center" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-              <button onClick={scrollToMasterReport} className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full gradient-primary-bg text-primary-foreground font-semibold text-xs sm:text-sm shadow-glow hover:opacity-90 transition-opacity">
+            {/* Master Report Quick Access Button */}
+            <motion.div
+              className="flex justify-center"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <button
+                onClick={scrollToMasterReport}
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full gradient-primary-bg text-primary-foreground font-semibold text-xs sm:text-sm shadow-glow hover:opacity-90 transition-opacity"
+              >
                 <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Get Master Report
                 <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </motion.div>
 
+            {/* Auto-extracted badge */}
             <motion.div className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full bg-[hsl(var(--viral-high))]/10 border border-[hsl(var(--viral-high))]/20 mx-auto w-fit" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
               <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[hsl(var(--viral-high))] flex-shrink-0" />
               <span className="text-[10px] sm:text-xs font-medium text-[hsl(var(--viral-high))] text-center">Auto-Analyzed • Data Extracted Automatically</span>
             </motion.div>
 
-            {analysis.viralClassification && <ViralStatusBadge classification={analysis.viralClassification} />}
+            {/* Viral Status Badge */}
+            {analysis.viralClassification && (
+              <ViralStatusBadge classification={analysis.viralClassification} />
+            )}
 
+            {/* Viral Score + Preview */}
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
               <motion.div className="sm:col-span-3" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
                 <Card className="glass p-5 sm:p-8 flex flex-col items-center h-full justify-center">
@@ -457,12 +433,14 @@ const Index = () => {
 
             <InlineAd slot="after-score" />
 
+            {/* Metrics Comparison */}
             {analysis.metricsComparison && Object.keys(analysis.metricsComparison).length > 0 && (
               <MetricsComparison metrics={analysis.metricsComparison} />
             )}
 
             <InlineAd slot="mid-1" />
 
+            {/* Charts */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
                 <Card className="glass p-5">
@@ -478,6 +456,7 @@ const Index = () => {
               </motion.div>
             </div>
 
+            {/* Radar Chart + Engagement Donut */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
                 <Card className="glass p-5">
@@ -502,19 +481,30 @@ const Index = () => {
 
             <InlineAd slot="after-charts" />
 
-            {analysis.patternComparison && <ViralPatternCard data={analysis.patternComparison} />}
-            {analysis.contentClassification && <ContentClassificationCard data={analysis.contentClassification} thumbnailAnalyzed={analysis.thumbnailAnalyzed} />}
+            {analysis.patternComparison && (
+              <ViralPatternCard data={analysis.patternComparison} />
+            )}
+
+            {analysis.contentClassification && (
+              <ContentClassificationCard data={analysis.contentClassification} thumbnailAnalyzed={analysis.thumbnailAnalyzed} />
+            )}
+
             {analysis.hookAnalysis && <HookAnalysisCard data={analysis.hookAnalysis} title={t.hookTitle} />}
             {analysis.captionAnalysis && <CaptionAnalysisCard data={analysis.captionAnalysis} title={t.captionTitle} />}
             {analysis.hashtagAnalysis && <HashtagAnalysisCard data={analysis.hashtagAnalysis} title={t.hashtagTitle} />}
 
             <InlineAd slot="after-hooks" />
+
             <InlineAd slot="mid-2" />
 
             {analysis.videoSignals && <VideoSignalsCard data={analysis.videoSignals} title={t.videoTitle} />}
-            {(analysis.videoQuality || analysis.audioQuality) && <QualitySignalsCard videoQuality={analysis.videoQuality} audioQuality={analysis.audioQuality} />}
+            {(analysis.videoQuality || analysis.audioQuality) && (
+              <QualitySignalsCard videoQuality={analysis.videoQuality} audioQuality={analysis.audioQuality} />
+            )}
             {analysis.trendMatching && <TrendMatchingCard data={analysis.trendMatching} title={t.trendTitle} />}
+
             <AnalysisCard icon="📊" title={t.engagementTitle} score={scores.engagement} details={analysis.engagementDetails || []} index={0} />
+
             {analysis.commentSentiment && <CommentSentiment sentiment={analysis.commentSentiment} />}
 
             <InlineAd slot="mid-3" />
@@ -535,12 +525,17 @@ const Index = () => {
 
             <InlineAd slot="after-recommendations" />
 
+            {/* Master Report CTA */}
             <div ref={masterReportRef}>
               <MasterReportButton analysis={analysis} reelUrl={url} />
             </div>
 
             <InlineAd slot="master-report-below" />
+
+            {/* Example PDF Preview */}
             <ExamplePDFPreview />
+
+            {/* Feedback Rating */}
             <FeedbackRating reelUrl={url} />
 
             <motion.div className="flex flex-col items-center gap-3 text-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
@@ -556,7 +551,6 @@ const Index = () => {
         )}
       </AnimatePresence>
 
-      {/* ─── PRE-ANALYSIS CONTENT ─── */}
       {!analysis && (
         <div className="relative z-10 space-y-2">
           <TrustBadges />
@@ -568,21 +562,22 @@ const Index = () => {
           <UserReviews />
 
           {/* SEO Content Block */}
-          <section className="relative z-10 max-w-2xl mx-auto px-4 py-8 space-y-5">
-            <h2 className="text-lg font-bold text-foreground">Free Instagram Reel Analyzer & SEO Optimization Tool</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              ReelAnalyzer is a free AI-powered tool that helps Instagram creators analyze their reel performance, predict viral potential, and optimize content for maximum reach. Paste any Instagram reel URL and get instant insights on hook strength, caption quality, hashtag effectiveness, engagement metrics, and trend alignment.
+          <section className="relative z-10 max-w-2xl mx-auto px-4 py-6 space-y-4">
+            <h2 className="text-base font-bold text-foreground">Free Instagram Reel Analyzer & SEO Optimization Tool</h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              ReelAnalyzer is a free AI-powered tool that helps Instagram creators analyze their reel performance, predict viral potential, and optimize content for maximum reach. Paste any Instagram reel URL and get instant insights on hook strength, caption quality, hashtag effectiveness, engagement metrics, and trend alignment. Whether you're a beginner or a professional content creator, our reel analytics tool gives you data-driven recommendations to improve every reel you post.
             </p>
             <h3 className="text-sm font-semibold text-foreground">How Does Reel Analysis Help Your Growth?</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Creators who analyze their reels before posting see 2-3x better engagement rates. Our reel performance analyzer checks your hook timing, caption SEO, hashtag competition levels, and content classification to identify exactly what's working and what needs improvement.
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Creators who analyze their reels before posting see 2-3x better engagement rates. Our reel performance analyzer checks your hook timing, caption SEO, hashtag competition levels, and content classification to identify exactly what's working and what needs improvement. The viral score prediction uses AI pattern matching against thousands of high-performing reels to estimate your content's viral probability.
             </p>
             <h3 className="text-sm font-semibold text-foreground">Reel SEO Optimization & Hashtag Strategy</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Instagram has become a search engine — users search for topics, tutorials, and trends directly on the platform. Our reel SEO optimizer helps you generate keyword-rich titles, optimized captions, and strategic hashtag sets so Instagram's algorithm can properly categorize and distribute your content.
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Instagram has become a search engine — users search for topics, tutorials, and trends directly on the platform. Our reel SEO optimizer helps you generate keyword-rich titles, optimized captions, and strategic hashtag sets so Instagram's algorithm can properly categorize and distribute your content to the right audience.
             </p>
           </section>
 
+          {/* Internal Links */}
           <InternalLinks currentPath="/" />
 
           <div className="py-8 space-y-4">
