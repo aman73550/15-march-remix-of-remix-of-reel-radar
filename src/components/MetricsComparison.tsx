@@ -58,13 +58,14 @@ const MetricsComparison = ({ metrics }: MetricsComparisonProps) => {
                 }}
                 itemStyle={{ color: "hsl(210, 20%, 95%)" }}
                 labelStyle={{ color: "hsl(210, 20%, 80%)" }}
+                formatter={(value: number) => value?.toLocaleString() ?? "0"}
               />
               <Legend
                 wrapperStyle={{ fontSize: "11px" }}
                 formatter={(value: string) => <span style={{ color: "hsl(210, 20%, 75%)" }}>{value}</span>}
               />
-              <Bar dataKey="yours" name={t.yours} fill="hsl(340, 82%, 55%)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="average" name={t.categoryAvg} fill="hsl(215, 15%, 45%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="yours" name={t.yours} fill="hsl(340, 82%, 55%)" radius={[4, 4, 0, 0]} minPointSize={4} />
+              <Bar dataKey="average" name={t.categoryAvg} fill="hsl(215, 15%, 45%)" radius={[4, 4, 0, 0]} minPointSize={4} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -79,7 +80,7 @@ const MetricsComparison = ({ metrics }: MetricsComparisonProps) => {
               transition={{ delay: 0.4 + i * 0.1 }}
             >
               <p className="text-xs text-muted-foreground mb-1">{item.name}</p>
-              <p className="text-lg font-bold text-foreground">{item.yours.toLocaleString()}</p>
+              <p className="text-lg font-bold text-foreground">{(item.yours ?? 0).toLocaleString()}</p>
               <p className="text-[10px] mt-1" style={{ color: getVerdictColor(item.verdict) }}>
                 {item.verdict}
               </p>
