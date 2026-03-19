@@ -554,10 +554,8 @@ const Index = () => {
       {!analysis && (
         <div className="relative z-10 space-y-2">
           <TrustBadges />
-          <ViralReelsShowcase onAnalyzeClick={scrollToInput} />
           <SampleAnalysisPreview />
           <InlineAd slot="before-leaderboard" />
-          <TrendingLeaderboard onScrollToInput={scrollToInput} />
           <InlineAd slot="before-reviews" />
           <UserReviews />
 
