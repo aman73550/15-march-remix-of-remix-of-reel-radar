@@ -217,6 +217,9 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
     }
   }, [ad, visible, slot]);
 
+  // Never render ads on admin pages
+  if (isAdmin) return null;
+
   // Not visible yet (lazy)
   if (!visible) {
     return <div ref={sentinelRef} className={`min-h-[50px] ${className}`} />;
