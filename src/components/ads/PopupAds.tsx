@@ -68,6 +68,8 @@ export const PopupAdOverlay = () => {
   const loadedRef = useRef(false);
 
   useEffect(() => {
+    // Skip ads on admin pages
+    if (window.location.pathname.startsWith("/bosspage")) return;
     if (loadedRef.current) return;
     loadedRef.current = true;
 

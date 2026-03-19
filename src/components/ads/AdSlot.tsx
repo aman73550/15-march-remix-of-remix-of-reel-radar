@@ -256,6 +256,8 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
   }
 
   if (variant === "banner") {
+    const dim = SLOT_DIMENSIONS[slot];
+    const minH = dim ? `${dim.h}px` : "90px";
     return (
       <div className={`w-full relative z-10 ${className}`}>
         <div className="w-full px-0 sm:px-4 sm:max-w-2xl sm:mx-auto">
@@ -263,9 +265,9 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
             <div className="text-center text-[10px] text-muted-foreground/60 py-0.5 bg-muted/20 border-b border-border">
               {labelText}
             </div>
-            <div className="w-full aspect-video sm:h-[120px] sm:aspect-auto flex items-center justify-center">
+            <div className="w-full flex items-center justify-center" style={{ minHeight: minH }}>
               {hasAdCode ? (
-                <SafeAdRenderer html={ad!.ad_code!} slotName={slot} className="w-full h-full flex items-center justify-center" />
+                <SafeAdRenderer html={ad!.ad_code!} slotName={slot} className="w-full flex items-center justify-center" />
               ) : (
                 <AdPlaceholder slotName={slot} />
               )}
@@ -277,14 +279,16 @@ export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = t
   }
 
   // inline (default)
+  const dimInline = SLOT_DIMENSIONS[slot];
+  const minHInline = dimInline ? `${dimInline.h}px` : "250px";
   return (
     <div className={`w-full sm:rounded-lg border-y sm:border border-border bg-card overflow-hidden ${className}`}>
       <div className="text-center text-[10px] text-muted-foreground/50 py-0.5 bg-muted/20 border-b border-border">
         Sponsored
       </div>
-      <div className="w-full aspect-[16/7] sm:h-[80px] sm:aspect-auto flex items-center justify-center">
+      <div className="w-full flex items-center justify-center" style={{ minHeight: minHInline }}>
         {hasAdCode ? (
-          <SafeAdRenderer html={ad!.ad_code!} slotName={slot} className="w-full h-full flex items-center justify-center" />
+          <SafeAdRenderer html={ad!.ad_code!} slotName={slot} className="w-full flex items-center justify-center" />
         ) : (
           <AdPlaceholder slotName={slot} />
         )}
