@@ -156,9 +156,7 @@ interface AdSlotProps {
 }
 
 export const AdSlot = ({ slot, variant = "inline", className = "", showLabel = true, lazy = true }: AdSlotProps) => {
-  // Never render ads on admin pages
-  if (typeof window !== "undefined" && window.location.pathname.startsWith("/bosspage")) return null;
-
+  const isAdmin = typeof window !== "undefined" && window.location.pathname.startsWith("/bosspage");
   const [ad, setAd] = useState<AdConfig | null | undefined>(undefined);
   const [visible, setVisible] = useState(!lazy);
   const [hasError, setHasError] = useState(false);
