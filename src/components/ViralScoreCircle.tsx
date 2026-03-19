@@ -60,7 +60,7 @@ const ViralScoreCircle = ({ score }: ViralScoreCircleProps) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          <span className="text-3xl sm:text-5xl font-bold text-foreground">{displayScore}</span>
+          <span className="text-3xl sm:text-5xl font-bold text-foreground">{displayScore}<span className="text-base sm:text-lg text-muted-foreground font-normal">/80</span></span>
         </motion.div>
       </div>
       <motion.span

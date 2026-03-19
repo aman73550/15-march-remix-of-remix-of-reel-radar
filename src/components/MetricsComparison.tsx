@@ -80,7 +80,7 @@ const MetricsComparison = ({ metrics }: MetricsComparisonProps) => {
               transition={{ delay: 0.4 + i * 0.1 }}
             >
               <p className="text-xs text-muted-foreground mb-1">{item.name}</p>
-              <p className="text-lg font-bold text-foreground">{item.yours.toLocaleString()}</p>
+              <p className="text-lg font-bold text-foreground">{(item.yours ?? 0).toLocaleString()}</p>
               <p className="text-[10px] mt-1" style={{ color: getVerdictColor(item.verdict) }}>
                 {item.verdict}
               </p>

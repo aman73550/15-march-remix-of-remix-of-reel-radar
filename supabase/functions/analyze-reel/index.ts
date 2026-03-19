@@ -1451,27 +1451,47 @@ Return ONLY valid JSON (no markdown, no code fences):
       const trendS = (analysis.trendMatching?.score ?? 5) / 8;
 
       if (hasMetrics) {
-        // Has metrics but low — blend content quality with actual metrics
-        const engS = Math.min(1, engRate / 0.05);
-        const viewS = Math.min(1, viewsVal / 5000);
-        const comS = Math.min(1, commentsVal / 100);
-        // Content quality weighted 60%, metrics 40%
-        viralScore = Math.min(80, Math.max(5, Math.round(
-          (hookS * 18 + capS * 14 + hashS * 10 + trendS * 8 + engS * 12 + viewS * 10 + comS * 8) + totalBonus
+        // Has metrics but low — content quality is primary, metrics provide small signal
+        // Use diminishing returns so low metrics don't crush the score
+        const engS = Math.min(1, engRate / 0.04);
+        const viewS = viewsVal > 0 ? Math.min(1, Math.log10(viewsVal + 1) / Math.log10(10000)) : 0;
+        const likeS = likesVal > 0 ? Math.min(1, Math.log10(likesVal + 1) / Math.log10(5000)) : 0;
+        const comS = commentsVal > 0 ? Math.min(1, Math.log10(commentsVal + 1) / Math.log10(500)) : 0;
+
+        // Content quality weighted 70%, metrics 30% for low-metric reels
+        viralScore = Math.min(80, Math.max(8, Math.round(
+          (hookS * 20 + capS * 16 + hashS * 12 + trendS * 12 + engS * 8 + viewS * 6 + likeS * 4 + comS * 2) + totalBonus
         )));
-        viralStatus = viralScore >= 40 ? "Growing" : "Low Viral Potential";
-        if (viewsVal > 0 && viewsVal < 1000) {
-          reasons.push("Low view count — reel may still be in early distribution phase");
+
+        // More nuanced status for low-view reels
+        if (viralScore >= 45) {
+          viralStatus = "High Potential";
+        } else if (viralScore >= 30) {
+          viralStatus = "Growing Potential";
+        } else {
+          viralStatus = "Needs Improvement";
         }
-        if (likesVal > 0 && likesVal < 100) {
-          reasons.push("Low likes — content needs stronger hook or wider reach");
+
+        if (viewsVal > 0 && viewsVal < 1000) {
+          reasons.push("Low view count — reel is still in early distribution phase, content quality can still push it");
+        }
+        if (likesVal > 0 && likesVal < 100 && engRate > 0.02) {
+          reasons.push("Decent engagement rate despite low reach — algorithm may still push this content");
+        } else if (likesVal > 0 && likesVal < 100) {
+          reasons.push("Low engagement — stronger hook and better hashtags could improve reach");
         }
       } else {
         // No metrics at all — pure content quality analysis
-        viralScore = Math.min(80, Math.max(10, Math.round(
+        viralScore = Math.min(80, Math.max(12, Math.round(
           (hookS * 25 + capS * 20 + hashS * 15 + trendS * 20) + totalBonus
         )));
-        viralStatus = viralScore >= 45 ? "Growing" : "Low Viral Potential";
+        if (viralScore >= 45) {
+          viralStatus = "High Potential";
+        } else if (viralScore >= 30) {
+          viralStatus = "Growing Potential";
+        } else {
+          viralStatus = "Needs Improvement";
+        }
         if (reasons.length === 0) {
           if (analysis.hookAnalysis?.score >= 5) reasons.push("Decent hook potential");
           if (analysis.captionAnalysis?.score >= 5) reasons.push("Caption has engagement potential");
