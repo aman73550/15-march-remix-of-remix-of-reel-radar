@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { SEO_ARTICLES } from "@/lib/seoArticles";
 
 const TOOL_LINKS = [
   { path: "/reel-analyzer", label: "Reel Analyzer", desc: "Analyze reel viral potential" },
@@ -21,6 +22,12 @@ const BLOG_LINKS = [
   { path: "/blog/how-reel-seo-works", label: "How Reel SEO Works in Instagram Algorithm" },
 ];
 
+// Top guide links from programmatic SEO
+const GUIDE_LINKS = Object.values(SEO_ARTICLES).slice(0, 8).map((a) => ({
+  path: `/guides/${a.slug}`,
+  label: a.h1.replace(/^(How to |Why |The |Instagram )/, ""),
+}));
+
 interface InternalLinksProps {
   currentPath?: string;
   showBlog?: boolean;
@@ -34,11 +41,7 @@ const InternalLinks = ({ currentPath, showBlog = true, compact = false }: Intern
     return (
       <div className="flex flex-wrap gap-2 justify-center">
         {filteredTools.slice(0, 4).map(link => (
-          <Link
-            key={link.path}
-            to={link.path}
-            className="text-[10px] sm:text-xs px-3 py-1.5 rounded-full border border-border bg-muted/30 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
-          >
+          <Link key={link.path} to={link.path} className="text-[10px] sm:text-xs px-3 py-1.5 rounded-full border border-border bg-muted/30 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors">
             {link.label}
           </Link>
         ))}
@@ -53,11 +56,7 @@ const InternalLinks = ({ currentPath, showBlog = true, compact = false }: Intern
         <h2 className="text-sm font-bold text-foreground mb-3">Free Reel Analysis Tools</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {filteredTools.map(link => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className="group flex items-center justify-between px-3 py-2.5 rounded-lg border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/5 transition-all"
-            >
+            <Link key={link.path} to={link.path} className="group flex items-center justify-between px-3 py-2.5 rounded-lg border border-border/50 bg-card/50 hover:border-primary/30 hover:bg-primary/5 transition-all">
               <div>
                 <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">{link.label}</p>
                 <p className="text-[10px] text-muted-foreground">{link.desc}</p>
@@ -68,17 +67,26 @@ const InternalLinks = ({ currentPath, showBlog = true, compact = false }: Intern
         </div>
       </div>
 
+      {/* Guides */}
+      <div>
+        <h2 className="text-sm font-bold text-foreground mb-3">Growth Guides</h2>
+        <div className="space-y-1.5">
+          {GUIDE_LINKS.filter(l => l.path !== currentPath).map(link => (
+            <Link key={link.path} to={link.path} className="group flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/5 transition-colors">
+              <span className="text-primary text-xs">📚</span>
+              <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">{link.label}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
       {/* Blog */}
       {showBlog && (
         <div>
-          <h2 className="text-sm font-bold text-foreground mb-3">Guides & Articles</h2>
+          <h2 className="text-sm font-bold text-foreground mb-3">Articles</h2>
           <div className="space-y-1.5">
-            {BLOG_LINKS.map(link => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className="group flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/5 transition-colors"
-              >
+            {BLOG_LINKS.filter(l => l.path !== currentPath).map(link => (
+              <Link key={link.path} to={link.path} className="group flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-primary/5 transition-colors">
                 <span className="text-primary text-xs">📖</span>
                 <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">{link.label}</span>
               </Link>
@@ -90,5 +98,5 @@ const InternalLinks = ({ currentPath, showBlog = true, compact = false }: Intern
   );
 };
 
-export { TOOL_LINKS, BLOG_LINKS };
+export { TOOL_LINKS, BLOG_LINKS, GUIDE_LINKS };
 export default InternalLinks;
