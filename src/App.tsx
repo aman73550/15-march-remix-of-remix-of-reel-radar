@@ -8,6 +8,7 @@ import { LangProvider } from "@/lib/LangContext";
 import Index from "./pages/Index.tsx";
 import SEOOptimizer from "./pages/SEOOptimizer.tsx";
 import PopupAdOverlay from "./components/ads/PopupAds";
+import StickyCTA from "./components/StickyCTA";
 import { Loader2 } from "lucide-react";
 
 // Lazy load secondary pages
@@ -15,6 +16,7 @@ const AdminLogin = lazy(() => import("./pages/AdminLogin.tsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SEOToolPage = lazy(() => import("./pages/SEOToolPage.tsx"));
+const SEOArticlePage = lazy(() => import("./pages/SEOArticlePage.tsx"));
 const BlogIndex = lazy(() => import("./pages/BlogIndex.tsx"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));
 const AboutPage = lazy(() => import("./pages/AboutPage.tsx"));
@@ -41,6 +43,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <PopupAdOverlay />
+        <StickyCTA />
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -57,6 +60,9 @@ const App = () => (
               <Route path="/reel-title-generator" element={<SEOToolPage slug="reel-title-generator" />} />
               <Route path="/reel-viral-checker" element={<SEOToolPage slug="reel-viral-checker" />} />
               <Route path="/reel-engagement-calculator" element={<SEOToolPage slug="reel-engagement-calculator" />} />
+
+              {/* Programmatic SEO Guide Pages */}
+              <Route path="/guides/:slug" element={<SEOArticlePage />} />
 
               {/* Blog */}
               <Route path="/blog" element={<BlogIndex />} />

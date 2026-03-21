@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main Pages -->
   <url><loc>https://reelsanylizer.in/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://reelsanylizer.in/seo-optimizer</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+
+  <!-- Tool Landing Pages -->
   <url><loc>https://reelsanylizer.in/reel-analyzer</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://reelsanylizer.in/instagram-reel-analyzer</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://reelsanylizer.in/reel-seo-optimizer</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -9,13 +13,39 @@
   <url><loc>https://reelsanylizer.in/reel-title-generator</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://reelsanylizer.in/reel-viral-checker</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://reelsanylizer.in/reel-engagement-calculator</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://reelsanylizer.in/seo-optimizer</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+
+  <!-- SEO Guide Pages (Programmatic SEO) -->
+  <url><loc>https://reelsanylizer.in/guides/why-reels-not-getting-views</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/how-to-increase-reel-reach</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/instagram-reel-algorithm-2026</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/reel-engagement-low-fix</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/best-time-to-post-reels</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/instagram-reel-mistakes</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/reel-hook-examples</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/how-to-go-viral-on-instagram-reels</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/instagram-reel-seo-tips</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/reel-caption-tips</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/reel-hashtag-strategy-2026</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/instagram-reel-trends-2026</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/reel-growth-checklist</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/free-reel-audit-tool</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/improve-reel-watch-time</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/reel-content-ideas</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/reel-analytics-guide</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/how-to-make-reels-faster</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/instagram-reels-vs-tiktok</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/reel-editing-tips-beginners</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://reelsanylizer.in/guides/why-reels-get-less-reach-suddenly</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+
+  <!-- Blog Articles -->
   <url><loc>https://reelsanylizer.in/blog</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://reelsanylizer.in/blog/best-reel-hooks-that-go-viral</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://reelsanylizer.in/blog/how-to-analyze-instagram-reels</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://reelsanylizer.in/blog/best-hashtags-for-instagram-reels</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://reelsanylizer.in/blog/instagram-reel-growth-strategy</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://reelsanylizer.in/blog/how-reel-seo-works</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- Info Pages -->
   <url><loc>https://reelsanylizer.in/about</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://reelsanylizer.in/privacy-policy</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://reelsanylizer.in/terms</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
