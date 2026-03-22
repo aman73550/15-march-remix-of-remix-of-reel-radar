@@ -254,6 +254,9 @@ const Index = () => {
         </Card>
       </motion.div>
 
+      {/* Live Activity Feed */}
+      {!analysis && <LiveActivityFeed />}
+
       {/* Share Unlock Gate */}
       <AnimatePresence>
         {showShareGate && (
