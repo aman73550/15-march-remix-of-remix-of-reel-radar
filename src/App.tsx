@@ -42,9 +42,9 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <PopupAdOverlay />
-        <StickyCTA />
         <BrowserRouter>
+          <PopupAdOverlay />
+          <StickyCTA />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Main pages */}
