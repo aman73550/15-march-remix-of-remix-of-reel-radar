@@ -41,6 +41,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import AnalysisPaymentPopup from "@/components/AnalysisPaymentPopup";
 import { FeaturesSection, ToolsSection, HowItWorksSection, TestimonialsSection, CTASection } from "@/components/HomeSections";
+import LiveActivityFeed from "@/components/LiveActivityFeed";
 import type { ReelAnalysis } from "@/lib/types";
 import { Loader2, Link as LinkIcon, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
 
@@ -252,6 +253,9 @@ const Index = () => {
           <p className="text-center text-[11px] text-muted-foreground/60">No login required • Auto-extracts data if you skip optional fields</p>
         </Card>
       </motion.div>
+
+      {/* Live Activity Feed */}
+      {!analysis && <LiveActivityFeed />}
 
       {/* Share Unlock Gate */}
       <AnimatePresence>
