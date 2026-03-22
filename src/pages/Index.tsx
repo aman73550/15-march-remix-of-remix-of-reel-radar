@@ -25,14 +25,11 @@ import ViralPatternCard from "@/components/ViralPatternCard";
 import ViralStatusBadge from "@/components/ViralStatusBadge";
 import LanguageToggle from "@/components/LanguageToggle";
 import ShareToolPopup from "@/components/ShareToolPopup";
-import ShareUnlockScreen from "@/components/ShareUnlockScreen";
-import { BannerAd, InlineAd, SidebarAds } from "@/components/AdSlots";
 import ProcessingOverlay from "@/components/ProcessingOverlay";
 import MasterReportButton from "@/components/MasterReportButton";
 import FeedbackRating from "@/components/FeedbackRating";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import ExamplePDFPreview from "@/components/ExamplePDFPreview";
-import { canAnalyze, recordAnalysis, getRemainingAnalyses, FREE_LIMIT } from "@/lib/usageTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { useLang } from "@/lib/LangContext";
 import { useBehaviourTrigger, BehaviourTriggerDisplay } from "@/components/BehaviourTrigger";
@@ -42,8 +39,11 @@ import Header from "@/components/Header";
 import AnalysisPaymentPopup from "@/components/AnalysisPaymentPopup";
 import { FeaturesSection, ToolsSection, HowItWorksSection, TestimonialsSection, CTASection } from "@/components/HomeSections";
 import LiveActivityFeed from "@/components/LiveActivityFeed";
+import LoginPrompt from "@/components/LoginPrompt";
+import LastAnalysisButton from "@/components/LastAnalysisButton";
+import { useAuth } from "@/hooks/useAuth";
 import type { ReelAnalysis } from "@/lib/types";
-import { Loader2, Link as LinkIcon, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown } from "lucide-react";
+import { Loader2, Link as LinkIcon, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown, LogIn, User } from "lucide-react";
 
 const Index = () => {
   const [url, setUrl] = useState("");
@@ -60,14 +60,14 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ReelAnalysis | null>(null);
   const [showInterstitial, setShowInterstitial] = useState(false);
-  const [showShareGate, setShowShareGate] = useState(false);
   const [showPaymentPopup, setShowPaymentPopup] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [analysisPrice, setAnalysisPrice] = useState(0);
   const [pendingPaymentToken, setPendingPaymentToken] = useState<string | null>(null);
-  const [remaining, setRemaining] = useState(getRemainingAnalyses());
   const { toast } = useToast();
   const { lang, t } = useLang();
   const { activeTrigger, checkTriggers, dismissTrigger } = useBehaviourTrigger();
+  const { user, canAnalyze, analysisCount, analysisLimit, refreshUsage, loadLastAnalysis } = useAuth();
   const inputRef = useRef<HTMLDivElement>(null);
   const masterReportRef = useRef<HTMLDivElement>(null);
 
@@ -116,8 +116,18 @@ const Index = () => {
 
       setAnalysis(data.analysis);
       setPendingPaymentToken(null);
-      recordAnalysis();
-      setRemaining(getRemainingAnalyses());
+
+      // Save analysis for logged-in user
+      if (user) {
+        await supabase.from("user_analyses" as any).insert({
+          user_id: user.id,
+          reel_url: url.trim(),
+          viral_score: data.analysis?.viralClassification?.score ?? data.analysis?.viralScore ?? 0,
+          analysis_data: data.analysis,
+        } as any);
+        await refreshUsage();
+        await loadLastAnalysis();
+      }
     } catch (err: any) {
       setShowInterstitial(false);
       console.error("Analysis error:", err);
@@ -125,7 +135,7 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
-  }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast]);
+  }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast, user, refreshUsage, loadLastAnalysis]);
 
   const handlePaymentSuccess = (paymentToken: string) => {
     setShowPaymentPopup(false);
@@ -149,10 +159,24 @@ const Index = () => {
       }
     }
 
-    if (!canAnalyze()) { setShowShareGate(true); return; }
+    // If not logged in, show login prompt
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
+    // If limit reached
+    if (!canAnalyze) {
+      toast({
+        title: "Analysis limit reached",
+        description: `You've used all ${analysisLimit} free analyses. Contact support for more.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (checkTriggers()) return;
 
-    setShowShareGate(false);
     setShowInterstitial(true);
     runAnalysis();
   };
@@ -177,8 +201,9 @@ const Index = () => {
     <div className="min-h-screen bg-background relative overflow-x-hidden">
       <Header onCTAClick={scrollToInput} />
       <LanguageToggle />
-      <SidebarAds />
+      <LastAnalysisButton />
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
+      <LoginPrompt open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
 
       {/* Behaviour Trigger Overlay */}
       {activeTrigger && (
@@ -247,35 +272,36 @@ const Index = () => {
             {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
           </Button>
 
-          <p className="text-center text-xs text-muted-foreground">
-            {remaining > 0 ? `${remaining} free analysis${remaining !== 1 ? "es" : ""} remaining` : "No free analyses remaining — share to unlock more"}
-          </p>
-          <p className="text-center text-[11px] text-muted-foreground/60">No login required • Auto-extracts data if you skip optional fields</p>
+          {/* Auth status */}
+          {user ? (
+            <p className="text-center text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <User className="w-3 h-3" />
+                {analysisLimit - analysisCount > 0
+                  ? `${analysisLimit - analysisCount} free analysis${analysisLimit - analysisCount !== 1 ? "es" : ""} remaining`
+                  : "No free analyses remaining"}
+              </span>
+            </p>
+          ) : (
+            <button
+              onClick={() => setShowLoginPrompt(true)}
+              className="w-full text-center text-xs text-primary hover:underline flex items-center justify-center gap-1"
+            >
+              <LogIn className="w-3 h-3" />
+              Sign in with Google to get {analysisLimit} free analyses
+            </button>
+          )}
+          <p className="text-center text-[11px] text-muted-foreground/60">Auto-extracts data if you skip optional fields</p>
         </Card>
       </motion.div>
 
       {/* Live Activity Feed */}
       {!analysis && <LiveActivityFeed />}
 
-      {/* Share Unlock Gate */}
-      <AnimatePresence>
-        {showShareGate && (
-          <motion.div className="fixed inset-0 z-[60] flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="absolute inset-0 bg-background/70 backdrop-blur-md" onClick={() => setShowShareGate(false)} />
-            <motion.div className="relative z-10 w-full max-w-xl" initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}>
-              <ShareUnlockScreen onUnlocked={() => { setShowShareGate(false); setRemaining(getRemainingAnalyses()); }} />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Payment Popup */}
       {showPaymentPopup && (
         <AnalysisPaymentPopup reelUrl={url.trim()} price={analysisPrice} onPaymentSuccess={handlePaymentSuccess} onClose={() => { setShowInterstitial(false); setShowPaymentPopup(false); }} />
       )}
-
-      {/* Ad banner */}
-      <div className="relative z-10 py-4"><BannerAd slot="banner-top" /></div>
 
       {/* Results */}
       <AnimatePresence>
@@ -308,11 +334,7 @@ const Index = () => {
               </motion.div>
             </div>
 
-            <InlineAd slot="after-score" />
-
             {analysis.metricsComparison && Object.keys(analysis.metricsComparison).length > 0 && <MetricsComparison metrics={analysis.metricsComparison} />}
-
-            <InlineAd slot="mid-1" />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Card className="p-5 border border-border bg-card">
@@ -338,20 +360,16 @@ const Index = () => {
               )}
             </div>
 
-            <InlineAd slot="after-charts" />
             {analysis.patternComparison && <ViralPatternCard data={analysis.patternComparison} />}
             {analysis.contentClassification && <ContentClassificationCard data={analysis.contentClassification} thumbnailAnalyzed={analysis.thumbnailAnalyzed} />}
             {analysis.hookAnalysis && <HookAnalysisCard data={analysis.hookAnalysis} title={t.hookTitle} />}
             {analysis.captionAnalysis && <CaptionAnalysisCard data={analysis.captionAnalysis} title={t.captionTitle} />}
             {analysis.hashtagAnalysis && <HashtagAnalysisCard data={analysis.hashtagAnalysis} title={t.hashtagTitle} />}
-            <InlineAd slot="after-hooks" />
-            <InlineAd slot="mid-2" />
             {analysis.videoSignals && <VideoSignalsCard data={analysis.videoSignals} title={t.videoTitle} />}
             {(analysis.videoQuality || analysis.audioQuality) && <QualitySignalsCard videoQuality={analysis.videoQuality} audioQuality={analysis.audioQuality} />}
             {analysis.trendMatching && <TrendMatchingCard data={analysis.trendMatching} title={t.trendTitle} />}
             <AnalysisCard icon="📊" title={t.engagementTitle} score={scores.engagement} details={analysis.engagementDetails || []} index={0} />
             {analysis.commentSentiment && <CommentSentiment sentiment={analysis.commentSentiment} />}
-            <InlineAd slot="mid-3" />
 
             <Card className="p-5 border border-border bg-card">
               <h3 className="font-semibold text-foreground mb-3">💡 {t.recommendations}</h3>
@@ -364,9 +382,7 @@ const Index = () => {
               </ul>
             </Card>
 
-            <InlineAd slot="after-recommendations" />
             <div ref={masterReportRef}><MasterReportButton analysis={analysis} reelUrl={url} /></div>
-            <InlineAd slot="master-report-below" />
             <ExamplePDFPreview />
             <FeedbackRating reelUrl={url} />
 
@@ -374,7 +390,6 @@ const Index = () => {
               <p className="text-sm text-muted-foreground">Want to check another reel? <span className="text-foreground font-medium">Share this tool with a friend.</span></p>
               <ShareToolPopup />
             </div>
-            <BannerAd slot="banner-bottom" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -402,9 +417,7 @@ const Index = () => {
           <InternalLinks currentPath="/" />
 
           <div className="py-8 space-y-4">
-            <BannerAd slot="footer-above" />
             <div className="flex justify-center"><ShareToolPopup /></div>
-            <BannerAd slot="footer-banner" />
           </div>
         </div>
       )}
