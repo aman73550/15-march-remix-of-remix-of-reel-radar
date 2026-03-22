@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, CheckCircle2, Link, Video, ScanSearch, Brain, FileText } from "lucide-react";
-import { BannerAd } from "./AdSlots";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ProcessingOverlayProps {
   show: boolean;
@@ -18,7 +16,7 @@ const STEPS = [
   { label: "Generating final report", icon: FileText, duration: 12 },
 ];
 
-const TOTAL_DURATION = 55; // seconds
+const TOTAL_DURATION = 55;
 
 const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOverlayProps) => {
   const [progress, setProgress] = useState(0);
@@ -27,7 +25,6 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
   const rafRef = useRef<number>();
   const hasCompleted = useRef(false);
 
-  // Reset on show
   useEffect(() => {
     if (show) {
       setProgress(0);
@@ -40,21 +37,17 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
     }
   }, [show]);
 
-  // Animate progress
   useEffect(() => {
     if (!show) return;
 
     const tick = () => {
       if (!startTimeRef.current) return;
       const elapsed = (Date.now() - startTimeRef.current) / 1000;
-      // Ease out — slows down near end, caps at 95% until analysis is truly done
       const maxProgress = analysisComplete ? 100 : 95;
       const raw = Math.min((elapsed / TOTAL_DURATION) * 100, maxProgress);
-      // Ease-out curve
       const eased = raw < maxProgress ? raw : maxProgress;
       setProgress(eased);
 
-      // Determine current step
       let accumulated = 0;
       for (let i = 0; i < STEPS.length; i++) {
         accumulated += STEPS[i].duration;
@@ -80,7 +73,6 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
     };
   }, [show, analysisComplete, onComplete]);
 
-  // When analysis completes, jump to 100
   useEffect(() => {
     if (analysisComplete && show && progress >= 90) {
       setProgress(100);
@@ -122,7 +114,7 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
               </h2>
             </div>
 
-            {/* Progress bar - ALWAYS visible, not inside scrollable area */}
+            {/* Progress bar */}
             <div className="space-y-2 sticky top-0 z-10 bg-background/95 backdrop-blur-sm py-2 -mx-6 px-6 sm:-mx-8 sm:px-8 rounded-lg">
               <div className="w-full h-3 rounded-full bg-muted/50 border border-border overflow-hidden">
                 <motion.div
@@ -167,16 +159,6 @@ const ProcessingOverlay = ({ show, analysisComplete, onComplete }: ProcessingOve
                   </motion.div>
                 );
               })}
-            </div>
-
-            {/* Ad below progress — clearly separated */}
-            <div className="-mx-6 sm:mx-0">
-              <BannerAd slot="below-progress" />
-            </div>
-
-            {/* Ad area */}
-            <div className="-mx-6 sm:mx-0">
-              <BannerAd slot="processing-overlay" />
             </div>
 
             {/* Disclaimer */}
