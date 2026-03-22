@@ -511,6 +511,28 @@ const AdminDashboard = () => {
           <Input value={config.example_pdf_url || ""} onChange={(e) => updateConfig("example_pdf_url", e.target.value)} placeholder="https://drive.google.com/file/d/.../preview" className="bg-muted/50 border-border h-8 sm:h-10 text-xs sm:text-sm" />
           <p className="text-[9px] text-muted-foreground/60">Paste a direct PDF link or Google Drive embed URL. Leave empty to hide.</p>
         </div>
+        {/* User Analysis Limit Control */}
+        <div className="p-3 rounded-xl border-2 border-accent/20 bg-accent/5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-accent" />
+                User Analysis Limit
+              </Label>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5">
+                Max free analyses per logged-in user (current: {config.user_analysis_limit || "2"})
+              </p>
+            </div>
+          </div>
+          <Input
+            type="number"
+            value={config.user_analysis_limit || "2"}
+            onChange={(e) => updateConfig("user_analysis_limit", e.target.value)}
+            className="bg-background border-border h-8 sm:h-10 text-xs sm:text-sm"
+            min="1"
+            max="100"
+          />
+        </div>
         <Button onClick={saveConfig} disabled={savingConfig} className="w-full gradient-primary-bg text-primary-foreground h-9 sm:h-10 text-xs sm:text-sm">
           {savingConfig ? "Saving..." : "Save Configuration"}
         </Button>
