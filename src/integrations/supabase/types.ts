@@ -401,6 +401,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_analyses: {
+        Row: {
+          analysis_data: Json | null
+          created_at: string
+          id: string
+          reel_url: string
+          user_id: string
+          viral_score: number | null
+        }
+        Insert: {
+          analysis_data?: Json | null
+          created_at?: string
+          id?: string
+          reel_url: string
+          user_id: string
+          viral_score?: number | null
+        }
+        Update: {
+          analysis_data?: Json | null
+          created_at?: string
+          id?: string
+          reel_url?: string
+          user_id?: string
+          viral_score?: number | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
