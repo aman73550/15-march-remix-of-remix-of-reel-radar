@@ -5,10 +5,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LangProvider } from "@/lib/LangContext";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index.tsx";
 import SEOOptimizer from "./pages/SEOOptimizer.tsx";
-import PopupAdOverlay from "./components/ads/PopupAds";
-import StickyCTA from "./components/StickyCTA";
 import { Loader2 } from "lucide-react";
 
 // Lazy load secondary pages
@@ -39,54 +38,54 @@ const PageLoader = () => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LangProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <PopupAdOverlay />
-          <StickyCTA />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              {/* Main pages */}
-              <Route path="/" element={<Index />} />
-              <Route path="/seo-optimizer" element={<SEOOptimizer />} />
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                {/* Main pages */}
+                <Route path="/" element={<Index />} />
+                <Route path="/seo-optimizer" element={<SEOOptimizer />} />
 
-              {/* SEO Tool Landing Pages */}
-              <Route path="/reel-analyzer" element={<SEOToolPage slug="reel-analyzer" />} />
-              <Route path="/instagram-reel-analyzer" element={<SEOToolPage slug="instagram-reel-analyzer" />} />
-              <Route path="/reel-seo-optimizer" element={<SEOToolPage slug="reel-seo-optimizer" />} />
-              <Route path="/reel-hashtag-generator" element={<SEOToolPage slug="reel-hashtag-generator" />} />
-              <Route path="/reel-caption-generator" element={<SEOToolPage slug="reel-caption-generator" />} />
-              <Route path="/reel-title-generator" element={<SEOToolPage slug="reel-title-generator" />} />
-              <Route path="/reel-viral-checker" element={<SEOToolPage slug="reel-viral-checker" />} />
-              <Route path="/reel-engagement-calculator" element={<SEOToolPage slug="reel-engagement-calculator" />} />
+                {/* SEO Tool Landing Pages */}
+                <Route path="/reel-analyzer" element={<SEOToolPage slug="reel-analyzer" />} />
+                <Route path="/instagram-reel-analyzer" element={<SEOToolPage slug="instagram-reel-analyzer" />} />
+                <Route path="/reel-seo-optimizer" element={<SEOToolPage slug="reel-seo-optimizer" />} />
+                <Route path="/reel-hashtag-generator" element={<SEOToolPage slug="reel-hashtag-generator" />} />
+                <Route path="/reel-caption-generator" element={<SEOToolPage slug="reel-caption-generator" />} />
+                <Route path="/reel-title-generator" element={<SEOToolPage slug="reel-title-generator" />} />
+                <Route path="/reel-viral-checker" element={<SEOToolPage slug="reel-viral-checker" />} />
+                <Route path="/reel-engagement-calculator" element={<SEOToolPage slug="reel-engagement-calculator" />} />
 
-              {/* Programmatic SEO Guide Pages */}
-              <Route path="/guides/:slug" element={<SEOArticlePage />} />
+                {/* Programmatic SEO Guide Pages */}
+                <Route path="/guides/:slug" element={<SEOArticlePage />} />
 
-              {/* Blog */}
-              <Route path="/blog" element={<BlogIndex />} />
-              <Route path="/blog/:slug" element={<BlogArticle />} />
+                {/* Blog */}
+                <Route path="/blog" element={<BlogIndex />} />
+                <Route path="/blog/:slug" element={<BlogArticle />} />
 
-              {/* Info Pages */}
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/sitemap-page" element={<SitemapPage />} />
-              <Route path="/partnership" element={<PartnershipPage />} />
-              <Route path="/collaboration" element={<CollaborationPage />} />
-              <Route path="/promotion" element={<PromotionPage />} />
+                {/* Info Pages */}
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/sitemap-page" element={<SitemapPage />} />
+                <Route path="/partnership" element={<PartnershipPage />} />
+                <Route path="/collaboration" element={<CollaborationPage />} />
+                <Route path="/promotion" element={<PromotionPage />} />
 
-              {/* Admin — hidden route */}
-              <Route path="/bosspage-login" element={<AdminLogin />} />
-              <Route path="/bosspage" element={<AdminDashboard />} />
+                {/* Admin — hidden route */}
+                <Route path="/bosspage-login" element={<AdminLogin />} />
+                <Route path="/bosspage" element={<AdminDashboard />} />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </LangProvider>
   </QueryClientProvider>
 );
