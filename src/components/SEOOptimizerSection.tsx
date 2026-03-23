@@ -94,31 +94,24 @@ const SEOOptimizerSection = () => {
             <Card className="glass p-4 sm:p-5 mb-6">
               <Textarea value={input} onChange={(e) => setInput(e.target.value)}
                 placeholder={lang === "hi" ? "अपना रील कॉन्टेक्स्ट यहाँ डालें..." : "Enter your reel context, caption, or topic here..."}
-                className="min-h-[100px] bg-muted/30 border-border/50 text-foreground placeholder:text-muted-foreground/60 resize-none mb-4"
-                disabled={isPaid} />
-              {!isPaid ? (
-                <>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="text-muted-foreground line-through text-sm">₹59</span>
-                    <span className="text-2xl font-bold text-foreground">₹10</span>
-                    <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-semibold">83% OFF</span>
-                  </div>
-                  <Button onClick={handlePay} disabled={isPaying || !input.trim()} className="w-full py-5 text-base font-semibold gradient-primary-bg text-primary-foreground hover:opacity-90 transition-opacity">
-                    <Lock className="w-4 h-4 mr-2" />
-                    {isPaying ? "Processing..." : "Pay ₹10 & Generate SEO Analysis"}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 mb-4 text-primary text-sm font-medium">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Payment successful! Click Submit to start
-                  </div>
-                  <Button onClick={handleSubmit} disabled={isProcessing} className="w-full py-5 text-base font-semibold gradient-primary-bg text-primary-foreground hover:opacity-90 transition-opacity">
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Start SEO Analysis
-                  </Button>
-                </>
+                className="min-h-[100px] bg-muted/30 border-border/50 text-foreground placeholder:text-muted-foreground/60 resize-none mb-4" />
+              
+              {user && (
+                <div className="flex items-center gap-2 mb-3 text-xs text-muted-foreground">
+                  <Coins className="w-3.5 h-3.5 text-primary" />
+                  {credits > 0 ? `${credits} credit${credits !== 1 ? "s" : ""} remaining` : "No credits remaining"}
+                </div>
+              )}
+
+              <Button onClick={handleSubmit} disabled={isProcessing || !input.trim()} className="w-full py-5 text-base font-semibold gradient-primary-bg text-primary-foreground hover:opacity-90 transition-opacity">
+                <Sparkles className="w-4 h-4 mr-2" />
+                {isProcessing ? "Analyzing..." : user ? "Start SEO Analysis (1 Credit)" : "Login & Analyze"}
+              </Button>
+              
+              {!user && (
+                <p className="text-center text-xs text-primary mt-2 cursor-pointer hover:underline" onClick={() => setShowLoginPrompt(true)}>
+                  Sign in to get {maxCredits} free credits
+                </p>
               )}
             </Card>
           </motion.div>
