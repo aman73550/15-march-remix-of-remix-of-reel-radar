@@ -23,12 +23,11 @@ declare global {
 const SEOOptimizerSection = () => {
   const [input, setInput] = useState("");
   const { lang } = useLang();
-  const [isPaying, setIsPaying] = useState(false);
-  const [isPaid, setIsPaid] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [seoResults, setSeoResults] = useState<any>(null);
-  const [reportId, setReportId] = useState<string | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const { user, canUseCredit, credits, maxCredits, refreshUsage, loadAnalyses, signInWithGoogle } = useAuth();
 
   const handlePay = async () => {
     if (!input.trim()) {
