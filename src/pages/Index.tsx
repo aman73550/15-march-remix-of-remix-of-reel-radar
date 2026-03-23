@@ -271,14 +271,14 @@ const Index = () => {
             {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
           </Button>
 
-          {/* Auth status */}
+          {/* Credit status */}
           {user ? (
             <p className="text-center text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <User className="w-3 h-3" />
-                {analysisLimit - analysisCount > 0
-                  ? `${analysisLimit - analysisCount} free analysis${analysisLimit - analysisCount !== 1 ? "es" : ""} remaining`
-                  : "No free analyses remaining"}
+                {credits > 0
+                  ? `${credits} credit${credits !== 1 ? "s" : ""} remaining`
+                  : "No credits remaining"}
               </span>
             </p>
           ) : (
@@ -287,7 +287,7 @@ const Index = () => {
               className="w-full text-center text-xs text-primary hover:underline flex items-center justify-center gap-1"
             >
               <LogIn className="w-3 h-3" />
-              Sign in with Google to get {analysisLimit} free analyses
+              Sign in with Google to get {maxCredits} free credits
             </button>
           )}
           <p className="text-center text-[11px] text-muted-foreground/60">Auto-extracts data if you skip optional fields</p>
