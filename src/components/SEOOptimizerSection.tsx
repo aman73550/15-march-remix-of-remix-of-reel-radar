@@ -29,70 +29,43 @@ const SEOOptimizerSection = () => {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const { user, canUseCredit, credits, maxCredits, refreshUsage, loadAnalyses, signInWithGoogle } = useAuth();
 
-  const handlePay = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!input.trim()) {
-      toast.error(lang === "hi" ? "पहले अपना टॉपिक या कॉन्टेक्स्ट डालें" : "Please enter your topic or context first");
+      toast.error(lang === "hi" ? "पहले अपना टॉपिक डालें" : "Please enter your topic first");
       return;
     }
-    setIsPaying(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: { reelUrl: `seo:${input.trim()}`, analysisData: { type: "seo", topic: input.trim() }, tool: "seo" },
-      });
-      if (error || !data?.success) throw new Error(data?.error || error?.message || "Payment creation failed");
-      if (data.gateway === "razorpay" && data.orderId) {
-        if (!window.Razorpay) {
-          const script = document.createElement("script");
-          script.src = "https://checkout.razorpay.com/v1/checkout.js";
-          document.head.appendChild(script);
-          await new Promise((r) => setTimeout(r, 1500));
-        }
-        const options = {
-          key: data.keyId, amount: data.amount * 100, currency: data.currency,
-          name: "Reel SEO Optimizer", description: "Deep SEO Analysis", order_id: data.orderId,
-          handler: async (response: any) => {
-            const { data: verifyData, error: verifyErr } = await supabase.functions.invoke("verify-payment", {
-              body: { reportId: data.reportId, razorpayPaymentId: response.razorpay_payment_id, razorpayOrderId: response.razorpay_order_id, razorpaySignature: response.razorpay_signature },
-            });
-            if (verifyErr || !verifyData?.success) { toast.error("Payment verification failed"); return; }
-            setReportId(data.reportId);
-            setIsPaid(true);
-            toast.success("Payment successful! ✅");
-          },
-          theme: { color: "#e8365d" },
-        };
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
-      } else if (data.gateway === "stripe" && data.sessionUrl) {
-        window.location.href = data.sessionUrl;
-        return;
-      } else {
-        setReportId(data.reportId);
-        setIsPaid(true);
-        toast.success("Payment successful!");
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Payment failed");
-    } finally {
-      setIsPaying(false);
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
     }
-  };
-
-  const handleSubmit = useCallback(async () => {
-    if (!isPaid || !reportId) { toast.error("Please complete payment first"); return; }
+    if (!canUseCredit) {
+      toast.error(`No credits remaining. You've used all ${maxCredits} credits.`);
+      return;
+    }
     setIsProcessing(true);
     setAnalysisComplete(false);
     setSeoResults(null);
     try {
-      const { data, error } = await supabase.functions.invoke("seo-analyze", { body: { topic: input.trim(), reportId } });
+      const { data, error } = await supabase.functions.invoke("seo-analyze", { body: { topic: input.trim() } });
       if (error || !data?.success) throw new Error(data?.error || error?.message || "SEO analysis failed");
       setSeoResults(data.data);
       setAnalysisComplete(true);
+      // Save as a credit usage
+      if (user) {
+        await supabase.from("user_analyses" as any).insert({
+          user_id: user.id,
+          reel_url: `seo:${input.trim().slice(0, 100)}`,
+          viral_score: null,
+          analysis_data: { type: "seo", topic: input.trim() },
+        } as any);
+        await refreshUsage();
+        await loadAnalyses();
+      }
     } catch (err: any) {
       toast.error(err.message || "Analysis failed");
       setIsProcessing(false);
     }
-  }, [isPaid, reportId, input]);
+  }, [user, canUseCredit, maxCredits, input, lang, refreshUsage, loadAnalyses]);
 
   const handleProcessingComplete = useCallback(() => { setIsProcessing(false); }, []);
 
