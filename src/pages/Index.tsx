@@ -164,11 +164,11 @@ const Index = () => {
       return;
     }
 
-    // If limit reached
-    if (!canAnalyze) {
+    // If no credits
+    if (!canUseCredit) {
       toast({
-        title: "Analysis limit reached",
-        description: `You've used all ${analysisLimit} free analyses. Contact support for more.`,
+        title: "No credits remaining",
+        description: `You've used all ${maxCredits} credits. Contact support for more.`,
         variant: "destructive",
       });
       return;
