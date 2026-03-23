@@ -200,7 +200,7 @@ const Index = () => {
     <div className="min-h-screen bg-background relative overflow-x-hidden">
       <Header onCTAClick={scrollToInput} />
       <LanguageToggle />
-      <LastAnalysisButton />
+      
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
       <LoginPrompt open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
 
