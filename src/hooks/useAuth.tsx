@@ -2,18 +2,26 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
+interface AnalysisRecord {
+  id: string;
+  reel_url: string;
+  viral_score: number | null;
+  created_at: string;
+  analysis_data: any;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  analysisCount: number;
-  analysisLimit: number;
-  canAnalyze: boolean;
+  credits: number;
+  maxCredits: number;
+  canUseCredit: boolean;
   refreshUsage: () => Promise<void>;
-  lastAnalysis: any | null;
-  loadLastAnalysis: () => Promise<void>;
+  analyses: AnalysisRecord[];
+  loadAnalyses: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -22,12 +30,12 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   signInWithGoogle: async () => {},
   signOut: async () => {},
-  analysisCount: 0,
-  analysisLimit: 2,
-  canAnalyze: false,
+  credits: 0,
+  maxCredits: 3,
+  canUseCredit: false,
   refreshUsage: async () => {},
-  lastAnalysis: null,
-  loadLastAnalysis: async () => {},
+  analyses: [],
+  loadAnalyses: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -36,9 +44,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [analysisCount, setAnalysisCount] = useState(0);
-  const [analysisLimit, setAnalysisLimit] = useState(2);
-  const [lastAnalysis, setLastAnalysis] = useState<any | null>(null);
+  const [usedCredits, setUsedCredits] = useState(0);
+  const [maxCredits, setMaxCredits] = useState(3);
+  const [analyses, setAnalyses] = useState<AnalysisRecord[]>([]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -56,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Load analysis limit from site_config
+  // Load credit limit from site_config
   useEffect(() => {
     const loadLimit = async () => {
       const { data } = await supabase
@@ -65,42 +73,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq("config_key", "user_analysis_limit")
         .single();
       if (data) {
-        setAnalysisLimit(parseInt((data as any).config_value) || 2);
+        setMaxCredits(parseInt((data as any).config_value) || 3);
       }
     };
     loadLimit();
   }, []);
 
-  // Load analysis count when user changes
+  // Load used credits when user changes
   const refreshUsage = useCallback(async () => {
-    if (!user) { setAnalysisCount(0); return; }
+    if (!user) { setUsedCredits(0); return; }
     const { count } = await supabase
       .from("user_analyses" as any)
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id);
-    setAnalysisCount(count || 0);
+    setUsedCredits(count || 0);
   }, [user]);
 
   useEffect(() => {
     refreshUsage();
   }, [refreshUsage]);
 
-  const loadLastAnalysis = useCallback(async () => {
-    if (!user) { setLastAnalysis(null); return; }
+  const loadAnalyses = useCallback(async () => {
+    if (!user) { setAnalyses([]); return; }
     const { data } = await supabase
       .from("user_analyses" as any)
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(1);
-    if (data && (data as any[]).length > 0) {
-      setLastAnalysis((data as any[])[0]);
+      .limit(10);
+    if (data) {
+      setAnalyses(data as any[]);
     }
   }, [user]);
 
   useEffect(() => {
-    loadLastAnalysis();
-  }, [loadLastAnalysis]);
+    loadAnalyses();
+  }, [loadAnalyses]);
 
   const signInWithGoogle = async () => {
     const { lovable } = await import("@/integrations/lovable/index");
@@ -113,11 +121,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    setAnalysisCount(0);
-    setLastAnalysis(null);
+    setUsedCredits(0);
+    setAnalyses([]);
   };
 
-  const canAnalyze = user ? analysisCount < analysisLimit : false;
+  const credits = Math.max(0, maxCredits - usedCredits);
+  const canUseCredit = user ? credits > 0 : false;
 
   return (
     <AuthContext.Provider value={{
@@ -126,12 +135,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       loading,
       signInWithGoogle,
       signOut: signOutFn,
-      analysisCount,
-      analysisLimit,
-      canAnalyze,
+      credits,
+      maxCredits,
+      canUseCredit,
       refreshUsage,
-      lastAnalysis,
-      loadLastAnalysis,
+      analyses,
+      loadAnalyses,
     }}>
       {children}
     </AuthContext.Provider>
