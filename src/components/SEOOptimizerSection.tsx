@@ -71,6 +71,7 @@ const SEOOptimizerSection = () => {
 
   return (
     <div className="relative z-10 max-w-xl lg:max-w-2xl mx-auto px-3 sm:px-4 py-6 pb-28">
+      <LoginPrompt open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
       <SEOProcessingOverlay show={isProcessing} analysisComplete={analysisComplete} onComplete={handleProcessingComplete} />
       <div className="flex justify-end mb-4"><LanguageToggle /></div>
       <motion.div className="text-center mb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
