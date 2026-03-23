@@ -134,7 +134,7 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
-  }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast, user, refreshUsage, loadLastAnalysis]);
+  }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast, user, refreshUsage, loadAnalyses]);
 
   const handlePaymentSuccess = (paymentToken: string) => {
     setShowPaymentPopup(false);
