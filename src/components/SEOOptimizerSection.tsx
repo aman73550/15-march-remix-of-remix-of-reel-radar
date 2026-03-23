@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Sparkles, Lock, CheckCircle2 } from "lucide-react";
+import { Search, Sparkles, CheckCircle2, Coins } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,9 @@ import LanguageToggle from "@/components/LanguageToggle";
 import UserReviews from "@/components/UserReviews";
 import SEOProcessingOverlay from "@/components/SEOProcessingOverlay";
 import SEOResultsDisplay from "@/components/SEOResultsDisplay";
+import LoginPrompt from "@/components/LoginPrompt";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 declare global {
