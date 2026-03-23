@@ -517,10 +517,10 @@ const AdminDashboard = () => {
             <div>
               <Label className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-accent" />
-                User Analysis Limit
+                User Credits Limit
               </Label>
               <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5">
-                Max free analyses per logged-in user (current: {config.user_analysis_limit || "2"})
+                Max credits per logged-in user for both Reel Analyzer & SEO Optimizer (current: {config.user_analysis_limit || "3"})
               </p>
             </div>
           </div>

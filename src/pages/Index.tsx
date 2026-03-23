@@ -40,7 +40,6 @@ import AnalysisPaymentPopup from "@/components/AnalysisPaymentPopup";
 import { FeaturesSection, ToolsSection, HowItWorksSection, TestimonialsSection, CTASection } from "@/components/HomeSections";
 import LiveActivityFeed from "@/components/LiveActivityFeed";
 import LoginPrompt from "@/components/LoginPrompt";
-import LastAnalysisButton from "@/components/LastAnalysisButton";
 import { useAuth } from "@/hooks/useAuth";
 import type { ReelAnalysis } from "@/lib/types";
 import { Loader2, Link as LinkIcon, Sparkles, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Crown, LogIn, User } from "lucide-react";
@@ -67,7 +66,7 @@ const Index = () => {
   const { toast } = useToast();
   const { lang, t } = useLang();
   const { activeTrigger, checkTriggers, dismissTrigger } = useBehaviourTrigger();
-  const { user, canAnalyze, analysisCount, analysisLimit, refreshUsage, loadLastAnalysis } = useAuth();
+  const { user, canUseCredit, credits, maxCredits, refreshUsage, loadAnalyses } = useAuth();
   const inputRef = useRef<HTMLDivElement>(null);
   const masterReportRef = useRef<HTMLDivElement>(null);
 
@@ -126,7 +125,7 @@ const Index = () => {
           analysis_data: data.analysis,
         } as any);
         await refreshUsage();
-        await loadLastAnalysis();
+        await loadAnalyses();
       }
     } catch (err: any) {
       setShowInterstitial(false);
@@ -135,7 +134,7 @@ const Index = () => {
     } finally {
       setLoading(false);
     }
-  }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast, user, refreshUsage, loadLastAnalysis]);
+  }, [url, caption, hashtags, likes, comments, views, shares, saves, sampleComments, lang, t, toast, user, refreshUsage, loadAnalyses]);
 
   const handlePaymentSuccess = (paymentToken: string) => {
     setShowPaymentPopup(false);
@@ -165,11 +164,11 @@ const Index = () => {
       return;
     }
 
-    // If limit reached
-    if (!canAnalyze) {
+    // If no credits
+    if (!canUseCredit) {
       toast({
-        title: "Analysis limit reached",
-        description: `You've used all ${analysisLimit} free analyses. Contact support for more.`,
+        title: "No credits remaining",
+        description: `You've used all ${maxCredits} credits. Contact support for more.`,
         variant: "destructive",
       });
       return;
@@ -201,7 +200,7 @@ const Index = () => {
     <div className="min-h-screen bg-background relative overflow-x-hidden">
       <Header onCTAClick={scrollToInput} />
       <LanguageToggle />
-      <LastAnalysisButton />
+      
       <ProcessingOverlay show={showInterstitial} analysisComplete={!loading && analysis !== null} onComplete={() => setShowInterstitial(false)} />
       <LoginPrompt open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
 
@@ -272,14 +271,14 @@ const Index = () => {
             {loading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t.analyzing}</>) : (<><TrendingUp className="w-4 h-4 mr-2" />{t.analyzeBtn}</>)}
           </Button>
 
-          {/* Auth status */}
+          {/* Credit status */}
           {user ? (
             <p className="text-center text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <User className="w-3 h-3" />
-                {analysisLimit - analysisCount > 0
-                  ? `${analysisLimit - analysisCount} free analysis${analysisLimit - analysisCount !== 1 ? "es" : ""} remaining`
-                  : "No free analyses remaining"}
+                {credits > 0
+                  ? `${credits} credit${credits !== 1 ? "s" : ""} remaining`
+                  : "No credits remaining"}
               </span>
             </p>
           ) : (
@@ -288,7 +287,7 @@ const Index = () => {
               className="w-full text-center text-xs text-primary hover:underline flex items-center justify-center gap-1"
             >
               <LogIn className="w-3 h-3" />
-              Sign in with Google to get {analysisLimit} free analyses
+              Sign in with Google to get {maxCredits} free credits
             </button>
           )}
           <p className="text-center text-[11px] text-muted-foreground/60">Auto-extracts data if you skip optional fields</p>
