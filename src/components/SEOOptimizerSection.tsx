@@ -77,7 +77,7 @@ const SEOOptimizerSection = () => {
       <motion.div className="text-center mb-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-muted/50 text-xs text-muted-foreground mb-3">
           <Search className="w-3 h-3" />
-          {lang === "hi" ? "पेड टूल — SEO ऑप्टिमाइज़ेशन" : "Paid Tool — SEO Optimization"}
+          {lang === "hi" ? "फ्री टूल — SEO ऑप्टिमाइज़ेशन" : "Free Tool — SEO Optimization (1 Credit)"}
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Reel <span className="text-primary">SEO Optimizer</span></h1>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
