@@ -125,7 +125,7 @@ const Index = () => {
           analysis_data: data.analysis,
         } as any);
         await refreshUsage();
-        await loadLastAnalysis();
+        await loadAnalyses();
       }
     } catch (err: any) {
       setShowInterstitial(false);
