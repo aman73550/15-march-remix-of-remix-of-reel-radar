@@ -66,7 +66,7 @@ const Index = () => {
   const { toast } = useToast();
   const { lang, t } = useLang();
   const { activeTrigger, checkTriggers, dismissTrigger } = useBehaviourTrigger();
-  const { user, canAnalyze, analysisCount, analysisLimit, refreshUsage, loadLastAnalysis } = useAuth();
+  const { user, canUseCredit, credits, maxCredits, refreshUsage, loadAnalyses } = useAuth();
   const inputRef = useRef<HTMLDivElement>(null);
   const masterReportRef = useRef<HTMLDivElement>(null);
 
